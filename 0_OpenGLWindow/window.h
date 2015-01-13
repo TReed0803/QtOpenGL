@@ -7,6 +7,7 @@
 class Window : public QOpenGLWindow,
                protected QOpenGLFunctions
 {
+  Q_OBJECT
 
 // OpenGL Events
 public:

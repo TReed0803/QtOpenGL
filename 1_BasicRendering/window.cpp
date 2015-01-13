@@ -19,7 +19,7 @@ void Window::initializeGL()
 {
   // Initialize OpenGL Backend
   initializeOpenGLFunctions();
-  connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &Window::teardownGL, Qt::DirectConnection);
+  connect(context(), SIGNAL(aboutToBeDestroyed()), this, SLOT(teardownGL()), Qt::DirectConnection);
   printVersionInformation();
 
   // Set global information
@@ -71,7 +71,7 @@ void Window::paintGL()
   m_program->bind();
   {
     m_object.bind();
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(sg_vertexes) / sizeof(sg_vertexes[0]));
     m_object.release();
   }
   m_program->release();

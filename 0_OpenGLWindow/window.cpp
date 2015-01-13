@@ -10,7 +10,7 @@ void Window::initializeGL()
 {
   // Initialize OpenGL Backend
   initializeOpenGLFunctions();
-  connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &Window::teardownGL, Qt::DirectConnection);
+  connect(context(), SIGNAL(aboutToBeDestroyed()), this, SLOT(teardownGL()), Qt::DirectConnection);
   printContextInformation();
 
   // Set global information
