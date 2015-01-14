@@ -34,7 +34,7 @@ void Window::initializeGL()
     m_program->link();
     m_program->bind();
 
-    // Create Buffers (Do not release until VAO is created)
+    // Create Buffer (Do not release until VAO is created)
     m_vertex.create();
     m_vertex.bind();
     m_vertex.setUsagePattern(QOpenGLBuffer::StaticDraw);
