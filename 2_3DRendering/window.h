@@ -23,6 +23,7 @@ public:
   void paintGL();
 protected slots:
   void teardownGL();
+  void update();
 
 private:
   // OpenGL State Information

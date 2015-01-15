@@ -113,7 +113,6 @@ void Window::paintGL()
 {
   // Clear
   glClear(GL_COLOR_BUFFER_BIT);
-  m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
 
   // Render using our shader
   m_program->bind();
@@ -133,6 +132,15 @@ void Window::teardownGL()
   m_object.destroy();
   m_vertex.destroy();
   delete m_program;
+}
+
+void Window::update()
+{
+  // Update instance information
+  m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
+
+  // Schedule a redraw
+  QOpenGLWindow::update();
 }
 
 /*******************************************************************************
