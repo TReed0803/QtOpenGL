@@ -12,6 +12,7 @@
 #include "Instances/StdKeyMap.h"
 #include "Instances/StdKeyUnorderedMap.h"
 #include "Instances/StdKeyVector.h"
+#include "Instances/QInput.h"
 
 #endif // TESTS_INC
 

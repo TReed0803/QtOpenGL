@@ -27,7 +27,8 @@ SOURCES += \
     Instances/StdKeyList.cpp \
     Instances/StdKeyMap.cpp \
     Instances/StdKeyUnorderedMap.cpp \
-    Instances/StdKeyVector.cpp
+    Instances/StdKeyVector.cpp \
+    Instances/QInput.cpp
 
 HEADERS += \
     keyobject.h \
@@ -46,4 +47,5 @@ HEADERS += \
     Instances/StdKeyVector.h \
     Instances/QKeyList.h \
     Instances/QKeyMap.h \
-    Instances/QKeyVector.h
+    Instances/QKeyVector.h \
+    Instances/QInput.h

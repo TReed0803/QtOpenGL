@@ -59,21 +59,21 @@ bool StdKeyList::keyReleased(Qt::Key k)
 
 void StdKeyList::update()
 {
-  KeyContainer::iterator it = sg_keyInstances.begin();
-  while (it != sg_keyInstances.end())
+  for (KeyContainer::iterator it = sg_keyInstances.begin(); it != sg_keyInstances.end();)
   {
     switch (it->second)
     {
       case KeyTriggered:
         it->second = KeyPressed;
+        ++it;
         break;
       case KeyReleased:
         it = sg_keyInstances.erase(it);
-        continue;
+        break;
       default:
+        ++it;
         break;
     }
-    ++it;
   }
 }
 
