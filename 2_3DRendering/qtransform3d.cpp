@@ -17,7 +17,7 @@ void QTransform3D::scale(const QVector3D &ds)
 void QTransform3D::rotate(const QQuaternion &dr)
 {
   m_dirty = true;
-  m_rotation *= dr;
+  m_rotation = dr * m_rotation;
 }
 
 void QTransform3D::grow(const QVector3D &ds)
