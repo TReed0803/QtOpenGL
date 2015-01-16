@@ -1,76 +1,134 @@
 #include "QInput.h"
-#include <algorithm>
+#include <QCursor>
 #include <vector>
-#include <limits>
+#include <algorithm>
 
 /*******************************************************************************
  * Static Helper Structs
  ******************************************************************************/
-struct KeyInstance : std::pair<int, QInput::KeyState>
+template <typename T>
+struct InputInstance : std::pair<T, QInput::InputState>
 {
-  inline explicit KeyInstance(int k) : std::pair<int, QInput::KeyState>(k, QInput::KeyInvalid) {}
-  inline KeyInstance(int k, QInput::KeyState s) : std::pair<int, QInput::KeyState>(k, s) {}
-  inline bool operator<(const KeyInstance &rhs) const
-  {
-    return first < rhs.first;
-  }
-  inline bool operator==(const KeyInstance &rhs) const
+  typedef std::pair<T, QInput::InputState> base_class;
+  inline InputInstance(T value) : base_class(value, QInput::InputInvalid) {}
+  inline InputInstance(T value, QInput::InputState state) : base_class(value, state) {}
+  inline bool operator==(const InputInstance &rhs) const
   {
     return first == rhs.first;
   }
 };
+
+// Instance types
+typedef InputInstance<Qt::Key> KeyInstance;
+typedef InputInstance<Qt::MouseButton> ButtonInstance;
+
+// Container types
 typedef std::vector<KeyInstance> KeyContainer;
-static const KeyInstance InvalidInstance = KeyInstance(std::numeric_limits<int>::max(), QInput::KeyInvalid);
+typedef std::vector<ButtonInstance> ButtonContainer;
+
+// Globals
 static KeyContainer sg_keyInstances;
+static ButtonContainer sg_buttonInstances;
+static QPoint sg_mouseCurrPosition;
+static QPoint sg_mousePrevPosition;
+static QPoint sg_mouseDelta;
 
 /*******************************************************************************
  * Static Helper Fucntions
  ******************************************************************************/
-static inline KeyContainer::iterator FindKey(Qt::Key k)
+static inline KeyContainer::iterator FindKey(Qt::Key value)
 {
-  KeyContainer::iterator it = sg_keyInstances.begin();
-  KeyContainer::iterator end = sg_keyInstances.end();
-  while (it != end)
+  return std::find(sg_keyInstances.begin(), sg_keyInstances.end(), value);
+}
+
+static inline ButtonContainer::iterator FindButton(Qt::MouseButton value)
+{
+  return std::find(sg_buttonInstances.begin(), sg_buttonInstances.end(), value);
+}
+
+template <typename TPair>
+static inline void UpdateStates(TPair &instance)
+{
+  switch (instance.second)
   {
-    if (it->first == k)
-      return it;
-    ++it;
+  case QInput::InputRegistered:
+    instance.second = QInput::InputTriggered;
+    break;
+  case QInput::InputTriggered:
+    instance.second = QInput::InputPressed;
+    break;
+  case QInput::InputUnregistered:
+    instance.second = QInput::InputReleased;
+    break;
+  default:
+    break;
   }
-  return it;
+}
+
+template <typename TPair>
+static inline bool CheckReleased(const TPair &instance)
+{
+  return instance.second == QInput::InputReleased;
+}
+
+template <typename Container>
+static inline void Update(Container &container)
+{
+  typedef typename Container::iterator Iter;
+  typedef typename Container::value_type TPair;
+
+  // Remove old data
+  Iter remove = std::remove_if(container.begin(), container.end(), &CheckReleased<TPair>);
+  container.erase(remove, container.end());
+
+  // Update existing data
+  std::for_each(container.begin(), container.end(), &UpdateStates<TPair>);
 }
 
 /*******************************************************************************
  * QInput Implementation
  ******************************************************************************/
-QInput::KeyState QInput::keyState(Qt::Key k)
+QInput::InputState QInput::keyState(Qt::Key k)
 {
   KeyContainer::iterator it = FindKey(k);
-  return (it != sg_keyInstances.end()) ? it->second : KeyInvalid;
+  return (it != sg_keyInstances.end()) ? it->second : InputInvalid;
+}
+
+QInput::InputState QInput::buttonState(Qt::MouseButton k)
+{
+  ButtonContainer::iterator it = FindButton(k);
+  return (it != sg_buttonInstances.end()) ? it->second : InputInvalid;
+}
+
+QPoint QInput::mousePosition()
+{
+  return QCursor::pos();
+}
+
+QPoint QInput::mouseDelta()
+{
+  return sg_mouseDelta;
 }
 
 void QInput::update()
 {
-  for (KeyContainer::iterator it = sg_keyInstances.begin(); it != sg_keyInstances.end();)
-  {
-    switch (it->second)
-    {
-      case KeyTriggered:
-        it->second = KeyPressed;
-        ++it;
-        break;
-      case KeyReleased:
-        it = sg_keyInstances.erase(it);
-        break;
-      default:
-        ++it;
-        break;
-    }
-  }
+  // Update Mouse Delta
+  sg_mousePrevPosition = sg_mouseCurrPosition;
+  sg_mouseCurrPosition = QCursor::pos();
+  sg_mouseDelta = sg_mouseCurrPosition - sg_mousePrevPosition;
+
+  // Update KeyState values
+  Update(sg_buttonInstances);
+  Update(sg_keyInstances);
 }
 
 void QInput::registerKeyPress(int k)
 {
-  sg_keyInstances.push_back(KeyInstance(k, KeyTriggered));
+  KeyContainer::iterator it = FindKey((Qt::Key)k);
+  if (it == sg_keyInstances.end())
+  {
+    sg_keyInstances.push_back(KeyInstance((Qt::Key)k, InputRegistered));
+  }
 }
 
 void QInput::registerKeyRelease(int k)
@@ -78,11 +136,30 @@ void QInput::registerKeyRelease(int k)
   KeyContainer::iterator it = FindKey((Qt::Key)k);
   if (it != sg_keyInstances.end())
   {
-    it->second = KeyReleased;
+    it->second = InputUnregistered;
+  }
+}
+
+void QInput::registerMousePress(Qt::MouseButton btn)
+{
+  ButtonContainer::iterator it = FindButton(btn);
+  if (it == sg_buttonInstances.end())
+  {
+    sg_buttonInstances.push_back(ButtonInstance(btn, InputRegistered));
+  }
+}
+
+void QInput::registerMouseRelease(Qt::MouseButton btn)
+{
+  ButtonContainer::iterator it = FindButton(btn);
+  if (it != sg_buttonInstances.end())
+  {
+    it->second = InputUnregistered;
   }
 }
 
 void QInput::reset()
 {
   sg_keyInstances.clear();
+  sg_buttonInstances.clear();
 }
