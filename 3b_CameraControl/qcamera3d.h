@@ -6,6 +6,12 @@
 class QCamera3D
 {
 public:
+
+  // Constants
+  static const QVector3D LocalForward;
+  static const QVector3D LocalUp;
+  static const QVector3D LocalRight;
+
   // Constructors
   QCamera3D();
 
@@ -30,8 +36,9 @@ public:
 
   // Queries
   QVector3D forward() const;
-  QVector3D right() const;
   QVector3D up() const;
+  QVector3D right() const;
+
 private:
   bool m_dirty;
   QVector3D m_translation;
@@ -45,6 +52,9 @@ private:
 };
 
 Q_DECLARE_TYPEINFO(QCamera3D, Q_MOVABLE_TYPE);
+
+// Constructors
+inline QCamera3D::QCamera3D() : m_dirty(true) {}
 
 // Transform By (Add/Scale)
 inline void QCamera3D::translate(float dx, float dy,float dz) { translate(QVector3D(dx, dy, dz)); }

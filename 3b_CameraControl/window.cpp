@@ -5,7 +5,6 @@
 #include <QKeyEvent>
 #include "qvertex.h"
 #include "qinput.h"
-#include <QScreen>
 
 // Front Verticies
 #define QVERTEX_FTR QVertex( QVector3D( 0.5f,  0.5f,  0.5f), QVector3D( 1.0f, 0.0f, 0.0f ) )
@@ -147,7 +146,7 @@ void Window::update()
   // Camera Transformation
   if (QInput::buttonPressed(Qt::RightButton))
   {
-    m_camera.rotate(-0.5f * QInput::mouseDelta().x(), QVector3D(0.0f, 1.0f, 0.0f));
+    m_camera.rotate(-0.5f * QInput::mouseDelta().x(), QCamera3D::LocalUp);
     m_camera.rotate(-0.5f * QInput::mouseDelta().y(), m_camera.right());
     if (QInput::keyPressed(Qt::Key_W))
     {
@@ -206,11 +205,6 @@ void Window::mousePressEvent(QMouseEvent *event)
 void Window::mouseReleaseEvent(QMouseEvent *event)
 {
   QInput::registerMouseRelease(event->button());
-}
-
-void Window::mouseMoveEvent(QMouseEvent *event)
-{
-  QInput::registerMouseMovement(event->pos());
 }
 
 /*******************************************************************************

@@ -1,9 +1,9 @@
 #include "qcamera3d.h"
 #include <QDebug>
 
-QCamera3D::QCamera3D() : m_dirty(true)
-{
-}
+const QVector3D QCamera3D::LocalForward(0.0f, 0.0f, -1.0f);
+const QVector3D QCamera3D::LocalUp(0.0f, 1.0f, 0.0f);
+const QVector3D QCamera3D::LocalRight(1.0f, 0.0f, 0.0f);
 
 // Transform By (Add/Scale)
 void QCamera3D::translate(const QVector3D &dt)
@@ -47,17 +47,17 @@ const QMatrix4x4 &QCamera3D::toMatrix()
 // Queries
 QVector3D QCamera3D::forward() const
 {
-  return m_rotation.rotatedVector(QVector3D(0.0f, 0.0f, -1.0f));
-}
-
-QVector3D QCamera3D::right() const
-{
-  return m_rotation.rotatedVector(QVector3D(1.0f, 0.0f, 0.0f));
+  return m_rotation.rotatedVector(LocalForward);
 }
 
 QVector3D QCamera3D::up() const
 {
-  return m_rotation.rotatedVector(QVector3D(0.0f, 1.0f, 0.0f));
+  return m_rotation.rotatedVector(LocalUp);
+}
+
+QVector3D QCamera3D::right() const
+{
+  return m_rotation.rotatedVector(LocalRight);
 }
 
 // Qt Streams

@@ -31,14 +31,14 @@ public:
   static QPoint mousePosition();
   static QPoint mouseDelta();
 
-  // State updating
 private:
+
+  // State updating
   static void update();
   static void registerKeyPress(int k);
   static void registerKeyRelease(int k);
   static void registerMousePress(Qt::MouseButton btn);
   static void registerMouseRelease(Qt::MouseButton btn);
-  static void registerMouseMovement(const QPoint &pos);
   static void reset();
   friend class Window;
 };

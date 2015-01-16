@@ -8,6 +8,12 @@
 class QTransform3D
 {
 public:
+
+  // Constants
+  static const QVector3D LocalForward;
+  static const QVector3D LocalUp;
+  static const QVector3D LocalRight;
+
   // Constructors
   QTransform3D();
 
@@ -42,8 +48,8 @@ public:
 
   // Queries
   QVector3D forward() const;
-  QVector3D right() const;
   QVector3D up() const;
+  QVector3D right() const;
 
 private:
   bool m_dirty;
