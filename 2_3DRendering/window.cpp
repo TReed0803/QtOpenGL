@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QString>
 #include <QOpenGLShaderProgram>
+#include <QExposeEvent>
 #include "qvertex.h"
 
 // Front Verticies
@@ -141,6 +142,20 @@ void Window::update()
 
   // Schedule a redraw
   QOpenGLWindow::update();
+}
+
+void Window::exposeEvent(QExposeEvent *ev)
+{
+  if (ev->region() != m_cachedRegion)
+  {
+    m_cachedRegion = ev->region();
+    QOpenGLWindow::exposeEvent(ev);
+  }
+  else
+  {
+    ev->ignore();
+  }
+
 }
 
 /*******************************************************************************

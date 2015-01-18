@@ -8,6 +8,7 @@
 #include <QMatrix4x4>
 #include "qtransform3d.h"
 
+class QExposeEvent;
 class QOpenGLShaderProgram;
 
 class Window : public QOpenGLWindow,
@@ -25,6 +26,9 @@ protected slots:
   void teardownGL();
   void update();
 
+protected:
+  void exposeEvent(QExposeEvent *ev);
+
 private:
   // OpenGL State Information
   QOpenGLBuffer m_vertex;
@@ -36,6 +40,9 @@ private:
   int u_worldToView;
   QMatrix4x4 m_projection;
   QTransform3D m_transform;
+
+  // Fix for Windows
+  QRegion m_cachedRegion;
 
   // Private Helpers
   void printVersionInformation();
