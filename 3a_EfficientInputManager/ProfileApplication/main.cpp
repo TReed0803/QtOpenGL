@@ -71,7 +71,7 @@ void runTest(int passes, int iterations, int keysActive, int seed, QKeyRandom ra
     timer.start();
     for (iteration = 0; iteration < iterations; ++iteration)
     {
-      Test::Runner<Instance>::Run(randKey);
+      Test::template Runner<Instance>::Run(randKey);
     }
     total += timer.elapsed();
   }

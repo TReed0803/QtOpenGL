@@ -125,8 +125,10 @@ int main(int argc, char *argv[])
   QMetaEnum metaEnum = metaProperty.enumerator();
 
   // Generate Code
-  writeHeader(classname, metaEnum, QTextStream(&headerFile));
-  writeSource(classname, metaEnum, QTextStream(&sourceFile));
+  QTextStream headerStream(&headerFile);
+  QTextStream sourceStream(&sourceFile);
+  writeHeader(classname, metaEnum, headerStream);
+  writeSource(classname, metaEnum, sourceStream);
 
   return 0;
 }

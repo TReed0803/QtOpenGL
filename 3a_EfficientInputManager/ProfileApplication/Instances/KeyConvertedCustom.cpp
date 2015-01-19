@@ -5,7 +5,7 @@
 #define CURR_IDX 0
 #define PREV_IDX 1
 #define TOTAL_STATES 2
-bool sg_keyStates[TOTAL_STATES][QKeyConverterCustom::KeyCount] = { { false } };
+static bool sg_keyStates[TOTAL_STATES][QKeyConverterCustom::KeyCount] = { { false } };
 
 bool KeyConvertedCustom::keyTriggered(Qt::Key k)
 {

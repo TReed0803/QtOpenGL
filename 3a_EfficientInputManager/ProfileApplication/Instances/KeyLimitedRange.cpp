@@ -5,7 +5,7 @@
 #define PREV_IDX 1
 #define TOTAL_STATES 2
 #define MAX_RANGE 255
-bool sg_keyStates[TOTAL_STATES][MAX_RANGE] = { { false } };
+static bool sg_keyStates[TOTAL_STATES][MAX_RANGE] = { { false } };
 
 bool KeyLimitedRange::keyTriggered(Qt::Key k)
 {

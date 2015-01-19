@@ -10,7 +10,7 @@ enum KeyState
 };
 
 #define MAX_RANGE 255
-KeyState sg_keyStates[MAX_RANGE] = { { KeyInactive } };
+static KeyState sg_keyStates[MAX_RANGE] = { KeyInactive };
 
 bool KeyLimitedRangeSimple::keyTriggered(Qt::Key k)
 {

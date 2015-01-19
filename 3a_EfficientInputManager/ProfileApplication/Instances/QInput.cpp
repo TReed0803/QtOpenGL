@@ -14,7 +14,7 @@ struct InputInstance : std::pair<T, QInput::InputState>
   inline InputInstance(T value, QInput::InputState state) : base_class(value, state) {}
   inline bool operator==(const InputInstance &rhs) const
   {
-    return first == rhs.first;
+    return this->first == rhs.first;
   }
 };
 

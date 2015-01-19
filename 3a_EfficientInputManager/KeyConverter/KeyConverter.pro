@@ -11,11 +11,16 @@ CONFIG   += console
 CONFIG   -= app_bundle
 
 # Add a Post-Link command that generates QKeyConverter class
-CONFIG(debug, debug|release) {
-QMAKE_POST_LINK += "$${OUT_PWD}/debug/KeyConverter.exe"
+win32 {
+  CONFIG(debug, debug|release) {
+  QMAKE_POST_LINK += "$${OUT_PWD}/debug/$${TARGET}.exe"
+  }
+  else {
+  QMAKE_POST_LINK += "$${OUT_PWD}/release/$${TARGET}.exe"
+  }
 }
 else {
-QMAKE_POST_LINK += "$${OUT_PWD}/release/KeyConverter.exe"
+  QMAKE_POST_LINK += "$${OUT_PWD}/$${TARGET}"
 }
 QMAKE_POST_LINK += "../ProfileApplication/" "QKeyConverter"
 
