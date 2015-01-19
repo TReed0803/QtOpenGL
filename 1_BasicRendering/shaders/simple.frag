@@ -1,6 +1,6 @@
-#version 330
-in vec4 vColor;
-out vec4 fColor;
+#version 300 es
+in highp vec4 vColor;
+out highp vec4 fColor;
 
 void main()
 {
