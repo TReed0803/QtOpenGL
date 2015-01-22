@@ -88,15 +88,15 @@ static inline void Update(Container &container)
 /*******************************************************************************
  * QInput Implementation
  ******************************************************************************/
-QInput::InputState QInput::keyState(Qt::Key k)
+QInput::InputState QInput::keyState(Qt::Key key)
 {
-  KeyContainer::iterator it = FindKey(k);
+  KeyContainer::iterator it = FindKey(key);
   return (it != sg_keyInstances.end()) ? it->second : InputInvalid;
 }
 
-QInput::InputState QInput::buttonState(Qt::MouseButton k)
+QInput::InputState QInput::buttonState(Qt::MouseButton button)
 {
-  ButtonContainer::iterator it = FindButton(k);
+  ButtonContainer::iterator it = FindButton(button);
   return (it != sg_buttonInstances.end()) ? it->second : InputInvalid;
 }
 
@@ -122,36 +122,36 @@ void QInput::update()
   Update(sg_keyInstances);
 }
 
-void QInput::registerKeyPress(int k)
+void QInput::registerKeyPress(int key)
 {
-  KeyContainer::iterator it = FindKey((Qt::Key)k);
+  KeyContainer::iterator it = FindKey((Qt::Key)key);
   if (it == sg_keyInstances.end())
   {
-    sg_keyInstances.push_back(KeyInstance((Qt::Key)k, InputRegistered));
+    sg_keyInstances.push_back(KeyInstance((Qt::Key)key, InputRegistered));
   }
 }
 
-void QInput::registerKeyRelease(int k)
+void QInput::registerKeyRelease(int key)
 {
-  KeyContainer::iterator it = FindKey((Qt::Key)k);
+  KeyContainer::iterator it = FindKey((Qt::Key)key);
   if (it != sg_keyInstances.end())
   {
     it->second = InputUnregistered;
   }
 }
 
-void QInput::registerMousePress(Qt::MouseButton btn)
+void QInput::registerMousePress(Qt::MouseButton button)
 {
-  ButtonContainer::iterator it = FindButton(btn);
+  ButtonContainer::iterator it = FindButton(button);
   if (it == sg_buttonInstances.end())
   {
-    sg_buttonInstances.push_back(ButtonInstance(btn, InputRegistered));
+    sg_buttonInstances.push_back(ButtonInstance(button, InputRegistered));
   }
 }
 
-void QInput::registerMouseRelease(Qt::MouseButton btn)
+void QInput::registerMouseRelease(Qt::MouseButton button)
 {
-  ButtonContainer::iterator it = FindButton(btn);
+  ButtonContainer::iterator it = FindButton(button);
   if (it != sg_buttonInstances.end())
   {
     it->second = InputUnregistered;

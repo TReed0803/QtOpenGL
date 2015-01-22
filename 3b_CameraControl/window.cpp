@@ -119,8 +119,8 @@ void Window::paintGL()
 
   // Render using our shader
   m_program->bind();
-  m_program->setUniformValue(u_cameraToView, m_projection);
   m_program->setUniformValue(u_worldToCamera, m_camera.toMatrix());
+  m_program->setUniformValue(u_cameraToView, m_projection);
   {
     m_object.bind();
     m_program->setUniformValue(u_modelToWorld, m_transform.toMatrix());
@@ -146,24 +146,40 @@ void Window::update()
   // Camera Transformation
   if (QInput::buttonPressed(Qt::RightButton))
   {
-    m_camera.rotate(-0.5f * QInput::mouseDelta().x(), QCamera3D::LocalUp);
-    m_camera.rotate(-0.5f * QInput::mouseDelta().y(), m_camera.right());
+    static const float transSpeed = 0.5f;
+    static const float rotSpeed   = 0.5f;
+
+    // Handle rotations
+    m_camera.rotate(-rotSpeed * QInput::mouseDelta().x(), QCamera3D::LocalUp);
+    m_camera.rotate(-rotSpeed * QInput::mouseDelta().y(), m_camera.right());
+
+    // Handle translations
+    QVector3D translation;
     if (QInput::keyPressed(Qt::Key_W))
     {
-      m_camera.translate(m_camera.forward());
+      translation += m_camera.forward();
     }
     if (QInput::keyPressed(Qt::Key_S))
     {
-      m_camera.translate(-m_camera.forward());
+      translation -= m_camera.forward();
     }
     if (QInput::keyPressed(Qt::Key_A))
     {
-      m_camera.translate(-m_camera.right());
+      translation -= m_camera.right();
     }
     if (QInput::keyPressed(Qt::Key_D))
     {
-      m_camera.translate(m_camera.right());
+      translation += m_camera.right();
     }
+    if (QInput::keyPressed(Qt::Key_Q))
+    {
+      translation -= m_camera.up();
+    }
+    if (QInput::keyPressed(Qt::Key_E))
+    {
+      translation += m_camera.up();
+    }
+    m_camera.translate(transSpeed * translation);
   }
 
   // Update instance information
