@@ -1,4 +1,4 @@
-#version 300 es
+#version 330
 in highp vec4 vColor;
 out highp vec4 fColor;
 
