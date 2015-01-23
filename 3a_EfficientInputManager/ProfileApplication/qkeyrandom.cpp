@@ -1,10 +1,10 @@
-#include "qkeyrandom.h"
+#include "keyrandom.h"
 #include <QMetaObject>
 #include <QMetaProperty>
 #include <QMetaEnum>
 #include "keyobject.h"
 
-QKeyRandom::QKeyRandom(int seed) : m_generator(seed)
+KeyRandom::KeyRandom(int seed) : m_generator(seed)
 {
   // Find our Qt::Key QMetaEnum
   const QMetaObject &meta = KeyObject::staticMetaObject;
@@ -23,12 +23,12 @@ QKeyRandom::QKeyRandom(int seed) : m_generator(seed)
   m_distribution = std::uniform_int_distribution<int>(0, m_keys.size() - 1);
 }
 
-Qt::Key QKeyRandom::getRandomKey()
+Qt::Key KeyRandom::getRandomKey()
 {
   return m_keys[m_distribution(m_generator)];
 }
 
-Qt::Key QKeyRandom::getRandomUniqueKey()
+Qt::Key KeyRandom::getRandomUniqueKey()
 {
   int idx = m_distribution(m_generator);
   Qt::Key key = m_keys[idx];

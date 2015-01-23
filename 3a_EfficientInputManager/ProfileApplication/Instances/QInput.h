@@ -4,7 +4,7 @@
 #include <Qt>
 #include <QPoint>
 
-class QInput
+class Input
 {
 public:
 
@@ -41,32 +41,32 @@ public:
   friend class Window;
 };
 
-inline bool QInput::keyTriggered(Qt::Key k)
+inline bool Input::keyTriggered(Qt::Key k)
 {
   return keyState(k) == InputTriggered;
 }
 
-inline bool QInput::keyPressed(Qt::Key k)
+inline bool Input::keyPressed(Qt::Key k)
 {
   return keyState(k) == InputPressed;
 }
 
-inline bool QInput::keyReleased(Qt::Key k)
+inline bool Input::keyReleased(Qt::Key k)
 {
   return keyState(k) == InputReleased;
 }
 
-inline bool QInput::buttonTriggered(Qt::MouseButton k)
+inline bool Input::buttonTriggered(Qt::MouseButton k)
 {
   return buttonState(k) == InputTriggered;
 }
 
-inline bool QInput::buttonPressed(Qt::MouseButton k)
+inline bool Input::buttonPressed(Qt::MouseButton k)
 {
   return buttonState(k) == InputPressed;
 }
 
-inline bool QInput::buttonReleased(Qt::MouseButton k)
+inline bool Input::buttonReleased(Qt::MouseButton k)
 {
   return buttonState(k) == InputReleased;
 }

@@ -3,51 +3,51 @@
 #include <QString>
 #include <QOpenGLShaderProgram>
 #include <QExposeEvent>
-#include "qvertex.h"
+#include "vertex.h"
 
 // Front Verticies
-#define QVERTEX_FTR QVertex( QVector3D( 0.5f,  0.5f,  0.5f), QVector3D( 1.0f, 0.0f, 0.0f ) )
-#define QVERTEX_FTL QVertex( QVector3D(-0.5f,  0.5f,  0.5f), QVector3D( 0.0f, 1.0f, 0.0f ) )
-#define QVERTEX_FBL QVertex( QVector3D(-0.5f, -0.5f,  0.5f), QVector3D( 0.0f, 0.0f, 1.0f ) )
-#define QVERTEX_FBR QVertex( QVector3D( 0.5f, -0.5f,  0.5f), QVector3D( 0.0f, 0.0f, 0.0f ) )
+#define VERTEX_FTR Vertex( QVector3D( 0.5f,  0.5f,  0.5f), QVector3D( 1.0f, 0.0f, 0.0f ) )
+#define VERTEX_FTL Vertex( QVector3D(-0.5f,  0.5f,  0.5f), QVector3D( 0.0f, 1.0f, 0.0f ) )
+#define VERTEX_FBL Vertex( QVector3D(-0.5f, -0.5f,  0.5f), QVector3D( 0.0f, 0.0f, 1.0f ) )
+#define VERTEX_FBR Vertex( QVector3D( 0.5f, -0.5f,  0.5f), QVector3D( 0.0f, 0.0f, 0.0f ) )
 
 // Back Verticies
-#define QVERTEX_BTR QVertex( QVector3D( 0.5f,  0.5f, -0.5f), QVector3D( 1.0f, 1.0f, 0.0f ) )
-#define QVERTEX_BTL QVertex( QVector3D(-0.5f,  0.5f, -0.5f), QVector3D( 0.0f, 1.0f, 1.0f ) )
-#define QVERTEX_BBL QVertex( QVector3D(-0.5f, -0.5f, -0.5f), QVector3D( 1.0f, 0.0f, 1.0f ) )
-#define QVERTEX_BBR QVertex( QVector3D( 0.5f, -0.5f, -0.5f), QVector3D( 1.0f, 1.0f, 1.0f ) )
+#define VERTEX_BTR Vertex( QVector3D( 0.5f,  0.5f, -0.5f), QVector3D( 1.0f, 1.0f, 0.0f ) )
+#define VERTEX_BTL Vertex( QVector3D(-0.5f,  0.5f, -0.5f), QVector3D( 0.0f, 1.0f, 1.0f ) )
+#define VERTEX_BBL Vertex( QVector3D(-0.5f, -0.5f, -0.5f), QVector3D( 1.0f, 0.0f, 1.0f ) )
+#define VERTEX_BBR Vertex( QVector3D( 0.5f, -0.5f, -0.5f), QVector3D( 1.0f, 1.0f, 1.0f ) )
 
 // Create a colored cube
-static const QVertex sg_vertexes[] = {
+static const Vertex sg_vertexes[] = {
   // Face 1 (Front)
-    QVERTEX_FTR, QVERTEX_FTL, QVERTEX_FBL,
-    QVERTEX_FBL, QVERTEX_FBR, QVERTEX_FTR,
+    VERTEX_FTR, VERTEX_FTL, VERTEX_FBL,
+    VERTEX_FBL, VERTEX_FBR, VERTEX_FTR,
   // Face 2 (Back)
-    QVERTEX_BBR, QVERTEX_BTL, QVERTEX_BTR,
-    QVERTEX_BTL, QVERTEX_BBR, QVERTEX_BBL,
+    VERTEX_BBR, VERTEX_BTL, VERTEX_BTR,
+    VERTEX_BTL, VERTEX_BBR, VERTEX_BBL,
   // Face 3 (Top)
-    QVERTEX_FTR, QVERTEX_BTR, QVERTEX_BTL,
-    QVERTEX_BTL, QVERTEX_FTL, QVERTEX_FTR,
+    VERTEX_FTR, VERTEX_BTR, VERTEX_BTL,
+    VERTEX_BTL, VERTEX_FTL, VERTEX_FTR,
   // Face 4 (Bottom)
-    QVERTEX_FBR, QVERTEX_FBL, QVERTEX_BBL,
-    QVERTEX_BBL, QVERTEX_BBR, QVERTEX_FBR,
+    VERTEX_FBR, VERTEX_FBL, VERTEX_BBL,
+    VERTEX_BBL, VERTEX_BBR, VERTEX_FBR,
   // Face 5 (Left)
-    QVERTEX_FBL, QVERTEX_FTL, QVERTEX_BTL,
-    QVERTEX_FBL, QVERTEX_BTL, QVERTEX_BBL,
+    VERTEX_FBL, VERTEX_FTL, VERTEX_BTL,
+    VERTEX_FBL, VERTEX_BTL, VERTEX_BBL,
   // Face 6 (Right)
-    QVERTEX_FTR, QVERTEX_FBR, QVERTEX_BBR,
-    QVERTEX_BBR, QVERTEX_BTR, QVERTEX_FTR
+    VERTEX_FTR, VERTEX_FBR, VERTEX_BBR,
+    VERTEX_BBR, VERTEX_BTR, VERTEX_FTR
 };
 
-#undef QVERTEX_BBR
-#undef QVERTEX_BBL
-#undef QVERTEX_BTL
-#undef QVERTEX_BTR
+#undef VERTEX_BBR
+#undef VERTEX_BBL
+#undef VERTEX_BTL
+#undef VERTEX_BTR
 
-#undef QVERTEX_FBR
-#undef QVERTEX_FBL
-#undef QVERTEX_FTL
-#undef QVERTEX_FTR
+#undef VERTEX_FBR
+#undef VERTEX_FBL
+#undef VERTEX_FTL
+#undef VERTEX_FTR
 
 /*******************************************************************************
  * OpenGL Events
@@ -94,8 +94,8 @@ void Window::initializeGL()
     m_object.bind();
     m_program->enableAttributeArray(0);
     m_program->enableAttributeArray(1);
-    m_program->setAttributeBuffer(0, GL_FLOAT, QVertex::positionOffset(), QVertex::PositionTupleSize, QVertex::stride());
-    m_program->setAttributeBuffer(1, GL_FLOAT, QVertex::colorOffset(), QVertex::ColorTupleSize, QVertex::stride());
+    m_program->setAttributeBuffer(0, GL_FLOAT, Vertex::positionOffset(), Vertex::PositionTupleSize, Vertex::stride());
+    m_program->setAttributeBuffer(1, GL_FLOAT, Vertex::colorOffset(), Vertex::ColorTupleSize, Vertex::stride());
 
     // Release (unbind) all
     m_object.release();

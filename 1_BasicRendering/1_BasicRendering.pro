@@ -17,7 +17,7 @@ SOURCES += main.cpp \
 
 HEADERS += \
     window.h \
-    qvertex.h
+    vertex.h
 
 RESOURCES += \
     resources.qrc

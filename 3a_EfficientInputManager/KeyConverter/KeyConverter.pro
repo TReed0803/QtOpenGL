@@ -22,7 +22,7 @@ win32 {
 else {
   QMAKE_POST_LINK += "$${OUT_PWD}/$${TARGET}"
 }
-QMAKE_POST_LINK += "../ProfileApplication/" "QKeyConverter"
+QMAKE_POST_LINK += "../ProfileApplication/" "KeyConverter"
 
 TEMPLATE = app
 

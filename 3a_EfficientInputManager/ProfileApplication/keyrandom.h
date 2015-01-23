@@ -5,10 +5,10 @@
 #include <vector>
 #include <random>
 
-class QKeyRandom
+class KeyRandom
 {
 public:
-  QKeyRandom(int seed);
+  KeyRandom(int seed);
   Qt::Key getRandomKey();
   Qt::Key getRandomUniqueKey();
 protected:

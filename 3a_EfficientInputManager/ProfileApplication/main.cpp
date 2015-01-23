@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QTime>
 #include <iostream>
-#include "qkeyrandom.h"
+#include "keyrandom.h"
 #include "tests.inc"
 
 /*******************************************************************************
@@ -12,7 +12,7 @@
 template <typename T>
 static void ActivateKeys(int keyCount, int seed)
 {
-  QKeyRandom keyRand(seed);
+  KeyRandom keyRand(seed);
   for (int i = 0; i < keyCount; ++i)
   {
     Qt::Key key = keyRand.getRandomUniqueKey();
@@ -34,7 +34,7 @@ struct QueryTest
   template <typename Instance>
   struct Runner
   {
-    inline static void Run(QKeyRandom &keyRand)
+    inline static void Run(KeyRandom &keyRand)
     {
       Instance::keyTriggered(keyRand.getRandomKey());
       Instance::keyPressed(keyRand.getRandomKey());
@@ -48,7 +48,7 @@ struct UpdateTest
   template <typename Instance>
   struct Runner
   {
-    inline static void Run(QKeyRandom &keyRand)
+    inline static void Run(KeyRandom &keyRand)
     {
       (void)keyRand;
       Instance::update();
@@ -60,7 +60,7 @@ struct UpdateTest
  * Test Running Logic
  ******************************************************************************/
 template <typename Test, typename Instance>
-void runTest(int passes, int iterations, int keysActive, int seed, QKeyRandom randKey)
+void runTest(int passes, int iterations, int keysActive, int seed, KeyRandom randKey)
 {
   qint64 total = 0;
   int pass, iteration;
@@ -94,7 +94,7 @@ void runTests(char const *type, int passes, int iterations, int keyRange)
 {
   int seed;
   printHeader(type);
-  QKeyRandom randKey(qrand());
+  KeyRandom randKey(qrand());
   for (int keysActive = 0; keysActive <= keyRange; ++keysActive)
   {
     seed = qrand();

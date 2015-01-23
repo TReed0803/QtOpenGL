@@ -3,7 +3,7 @@
 
 #include <Qt>
 
-class QKeyConverterCustom
+class KeyConverterCustom
 {
 public:
   static int convertKey(Qt::Key k);

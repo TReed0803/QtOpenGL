@@ -9,4 +9,4 @@ TEST(StdKeyList);
 TEST(StdKeyMap);
 TEST(StdKeyUnorderedMap);
 TEST(StdKeyVector);
-TEST(QInput);
+TEST(Input);

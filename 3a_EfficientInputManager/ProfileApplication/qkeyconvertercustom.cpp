@@ -1,6 +1,6 @@
-#include "qkeyconvertercustom.h"
+#include "keyconvertercustom.h"
 
-int QKeyConverterCustom::convertKey(Qt::Key k)
+int KeyConverterCustom::convertKey(Qt::Key k)
 {
   switch (k)
   {
@@ -162,7 +162,7 @@ int QKeyConverterCustom::convertKey(Qt::Key k)
   }
 }
 
-Qt::Key QKeyConverterCustom::revertKey(int k)
+Qt::Key KeyConverterCustom::revertKey(int k)
 {
   switch (k)
   {

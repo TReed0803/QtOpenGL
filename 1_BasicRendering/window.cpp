@@ -2,13 +2,13 @@
 #include <QDebug>
 #include <QString>
 #include <QOpenGLShaderProgram>
-#include "qvertex.h"
+#include "vertex.h"
 
 // Create a colored triangle
-static const QVertex sg_vertexes[] = {
-  QVertex( QVector3D( 0.00f,  0.75f, 1.0f), QVector3D(1.0f, 0.0f, 0.0f) ),
-  QVertex( QVector3D(-0.75f, -0.75f, 1.0f), QVector3D(0.0f, 1.0f, 0.0f) ),
-  QVertex( QVector3D( 0.75f, -0.75f, 1.0f), QVector3D(0.0f, 0.0f, 1.0f) )
+static const Vertex sg_vertexes[] = {
+  Vertex( QVector3D( 0.00f,  0.75f, 1.0f), QVector3D(1.0f, 0.0f, 0.0f) ),
+  Vertex( QVector3D(-0.75f, -0.75f, 1.0f), QVector3D(0.0f, 1.0f, 0.0f) ),
+  Vertex( QVector3D( 0.75f, -0.75f, 1.0f), QVector3D(0.0f, 0.0f, 1.0f) )
 };
 
 /*******************************************************************************
@@ -45,8 +45,8 @@ void Window::initializeGL()
     m_object.bind();
     m_program->enableAttributeArray(0);
     m_program->enableAttributeArray(1);
-    m_program->setAttributeBuffer(0, GL_FLOAT, QVertex::positionOffset(), QVertex::PositionTupleSize, QVertex::stride());
-    m_program->setAttributeBuffer(1, GL_FLOAT, QVertex::colorOffset(), QVertex::ColorTupleSize, QVertex::stride());
+    m_program->setAttributeBuffer(0, GL_FLOAT, Vertex::positionOffset(), Vertex::PositionTupleSize, Vertex::stride());
+    m_program->setAttributeBuffer(1, GL_FLOAT, Vertex::colorOffset(), Vertex::ColorTupleSize, Vertex::stride());
 
     // Release (unbind) all
     m_object.release();

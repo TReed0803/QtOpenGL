@@ -34,9 +34,7 @@ SOURCES += \
 HEADERS += \
     keyobject.h \
     qkeyconverter.h \
-    qkeyconvertercustom.h \
     tests.h \
-    qkeyrandom.h \
     tests.inc \
     Instances/KeyConverted.h \
     Instances/KeyConvertedCustom.h \
@@ -49,4 +47,6 @@ HEADERS += \
     Instances/QKeyList.h \
     Instances/QKeyMap.h \
     Instances/QKeyVector.h \
-    Instances/QInput.h
+    Instances/QInput.h \
+    keyconvertercustom.h \
+    keyrandom.h

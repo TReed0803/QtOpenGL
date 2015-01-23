@@ -1,56 +1,52 @@
-#include "qtransform3d.h"
+#include "transform3d.h"
 #include <QDebug>
 
-const QVector3D QTransform3D::LocalForward(0.0f, 0.0f, 1.0f);
-const QVector3D QTransform3D::LocalUp(0.0f, 1.0f, 0.0f);
-const QVector3D QTransform3D::LocalRight(1.0f, 0.0f, 0.0f);
-
 // Transform By (Add/Scale)
-void QTransform3D::translate(const QVector3D &dt)
+void Transform3D::translate(const QVector3D &dt)
 {
   m_dirty = true;
   m_translation += dt;
 }
 
-void QTransform3D::scale(const QVector3D &ds)
+void Transform3D::scale(const QVector3D &ds)
 {
   m_dirty = true;
   m_scale *= ds;
 }
 
-void QTransform3D::rotate(const QQuaternion &dr)
+void Transform3D::rotate(const QQuaternion &dr)
 {
   m_dirty = true;
   m_rotation = dr * m_rotation;
 }
 
-void QTransform3D::grow(const QVector3D &ds)
+void Transform3D::grow(const QVector3D &ds)
 {
   m_dirty = true;
   m_scale += ds;
 }
 
 // Transform To (Setters)
-void QTransform3D::setTranslation(const QVector3D &t)
+void Transform3D::setTranslation(const QVector3D &t)
 {
   m_dirty = true;
   m_translation = t;
 }
 
-void QTransform3D::setScale(const QVector3D &s)
+void Transform3D::setScale(const QVector3D &s)
 {
   m_dirty = true;
   m_scale = s;
 }
 
-void QTransform3D::setRotation(const QQuaternion &r)
+void Transform3D::setRotation(const QQuaternion &r)
 {
   m_dirty = true;
   m_rotation = r;
 }
 
 // Accessors
-const QMatrix4x4 &QTransform3D::toMatrix()
+const QMatrix4x4 &Transform3D::toMatrix()
 {
   if (m_dirty)
   {
@@ -63,24 +59,8 @@ const QMatrix4x4 &QTransform3D::toMatrix()
   return m_world;
 }
 
-// Queries
-QVector3D QTransform3D::forward() const
-{
-  return m_rotation.rotatedVector(LocalForward);
-}
-
-QVector3D QTransform3D::up() const
-{
-  return m_rotation.rotatedVector(LocalUp);
-}
-
-QVector3D QTransform3D::right() const
-{
-  return m_rotation.rotatedVector(LocalRight);
-}
-
 // Qt Streams
-QDebug operator<<(QDebug dbg, const QTransform3D &transform)
+QDebug operator<<(QDebug dbg, const Transform3D &transform)
 {
   dbg << "Transform3D\n{\n";
   dbg << "Position: <" << transform.translation().x() << ", " << transform.translation().y() << ", " << transform.translation().z() << ">\n";
@@ -89,7 +69,7 @@ QDebug operator<<(QDebug dbg, const QTransform3D &transform)
   return dbg;
 }
 
-QDataStream &operator<<(QDataStream &out, const QTransform3D &transform)
+QDataStream &operator<<(QDataStream &out, const Transform3D &transform)
 {
   out << transform.m_translation;
   out << transform.m_scale;
@@ -97,7 +77,7 @@ QDataStream &operator<<(QDataStream &out, const QTransform3D &transform)
   return out;
 }
 
-QDataStream &operator>>(QDataStream &in, QTransform3D &transform)
+QDataStream &operator>>(QDataStream &in, Transform3D &transform)
 {
   in >> transform.m_translation;
   in >> transform.m_scale;

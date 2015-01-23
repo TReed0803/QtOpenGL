@@ -15,12 +15,12 @@ TEMPLATE = app
 SOURCES += \
     main.cpp \
     window.cpp \
-    qtransform3d.cpp
+    transform3d.cpp
 
 HEADERS += \
     window.h \
-    qvertex.h \
-    qtransform3d.h
+    vertex.h \
+    transform3d.h
 
 RESOURCES += \
     resources.qrc

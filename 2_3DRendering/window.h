@@ -6,7 +6,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QMatrix4x4>
-#include "qtransform3d.h"
+#include "transform3d.h"
 
 class QExposeEvent;
 class QOpenGLShaderProgram;
@@ -39,7 +39,7 @@ private:
   int u_modelToWorld;
   int u_worldToView;
   QMatrix4x4 m_projection;
-  QTransform3D m_transform;
+  Transform3D m_transform;
 
   // Fix for Windows
   QRegion m_cachedRegion;

@@ -6,8 +6,8 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QMatrix4x4>
-#include "qtransform3d.h"
-#include "qcamera3d.h"
+#include "transform3d.h"
+#include "camera3d.h"
 
 class QOpenGLShaderProgram;
 
@@ -43,8 +43,8 @@ private:
   int u_worldToCamera;
   int u_cameraToView;
   QMatrix4x4 m_projection;
-  QCamera3D m_camera;
-  QTransform3D m_transform;
+  Camera3D m_camera;
+  Transform3D m_transform;
 
   // Private Helpers
   void printVersionInformation();
