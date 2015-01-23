@@ -34,6 +34,8 @@ HEADERS += \
 RESOURCES += \
     resources.qrc
 
-CONFIG(gl_debug,debug) {
-    CONFIG += GL_DEBUG
+CONFIG(debug,debug|release) {
+  CONFIG(gl_debug) {
+      DEFINES += GL_DEBUG
+  }
 }
