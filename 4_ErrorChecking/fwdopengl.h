@@ -37,7 +37,7 @@
 // Note: This is a custom naming convention. Because of how the preprocessor
 //       expands, we cannot detect when there are 0 variables passed into NARGS(...).
 //       Because of this, we say that GL_PROCEDURE is a sepecial case of GL_METHOD where NARGS = 0.
-#ifdef GL_WRAP_ERRORS
+#ifdef GL_DEBUG
 # define GL_METHOD_N(func,n,...) FUNC_DECL_N(func,n,__VA_ARGS__) { if (!FUNC_DEFN_N(func,n,__VA_ARGS__)) { OpenGLErrorEvent event(#func); OpenGLErrorEvent::sendEvent(&event); return false; } return true; }
 # define GL_METHOD(func,...) GL_METHOD_N(func,NARGS(__VA_ARGS__),__VA_ARGS__)
 # define GL_PROCEDURE(func)  GL_METHOD_N(func,0)
@@ -45,7 +45,7 @@
 # define GL_METHOD_N(func,n,...)
 # define GL_METHOD(func,...)
 # define GL_PROCEDURE(func)
-#endif // GL_WRAP_ERRORS
+#endif // GL_DEBUG
 
 // define beginning and end of class
 #define GL_BEGIN class GL_CLASS : public APPEND(Q,GL_CLASS) { public:
@@ -55,7 +55,6 @@
 #define GL_QOBJECT() GL_CLASS(QObject *parent = 0) : APPEND(Q,GL_CLASS)(parent) {}
 
 #endif // OPENGLERRORWRAPPER_H
-
 
 /*******************************************************************************
  * OpenGL class overrides

@@ -7,7 +7,7 @@
 QT       += core gui
 
 TARGET = 4_ErrorChecking
-CONFIG   += console
+CONFIG   += console gl_debug
 CONFIG   -= app_bundle
 
 TEMPLATE = app
@@ -33,3 +33,7 @@ HEADERS += \
 
 RESOURCES += \
     resources.qrc
+
+CONFIG(gl_debug,debug) {
+    CONFIG += GL_DEBUG
+}
