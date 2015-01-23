@@ -2,27 +2,25 @@
 #define OPENGLERROREVENT
 
 #include <QEvent>
-#include <QGuiApplication>
 
 class OpenGLErrorEvent : public QEvent
 {
 public:
-  OpenGLErrorEvent(char const *name) : QEvent(OpenGLErrorEvent::type()), m_name(name) {}
-  virtual ~OpenGLErrorEvent() {}
-  char const *functionName() const { return m_name; }
-  static QEvent::Type type()
-  {
-    static QEvent::Type customEventType =
-      static_cast<QEvent::Type>(QEvent::registerEventType());
-    return customEventType;
-  }
-  static bool sendEvent(OpenGLErrorEvent *event)
-  {
-    return QGuiApplication::sendEvent(QGuiApplication::instance(), event);
-  }
+  OpenGLErrorEvent(char const *fnName);
+  virtual ~OpenGLErrorEvent();
+  char const *functionName() const;
+  static QEvent::Type type();
+  static bool sendEvent(OpenGLErrorEvent *event);
+  static void setErrorHandler(QObject *obj);
+
 private:
-  char const *m_name;
+  char const *m_functionName;
+  static QObject *m_errorHandler;
 };
+
+inline OpenGLErrorEvent::OpenGLErrorEvent(char const *fnName) : QEvent(type()), m_functionName(fnName) {}
+inline OpenGLErrorEvent::~OpenGLErrorEvent() {}
+inline char const* OpenGLErrorEvent::functionName() const { return m_functionName; }
 
 
 #endif // OPENGLERROREVENT

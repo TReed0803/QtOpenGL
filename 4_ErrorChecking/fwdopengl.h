@@ -19,8 +19,13 @@
 #define DEFN_5() a, b, c, d, e
 
 // Define both parameter declaration and definition
-#define PARAMS_DECL(n,...) DELAY(DECL_)##DELAY(n)(__VA_ARGS__)
-#define PARAMS_DEFN(n,...) DELAY(DEFN_)##DELAY(n)()
+#ifdef WIN32
+# define PARAMS_DECL(n,...) DELAY(DECL_)##DELAY(n)(__VA_ARGS__)
+# define PARAMS_DEFN(n,...) DELAY(DEFN_)##DELAY(n)()
+#else
+# define PARAMS_DECL(n,...) APPEND(DELAY(DECL_),DELAY(n))(__VA_ARGS__)
+# define PARAMS_DEFN(n,...) APPEND(DELAY(DEFN_),DELAY(n))()
+#endif
 
 // Define both function declaration and definition
 #define FUNC_DECL_N(func,n,...) inline bool func(PARAMS_DECL(n,__VA_ARGS__))
@@ -28,18 +33,18 @@
 #define FUNC_DEFN_N(func,n,...) this->APPEND(Q,GL_CLASS)::func(PARAMS_DEFN(n,__VA_ARGS__))
 #define FUNC_DEFN(func,...) FUNC_DEFN_N(func,NARGS(__VA_ARGS__),__VA_ARGS__)
 
-#ifdef GL_WRAP_ERRORS
 // Define both method and procedure definitions.
 // Note: This is a custom naming convention. Because of how the preprocessor
 //       expands, we cannot detect when there are 0 variables passed into NARGS(...).
 //       Because of this, we say that GL_PROCEDURE is a sepecial case of GL_METHOD where NARGS = 0.
-#define GL_METHOD_N(func,n,...) FUNC_DECL_N(func,n,__VA_ARGS__) { if (!FUNC_DEFN_N(func,n,__VA_ARGS__)) { OpenGLErrorEvent event(#func); return QGuiApplication::sendEvent(QGuiApplication::focusWindow(),&event); } return true; }
-#define GL_METHOD(func,...) GL_METHOD_N(func,NARGS(__VA_ARGS__),__VA_ARGS__)
-#define GL_PROCEDURE(func)  GL_METHOD_N(func,0)
+#ifdef GL_WRAP_ERRORS
+# define GL_METHOD_N(func,n,...) FUNC_DECL_N(func,n,__VA_ARGS__) { if (!FUNC_DEFN_N(func,n,__VA_ARGS__)) { OpenGLErrorEvent event(#func); OpenGLErrorEvent::sendEvent(&event); return false; } return true; }
+# define GL_METHOD(func,...) GL_METHOD_N(func,NARGS(__VA_ARGS__),__VA_ARGS__)
+# define GL_PROCEDURE(func)  GL_METHOD_N(func,0)
 #else
-#define GL_METHOD_N(func,n,...)
-#define GL_METHOD(func,...)
-#define GL_PROCEDURE(func)
+# define GL_METHOD_N(func,n,...)
+# define GL_METHOD(func,...)
+# define GL_PROCEDURE(func)
 #endif // GL_WRAP_ERRORS
 
 // define beginning and end of class

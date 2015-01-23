@@ -58,6 +58,7 @@ static const QVertex sg_vertexes[] = {
 Window::Window()
 {
   m_transform.translate(0.0f, 0.0f, -5.0f);
+  OpenGLErrorEvent::setErrorHandler(this);
 }
 
 void Window::initializeGL()
@@ -76,6 +77,7 @@ void Window::initializeGL()
   {
     // Create Shader (Do not release until VAO is created)
     m_program = new OpenGLShaderProgram(this);
+    m_program->link();
     m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/simple.vert");
     m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/simple.frag");
     m_program->link();
@@ -203,7 +205,7 @@ bool Window::event(QEvent *e)
 void Window::errorEventGL(OpenGLErrorEvent *event)
 {
   qDebug() << event->functionName() << ": encountered an unrecoverable error!";
-  QGuiApplication::exit(-1);
+  exit(-1);
 }
 
 void Window::keyPressEvent(QKeyEvent *event)

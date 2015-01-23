@@ -17,7 +17,8 @@ SOURCES += \
     window.cpp \
     qtransform3d.cpp \
     qinput.cpp \
-    qcamera3d.cpp
+    qcamera3d.cpp \
+    openglerrorevent.cpp
 
 HEADERS += \
     window.h \
