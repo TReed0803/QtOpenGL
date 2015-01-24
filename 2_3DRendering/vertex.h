@@ -1,5 +1,5 @@
-#ifndef QVERTEX_H
-#define QVERTEX_H
+#ifndef VERTEX_H
+#define VERTEX_H
 
 #include <QVector3D>
 
@@ -52,4 +52,4 @@ Q_DECL_CONSTEXPR inline int Vertex::positionOffset() { return offsetof(Vertex, m
 Q_DECL_CONSTEXPR inline int Vertex::colorOffset() { return offsetof(Vertex, m_color); }
 Q_DECL_CONSTEXPR inline int Vertex::stride() { return sizeof(Vertex); }
 
-#endif // QVERTEX_H
+#endif // VERTEX_H

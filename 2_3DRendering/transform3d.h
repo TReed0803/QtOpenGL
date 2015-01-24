@@ -1,5 +1,5 @@
-#ifndef QTRANSFORM3D_H
-#define QTRANSFORM3D_H
+#ifndef TRANSFORM3D_H
+#define TRANSFORM3D_H
 
 #include <QVector3D>
 #include <QQuaternion>
@@ -88,4 +88,4 @@ QDataStream &operator<<(QDataStream &out, const Transform3D &transform);
 QDataStream &operator>>(QDataStream &in, Transform3D &transform);
 #endif
 
-#endif // QTRANSFORM3D_H
+#endif // TRANSFORM3D_H
