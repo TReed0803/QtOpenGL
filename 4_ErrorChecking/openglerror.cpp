@@ -1,22 +1,22 @@
-#include "openglerrorevent.h"
+#include "openglerror.h"
 #include <QObject>
 #include <QCoreApplication>
 
-QObject* OpenGLErrorEvent::m_errorHandler = NULL;
+QObject* OpenGLError::m_errorHandler = NULL;
 
-QEvent::Type OpenGLErrorEvent::type()
+QEvent::Type OpenGLError::type()
 {
   static QEvent::Type customEventType =
     static_cast<QEvent::Type>(QEvent::registerEventType());
   return customEventType;
 }
 
-bool OpenGLErrorEvent::sendEvent(OpenGLErrorEvent *event)
+bool OpenGLError::sendEvent(OpenGLError *event)
 {
   return QCoreApplication::sendEvent(m_errorHandler, event);
 }
 
-void OpenGLErrorEvent::setErrorHandler(QObject *obj)
+void OpenGLError::setErrorHandler(QObject *obj)
 {
   m_errorHandler = obj;
 }

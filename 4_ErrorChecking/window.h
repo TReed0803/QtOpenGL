@@ -6,11 +6,13 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QMatrix4x4>
-#include "qtransform3d.h"
-#include "qcamera3d.h"
+#include "transform3d.h"
+#include "camera3d.h"
 #include "fwdopengl.h"
 
 class QOpenGLErrorEvent;
+class QOpenGLDebugLogger;
+class QOpenGLDebugMessage;
 
 class Window : public QOpenGLWindow,
                protected QOpenGLFunctions
@@ -20,16 +22,18 @@ class Window : public QOpenGLWindow,
 // OpenGL Events
 public:
   Window();
+  ~Window();
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
 protected slots:
   void teardownGL();
   void update();
+  void logMessage(const QOpenGLDebugMessage &msg);
 
 protected:
   virtual bool event(QEvent *event);
-  void errorEventGL(OpenGLErrorEvent *event);
+  void errorEventGL(OpenGLError *event);
   void keyPressEvent(QKeyEvent *event);
   void keyReleaseEvent(QKeyEvent *event);
   void mousePressEvent(QMouseEvent *event);
@@ -40,14 +44,15 @@ private:
   OpenGLBuffer m_vertex;
   OpenGLVertexArrayObject m_object;
   OpenGLShaderProgram *m_program;
+  QOpenGLDebugLogger *m_debugLogger;
 
   // Shader Information
   int u_modelToWorld;
   int u_worldToCamera;
   int u_cameraToView;
   QMatrix4x4 m_projection;
-  QCamera3D m_camera;
-  QTransform3D m_transform;
+  Camera3D m_camera;
+  Transform3D m_transform;
 
   // Private Helpers
   void printVersionInformation();

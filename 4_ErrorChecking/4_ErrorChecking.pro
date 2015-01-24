@@ -15,21 +15,21 @@ TEMPLATE = app
 SOURCES += \
     main.cpp \
     window.cpp \
-    qtransform3d.cpp \
-    qinput.cpp \
-    qcamera3d.cpp \
-    openglerrorevent.cpp
+    camera3d.cpp \
+    input.cpp \
+    transform3d.cpp \
+    openglerror.cpp
 
 HEADERS += \
     window.h \
-    qvertex.h \
-    qtransform3d.h \
-    qinput.h \
-    qcamera3d.h \
     macros.h \
-    openglerrorevent.h \
     fwdopengl.h \
-    opengl.h
+    opengl.h \
+    camera3d.h \
+    input.h \
+    transform3d.h \
+    vertex.h \
+    openglerror.h
 
 RESOURCES += \
     resources.qrc

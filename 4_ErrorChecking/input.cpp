@@ -1,4 +1,4 @@
-#include "qinput.h"
+#include "input.h"
 #include <QCursor>
 #include <vector>
 #include <algorithm>
@@ -7,11 +7,11 @@
  * Static Helper Structs
  ******************************************************************************/
 template <typename T>
-struct InputInstance : std::pair<T, QInput::InputState>
+struct InputInstance : std::pair<T, Input::InputState>
 {
-  typedef std::pair<T, QInput::InputState> base_class;
-  inline InputInstance(T value) : base_class(value, QInput::InputInvalid) {}
-  inline InputInstance(T value, QInput::InputState state) : base_class(value, state) {}
+  typedef std::pair<T, Input::InputState> base_class;
+  inline InputInstance(T value) : base_class(value, Input::InputInvalid) {}
+  inline InputInstance(T value, Input::InputState state) : base_class(value, state) {}
   inline bool operator==(const InputInstance &rhs) const
   {
     return this->first == rhs.first;
@@ -51,14 +51,14 @@ static inline void UpdateStates(TPair &instance)
 {
   switch (instance.second)
   {
-  case QInput::InputRegistered:
-    instance.second = QInput::InputTriggered;
+  case Input::InputRegistered:
+    instance.second = Input::InputTriggered;
     break;
-  case QInput::InputTriggered:
-    instance.second = QInput::InputPressed;
+  case Input::InputTriggered:
+    instance.second = Input::InputPressed;
     break;
-  case QInput::InputUnregistered:
-    instance.second = QInput::InputReleased;
+  case Input::InputUnregistered:
+    instance.second = Input::InputReleased;
     break;
   default:
     break;
@@ -68,7 +68,7 @@ static inline void UpdateStates(TPair &instance)
 template <typename TPair>
 static inline bool CheckReleased(const TPair &instance)
 {
-  return instance.second == QInput::InputReleased;
+  return instance.second == Input::InputReleased;
 }
 
 template <typename Container>
@@ -88,29 +88,29 @@ static inline void Update(Container &container)
 /*******************************************************************************
  * QInput Implementation
  ******************************************************************************/
-QInput::InputState QInput::keyState(Qt::Key key)
+Input::InputState Input::keyState(Qt::Key key)
 {
   KeyContainer::iterator it = FindKey(key);
   return (it != sg_keyInstances.end()) ? it->second : InputInvalid;
 }
 
-QInput::InputState QInput::buttonState(Qt::MouseButton button)
+Input::InputState Input::buttonState(Qt::MouseButton button)
 {
   ButtonContainer::iterator it = FindButton(button);
   return (it != sg_buttonInstances.end()) ? it->second : InputInvalid;
 }
 
-QPoint QInput::mousePosition()
+QPoint Input::mousePosition()
 {
   return QCursor::pos();
 }
 
-QPoint QInput::mouseDelta()
+QPoint Input::mouseDelta()
 {
   return sg_mouseDelta;
 }
 
-void QInput::update()
+void Input::update()
 {
   // Update Mouse Delta
   sg_mousePrevPosition = sg_mouseCurrPosition;
@@ -122,7 +122,7 @@ void QInput::update()
   Update(sg_keyInstances);
 }
 
-void QInput::registerKeyPress(int key)
+void Input::registerKeyPress(int key)
 {
   KeyContainer::iterator it = FindKey((Qt::Key)key);
   if (it == sg_keyInstances.end())
@@ -131,7 +131,7 @@ void QInput::registerKeyPress(int key)
   }
 }
 
-void QInput::registerKeyRelease(int key)
+void Input::registerKeyRelease(int key)
 {
   KeyContainer::iterator it = FindKey((Qt::Key)key);
   if (it != sg_keyInstances.end())
@@ -140,7 +140,7 @@ void QInput::registerKeyRelease(int key)
   }
 }
 
-void QInput::registerMousePress(Qt::MouseButton button)
+void Input::registerMousePress(Qt::MouseButton button)
 {
   ButtonContainer::iterator it = FindButton(button);
   if (it == sg_buttonInstances.end())
@@ -149,7 +149,7 @@ void QInput::registerMousePress(Qt::MouseButton button)
   }
 }
 
-void QInput::registerMouseRelease(Qt::MouseButton button)
+void Input::registerMouseRelease(Qt::MouseButton button)
 {
   ButtonContainer::iterator it = FindButton(button);
   if (it != sg_buttonInstances.end())
@@ -158,7 +158,7 @@ void QInput::registerMouseRelease(Qt::MouseButton button)
   }
 }
 
-void QInput::reset()
+void Input::reset()
 {
   sg_keyInstances.clear();
   sg_buttonInstances.clear();

@@ -1,60 +1,40 @@
 #ifndef OPENGLERRORWRAPPER_H
 #define OPENGLERRORWRAPPER_H
 
-#include "openglerrorevent.h"
+#include "openglerror.h"
 #include "macros.h"
 
-// Defining Declaration and Definition of parameters
-#define DECL_0()
-#define DECL_1(t1) t1 a
-#define DECL_2(t1,t2) t1 a, t2 b
-#define DECL_3(t1,t2,t3) t1 a, t2 b, t3 c
-#define DECL_4(t1,t2,t3) t1 a, t2 b, t3 c, t4 d
-#define DECL_5(t1,t2,t3) t1 a, t2 b, t3 c, t4 d, t5 e
-#define DEFN_0()
-#define DEFN_1() a
-#define DEFN_2() a, b
-#define DEFN_3() a, b, c
-#define DEFN_4() a, b, c, d
-#define DEFN_5() a, b, c, d, e
+#endif // OPENGLERRORWRAPPER_H
 
-// Define both parameter declaration and definition
-#ifdef WIN32
-# define PARAMS_DECL(n,...) DELAY(DECL_)##DELAY(n)(__VA_ARGS__)
-# define PARAMS_DEFN(n,...) DELAY(DEFN_)##DELAY(n)()
-#else
-# define PARAMS_DECL(n,...) APPEND(DELAY(DECL_),DELAY(n))(__VA_ARGS__)
-# define PARAMS_DEFN(n,...) APPEND(DELAY(DEFN_),DELAY(n))()
-#endif
+/*******************************************************************************
+ * Defines for managing overriden OpenGL classes
+ ******************************************************************************/
+
+// Reference parent class
+#define PARENT APPEND(Q,GL_CLASS)
 
 // Define both function declaration and definition
-#define FUNC_DECL_N(func,n,...) inline bool func(PARAMS_DECL(n,__VA_ARGS__))
-#define FUNC_DECL(func,...) FUNC_DECL_N(func,NARGS(__VA_ARGS__),__VA_ARGS__)
-#define FUNC_DEFN_N(func,n,...) this->APPEND(Q,GL_CLASS)::func(PARAMS_DEFN(n,__VA_ARGS__))
-#define FUNC_DEFN(func,...) FUNC_DEFN_N(func,NARGS(__VA_ARGS__),__VA_ARGS__)
+#define PROC_DECL(proc)     inline bool proc()
+#define FUNC_DECL(func,...) inline bool func(PDECL(__VA_ARGS__))
+#define PROC_CALL(proc)     PARENT::proc()
+#define FUNC_CALL(func,...) PARENT::func(PCALL(__VA_ARGS__))
+#define GL_REPORT_ERROR(name) { OpenGLError ev(STR(GL_CLASS), STR(name), OpenGLError::ErrorOn_##name); OpenGLError::sendEvent(&ev); }
 
-// Define both method and procedure definitions.
-// Note: This is a custom naming convention. Because of how the preprocessor
-//       expands, we cannot detect when there are 0 variables passed into NARGS(...).
-//       Because of this, we say that GL_PROCEDURE is a sepecial case of GL_METHOD where NARGS = 0.
-#ifdef GL_DEBUG
-# define GL_METHOD_N(func,n,...) FUNC_DECL_N(func,n,__VA_ARGS__) { if (!FUNC_DEFN_N(func,n,__VA_ARGS__)) { OpenGLErrorEvent event(#func); OpenGLErrorEvent::sendEvent(&event); return false; } return true; }
-# define GL_METHOD(func,...) GL_METHOD_N(func,NARGS(__VA_ARGS__),__VA_ARGS__)
-# define GL_PROCEDURE(func)  GL_METHOD_N(func,0)
+// Only handle Debug information if GL_DEBUG is set
+#ifdef    GL_DEBUG
+# define GL_METHOD(func,...) FUNC_DECL(func,__VA_ARGS__) { if (!FUNC_CALL(func,__VA_ARGS__)) { GL_REPORT_ERROR(func); return false; } return true; }
+# define GL_PROCEDURE(proc)  PROC_DECL(proc) { if (!PROC_CALL(proc)) { GL_REPORT_ERROR(proc); return false; } return true; }
 #else
-# define GL_METHOD_N(func,n,...)
 # define GL_METHOD(func,...)
-# define GL_PROCEDURE(func)
+# define GL_PROCEDURE(proc)
 #endif // GL_DEBUG
 
 // define beginning and end of class
-#define GL_BEGIN class GL_CLASS : public APPEND(Q,GL_CLASS) { public:
+#define GL_BEGIN class GL_CLASS : public PARENT { public:
 #define GL_END };
 
 // Define constructors
-#define GL_QOBJECT() GL_CLASS(QObject *parent = 0) : APPEND(Q,GL_CLASS)(parent) {}
-
-#endif // OPENGLERRORWRAPPER_H
+#define GL_QOBJECT() GL_CLASS(QObject *parent = 0) : PARENT(parent) {}
 
 /*******************************************************************************
  * OpenGL class overrides
@@ -103,3 +83,20 @@ GL_BEGIN
 GL_END
 # undef GL_CLASS
 #endif // QOPENGLBUFFER_H
+
+
+/*******************************************************************************
+ * Undefine everything
+ ******************************************************************************/
+
+#undef GL_QOBJECT
+#undef GL_END
+#undef GL_BEGIN
+#undef GL_PROCEDURE
+#undef GL_METHOD
+#undef GL_REPORT_ERROR
+#undef FUNC_CALL
+#undef PROC_CALL
+#undef FUNC_DECL
+#undef PROC_DECL
+#undef PARENT
