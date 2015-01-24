@@ -5,6 +5,8 @@
 #include <QKeyEvent>
 #include "vertex.h"
 #include "input.h"
+
+// Note: Must always be final include (in source)
 #include "fwdopengl.h"
 
 // Front Verticies

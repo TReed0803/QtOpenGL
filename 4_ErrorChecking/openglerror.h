@@ -26,7 +26,7 @@ public:
    * Event Methods
    ****************************************************************************/
   // Constructors / Destructors
-  OpenGLError(char const *fnName, char const *callerName, ErrorType errtype);
+  OpenGLError(char const *callerName, char const *fnName, ErrorType errtype);
   virtual ~OpenGLError();
 
   // Accessing Types
@@ -48,7 +48,7 @@ private:
 };
 
 // Inline Functions
-inline OpenGLError::OpenGLError(char const *fnName, char const *callerName, ErrorType errtype) : QEvent(type()), m_functionName(fnName), m_callerName(callerName), m_errorType(errtype) {}
+inline OpenGLError::OpenGLError(char const *callerName, char const *fnName, ErrorType errtype) : QEvent(type()), m_functionName(fnName), m_callerName(callerName), m_errorType(errtype) {}
 inline OpenGLError::~OpenGLError() {}
 inline char const* OpenGLError::functionName() const { return m_functionName; }
 inline char const* OpenGLError::callerName() const { return m_callerName; }

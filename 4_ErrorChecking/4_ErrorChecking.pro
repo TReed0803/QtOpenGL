@@ -24,7 +24,6 @@ HEADERS += \
     window.h \
     macros.h \
     fwdopengl.h \
-    opengl.h \
     camera3d.h \
     input.h \
     transform3d.h \
