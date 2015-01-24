@@ -5,9 +5,7 @@
 #include <QKeyEvent>
 #include "vertex.h"
 #include "input.h"
-#include "opengl.h"
-#include <QOpenGLDebugLogger>
-#include <QOpenGLDebugMessage>
+#include "fwdopengl.h"
 
 // Front Verticies
 #define VERTEX_FTR Vertex( QVector3D( 0.5f,  0.5f,  0.5f), QVector3D( 1.0f, 0.0f, 0.0f ) )
@@ -57,15 +55,10 @@ static const Vertex sg_vertexes[] = {
  * OpenGL Events
  ******************************************************************************/
 
-Window::Window() : m_debugLogger(Q_NULLPTR)
+Window::Window()
 {
   m_transform.translate(0.0f, 0.0f, -5.0f);
   OpenGLError::setErrorHandler(this);
-}
-
-Window::~Window()
-{
-  makeCurrent();
 }
 
 void Window::initializeGL()
@@ -75,16 +68,6 @@ void Window::initializeGL()
   connect(context(), SIGNAL(aboutToBeDestroyed()), this, SLOT(teardownGL()), Qt::DirectConnection);
   connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
   printVersionInformation();
-
-  // Debug Logging
-#ifdef GL_DEBUG
-  m_debugLogger = new QOpenGLDebugLogger(this);
-  if (m_debugLogger->initialize())
-  {
-    connect(m_debugLogger, SIGNAL(messageLogged(QOpenGLDebugMessage)), this, SLOT(logMessage(QOpenGLDebugMessage)));
-    m_debugLogger->startLogging();
-  }
-#endif
 
   // Set global information
   glEnable(GL_CULL_FACE);
@@ -155,7 +138,6 @@ void Window::teardownGL()
   m_object.destroy();
   m_vertex.destroy();
   delete m_program;
-  delete m_debugLogger;
 }
 
 void Window::update()
@@ -209,11 +191,6 @@ void Window::update()
   QOpenGLWindow::update();
 }
 
-void Window::logMessage(const QOpenGLDebugMessage &msg)
-{
-  qDebug() << msg;
-}
-
 bool Window::event(QEvent *e)
 {
   if (e->type() == OpenGLError::type())
@@ -226,8 +203,7 @@ bool Window::event(QEvent *e)
 
 void Window::errorEventGL(OpenGLError *event)
 {
-  qDebug() << event->functionName() << ": encountered an unrecoverable error!";
-  //exit(-1);
+  qFatal("%s::%s => Returned an error!", event->callerName(), event->functionName());
 }
 
 void Window::keyPressEvent(QKeyEvent *event)

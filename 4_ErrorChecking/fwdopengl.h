@@ -1,10 +1,10 @@
-#ifndef OPENGLERRORWRAPPER_H
-#define OPENGLERRORWRAPPER_H
+#ifndef FWDOPENGL_H
+#define FWDOPENGL_H
 
 #include "openglerror.h"
 #include "macros.h"
 
-#endif // OPENGLERRORWRAPPER_H
+#endif // FWDOPENGL_H
 
 /*******************************************************************************
  * Defines for managing overriden OpenGL classes
@@ -18,7 +18,7 @@
 #define FUNC_DECL(func,...) inline bool func(PDECL(__VA_ARGS__))
 #define PROC_CALL(proc)     PARENT::proc()
 #define FUNC_CALL(func,...) PARENT::func(PCALL(__VA_ARGS__))
-#define GL_REPORT_ERROR(name) { OpenGLError ev(STR(GL_CLASS), STR(name), OpenGLError::ErrorOn_##name); OpenGLError::sendEvent(&ev); }
+#define GL_REPORT_ERROR(name) { OpenGLError ev(STR(GL_CLASS), STR(name), OpenGLError::ErrorOn_##name); return OpenGLError::sendEvent(&ev); }
 
 // Only handle Debug information if GL_DEBUG is set
 #ifdef    GL_DEBUG

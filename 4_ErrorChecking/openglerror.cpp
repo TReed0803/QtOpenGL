@@ -2,8 +2,14 @@
 #include <QObject>
 #include <QCoreApplication>
 
+/*******************************************************************************
+ * OpenGLError static types
+ ******************************************************************************/
 QObject* OpenGLError::m_errorHandler = NULL;
 
+/*******************************************************************************
+ * OpenGLError methods
+ ******************************************************************************/
 QEvent::Type OpenGLError::type()
 {
   static QEvent::Type customEventType =
@@ -13,6 +19,11 @@ QEvent::Type OpenGLError::type()
 
 bool OpenGLError::sendEvent(OpenGLError *event)
 {
+  if (!m_errorHandler)
+  {
+    qWarning("Set OpenGLError::setErrorHandler() before calling any GL_DEBUG OpenGL functions!");
+    return false;
+  }
   return QCoreApplication::sendEvent(m_errorHandler, event);
 }
 

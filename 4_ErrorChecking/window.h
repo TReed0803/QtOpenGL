@@ -10,10 +10,6 @@
 #include "camera3d.h"
 #include "fwdopengl.h"
 
-class QOpenGLErrorEvent;
-class QOpenGLDebugLogger;
-class QOpenGLDebugMessage;
-
 class Window : public QOpenGLWindow,
                protected QOpenGLFunctions
 {
@@ -22,17 +18,15 @@ class Window : public QOpenGLWindow,
 // OpenGL Events
 public:
   Window();
-  ~Window();
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
 protected slots:
   void teardownGL();
   void update();
-  void logMessage(const QOpenGLDebugMessage &msg);
 
 protected:
-  virtual bool event(QEvent *event);
+  bool event(QEvent *event);
   void errorEventGL(OpenGLError *event);
   void keyPressEvent(QKeyEvent *event);
   void keyReleaseEvent(QKeyEvent *event);
@@ -44,7 +38,6 @@ private:
   OpenGLBuffer m_vertex;
   OpenGLVertexArrayObject m_object;
   OpenGLShaderProgram *m_program;
-  QOpenGLDebugLogger *m_debugLogger;
 
   // Shader Information
   int u_modelToWorld;
