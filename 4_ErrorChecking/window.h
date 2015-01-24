@@ -18,6 +18,7 @@ class Window : public QOpenGLWindow,
 // OpenGL Events
 public:
   Window();
+  ~Window();
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();

@@ -2,6 +2,7 @@
 #define OPENGLERROR_H
 
 #include <QEvent>
+#include <QStack>
 
 class OpenGLError : public QEvent
 {
@@ -36,13 +37,14 @@ public:
   // Static Access
   static QEvent::Type type();
   static bool sendEvent(OpenGLError *event);
-  static void setErrorHandler(QObject *obj);
+  static void pushErrorHandler(QObject *obj);
+  static void popErrorHandler();
 
 private:
   char const *m_functionName;
   char const *m_callerName;
   ErrorType m_errorType;
-  static QObject *m_errorHandler;
+  static QStack<QObject*> m_errorHandler;
 };
 
 // Inline Functions

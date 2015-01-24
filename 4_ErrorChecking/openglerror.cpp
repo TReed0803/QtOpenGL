@@ -1,11 +1,12 @@
 #include "openglerror.h"
 #include <QObject>
 #include <QCoreApplication>
+#include <QDebug>
 
 /*******************************************************************************
  * OpenGLError static types
  ******************************************************************************/
-QObject* OpenGLError::m_errorHandler = NULL;
+QStack<QObject*> OpenGLError::m_errorHandler;
 
 /*******************************************************************************
  * OpenGLError methods
@@ -19,15 +20,23 @@ QEvent::Type OpenGLError::type()
 
 bool OpenGLError::sendEvent(OpenGLError *event)
 {
-  if (!m_errorHandler)
+  if (m_errorHandler.empty())
   {
     qWarning("Set OpenGLError::setErrorHandler() before calling any GL_DEBUG OpenGL functions!");
     return false;
   }
-  return QCoreApplication::sendEvent(m_errorHandler, event);
+  return QCoreApplication::sendEvent(m_errorHandler.top(), event);
 }
 
-void OpenGLError::setErrorHandler(QObject *obj)
+void OpenGLError::pushErrorHandler(QObject *obj)
 {
-  m_errorHandler = obj;
+#ifdef    GL_DEBUG
+  qDebug() << "GL_DEBUG Error Handler (" << obj << ")";
+#endif // GL_DEBUG
+  m_errorHandler.push(obj);
+}
+
+void OpenGLError::popErrorHandler()
+{
+  m_errorHandler.pop();
 }

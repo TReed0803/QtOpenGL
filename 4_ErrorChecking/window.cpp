@@ -58,7 +58,12 @@ static const Vertex sg_vertexes[] = {
 Window::Window()
 {
   m_transform.translate(0.0f, 0.0f, -5.0f);
-  OpenGLError::setErrorHandler(this);
+  OpenGLError::pushErrorHandler(this);
+}
+
+Window::~Window()
+{
+  OpenGLError::popErrorHandler();
 }
 
 void Window::initializeGL()
