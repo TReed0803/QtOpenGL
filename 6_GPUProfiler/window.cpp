@@ -8,6 +8,7 @@
 #include "vertex.h"
 #include "input.h"
 #include "profiler.h"
+#include "frameresult.h"
 
 // Note: Must always be final include (in source)
 #include "fwdopengl.h"
@@ -96,6 +97,7 @@ void Window::initializeGL()
     connect(m_debugLogger, SIGNAL(messageLogged(QOpenGLDebugMessage)), this, SLOT(messageLogged(QOpenGLDebugMessage)));
     m_debugLogger->startLogging();
   }
+  connect(m_profiler, SIGNAL(onFrameResult(FrameResult)), this, SLOT(onFrameResult(FrameResult)));
 #endif // GL_DEBUG
 
   // Application-specific initialization
@@ -296,6 +298,11 @@ void Window::messageLogged(QOpenGLDebugMessage msg)
 
   error += ")";
   qDebug() << qPrintable(error) << "\n" << qPrintable(msg.message()) << "\n";
+}
+
+void Window::onFrameResult(const FrameResult &result)
+{
+  qDebug() << result;
 }
 
 bool Window::event(QEvent *e)

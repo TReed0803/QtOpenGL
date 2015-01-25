@@ -12,6 +12,7 @@
 #include "fwdopengl.h"
 
 class Profiler;
+class FrameResult;
 class QOpenGLDebugLogger;
 
 class Window : public QOpenGLWindow,
@@ -30,6 +31,7 @@ protected slots:
   void teardownGL();
   void update();
   void messageLogged(QOpenGLDebugMessage msg);
+  void onFrameResult(const FrameResult& result);
 
 protected:
   bool event(QEvent *event);
