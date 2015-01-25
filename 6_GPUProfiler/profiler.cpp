@@ -2,14 +2,11 @@
 #include <vector>
 #include <stack>
 #include <QOpenGLTimerQuery>
-#include <QDebug>
 #include "frameresult.h"
 
 struct Marker
 {
-  int depth;
   QString name;
-  QColor color;
 };
 
 /*******************************************************************************
@@ -82,7 +79,7 @@ struct MarkerGroup
   MarkerGroup(QObject *parent = 0);
   bool isResultAvailable();
   inline const MarkerContainer &markers() const;
-  void pushMarker(const QString &name, const QColor &color);
+  void pushMarker(const QString &name);
   void popMarker();
   inline void clear();
 
@@ -122,7 +119,7 @@ inline const typename MarkerGroup<T>::MarkerContainer &MarkerGroup<T>::markers()
 }
 
 template <typename T>
-void MarkerGroup<T>::pushMarker(const QString &name, const QColor &color)
+void MarkerGroup<T>::pushMarker(const QString &name)
 {
   MarkerPointer marker;
   if (m_currMarker >= m_markers.size())
@@ -137,7 +134,6 @@ void MarkerGroup<T>::pushMarker(const QString &name, const QColor &color)
 
   // Instantiate the marker
   marker->name = name;
-  marker->color = color;
   marker->start();
 
   m_activeMarkerIndex.push(m_currMarker);
@@ -171,7 +167,7 @@ struct FrameInfo
   FrameInfo(QObject *parent = 0);
   inline bool isResultAvailable();
   FrameResult waitForResult();
-  inline void pushGpuMarker(const QString &name, const QColor &color);
+  inline void pushGpuMarker(const QString &name);
   inline void popGpuMarker();
   inline void clear();
 
@@ -211,9 +207,9 @@ FrameResult FrameInfo::waitForResult()
   return results;
 }
 
-inline void FrameInfo::pushGpuMarker(const QString &name, const QColor &color)
+inline void FrameInfo::pushGpuMarker(const QString &name)
 {
-  m_gpuMarkers.pushMarker(name, color);
+  m_gpuMarkers.pushMarker(name);
 }
 
 inline void FrameInfo::popGpuMarker()
@@ -269,12 +265,11 @@ Profiler::~Profiler()
   delete m_private;
 }
 
-void Profiler::pushGpuMarker(const char *name, const QColor &color)
+void Profiler::pushGpuMarker(const char *name)
 {
-  (void)color;
   P(ProfilerPrivate);
   FrameInfo *frame = p.m_frames[p.m_currFrame];
-  frame->pushGpuMarker(name, color);
+  frame->pushGpuMarker(name);
 }
 
 void Profiler::popGpuMarker()
@@ -310,12 +305,11 @@ void Profiler::emitResults()
     }
     ++frameIdx;
     emit onFrameResult(frame->waitForResult());
-    frame->clear();
     p.m_frames.push_back(frame);
+    frame->clear();
   }
 
   // Move first N frames to the back
   p.m_currFrame -= frameIdx;
   p.m_frames.erase(p.m_frames.begin(), p.m_frames.begin() + frameIdx);
 }
-

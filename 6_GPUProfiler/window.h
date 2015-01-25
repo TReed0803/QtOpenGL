@@ -30,7 +30,7 @@ public:
 protected slots:
   void teardownGL();
   void update();
-  void messageLogged(QOpenGLDebugMessage msg);
+  void messageLogged(const QOpenGLDebugMessage &msg);
   void onFrameResult(const FrameResult& result);
 
 protected:

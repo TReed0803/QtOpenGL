@@ -64,7 +64,7 @@ static const Vertex sg_vertexes[] = {
  * OpenGL Events
  ******************************************************************************/
 
-Window::Window() : m_debugLogger(Q_NULLPTR)
+Window::Window()
 {
   m_transform.translate(0.0f, 0.0f, -5.0f);
   OpenGLError::pushErrorHandler(this);
@@ -148,15 +148,15 @@ void Window::paintGL()
 
   // Render using our shader
   PROFILER_SYNC_FRAME();
-  PROFILER_PUSH_GPU_MARKER("Render Scene", Qt::green);
+  PROFILER_PUSH_GPU_MARKER("Render Scene");
   {
-    PROFILER_PUSH_GPU_MARKER("Prepare Scene", Qt::green);
+    PROFILER_PUSH_GPU_MARKER("Prepare Scene");
     m_program->bind();
     m_program->setUniformValue(u_worldToCamera, m_camera.toMatrix());
     m_program->setUniformValue(u_cameraToView, m_projection);
     PROFILER_POP_GPU_MARKER();
     {
-      PROFILER_PUSH_GPU_MARKER("Draw Object", Qt::green);
+      PROFILER_PUSH_GPU_MARKER("Draw Object");
       m_object.bind();
       m_program->setUniformValue(u_modelToWorld, m_transform.toMatrix());
       glDrawArrays(GL_TRIANGLES, 0, sizeof(sg_vertexes) / sizeof(sg_vertexes[0]));
@@ -227,7 +227,7 @@ void Window::update()
   QOpenGLWindow::update();
 }
 
-void Window::messageLogged(QOpenGLDebugMessage msg)
+void Window::messageLogged(const QOpenGLDebugMessage &msg)
 {
   QString error;
 

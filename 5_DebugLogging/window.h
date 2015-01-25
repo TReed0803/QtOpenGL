@@ -28,7 +28,7 @@ public:
 protected slots:
   void teardownGL();
   void update();
-  void messageLogged(QOpenGLDebugMessage msg);
+  void messageLogged(const QOpenGLDebugMessage &msg);
 
 protected:
   bool event(QEvent *event);

@@ -212,7 +212,7 @@ void Window::update()
   QOpenGLWindow::update();
 }
 
-void Window::messageLogged(QOpenGLDebugMessage msg)
+void Window::messageLogged(const QOpenGLDebugMessage &msg)
 {
   QString error;
 
