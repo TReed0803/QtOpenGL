@@ -3,13 +3,34 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
+#include <QRectF>
+#include <QColor>
+#include <QOpenGLBuffer>
 #include "debugvertex.h"
+#include "fwdopengl.h"
 #include "fwdopengl.h"
 
 static size_t m_currOffset;
 static OpenGLBuffer m_buffer;
 static OpenGLVertexArrayObject *m_object;
 static OpenGLShaderProgram *m_program;
+
+static void drawArray(const DebugVertex *array, size_t size)
+{
+  m_buffer.bind();
+  m_buffer.write(m_currOffset, array, size);
+  m_buffer.release();
+  m_currOffset += size;
+}
+
+static QRectF normalize(const QRectF &rect)
+{
+  float x = rect.x() * 2.0f - 1.0f;
+  float y = rect.y() * -2.0f + 1.0f;
+  float w = rect.width() * 2.0f;
+  float h = rect.height() * 2.0f;
+  return QRectF(x, y, w, h);
+}
 
 void DebugDraw::initialize(QObject *parent)
 {
@@ -41,13 +62,18 @@ void DebugDraw::initialize(QObject *parent)
   m_program->release();
 }
 
-void DebugDraw::drawRect(const QRectF &rect, const QColor &color)
+void DebugDraw::Screen::drawRect(const QRectF &rect, const QColor &color)
 {
-  float x1 = rect.x() * 2.0f - 1.0f;
-  float y1 = rect.y() * -2.0f + 1.0f;
-  float x2 = (rect.x() + rect.width()) * 2.0f - 1.0f;
-  float y2 = (rect.y() + rect.height()) * -2.0f + 1.0f;
+  // Move coordinates to OpenGL NDC
+  QRectF nRect = normalize(rect);
 
+  // Create key vertex positions
+  float x1 = nRect.x();
+  float y1 = nRect.y();
+  float x2 = nRect.x() + nRect.width();
+  float y2 = nRect.y() - nRect.height();
+
+  // Create vertices
   DebugVertex vertices[] = {
     DebugVertex( QVector3D(x1, y1, 0.0f), color ),
     DebugVertex( QVector3D(x1, y2, 0.0f), color ),
@@ -57,15 +83,8 @@ void DebugDraw::drawRect(const QRectF &rect, const QColor &color)
     DebugVertex( QVector3D(x2, y2, 0.0f), color )
   };
 
+  // Queue to draw
   drawArray(vertices, sizeof(vertices));
-}
-
-void DebugDraw::drawArray(const DebugVertex *array, size_t size)
-{
-  m_buffer.bind();
-  m_buffer.write(m_currOffset, array, size);
-  m_buffer.release();
-  m_currOffset += size;
 }
 
 void DebugDraw::draw()

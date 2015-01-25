@@ -218,21 +218,13 @@ FrameResult FrameInfo::waitForResult()
   while (!m_gpuMarkers.isResultAvailable());
 
   // Aggregate the results
-  FrameResult results;
-  FrameResult::GpuMarkerResult markerResult;
+  FrameResult results(m_gpuMarkers.maxDepth(), m_startTimer.waitForResult(), m_endTimer.waitForResult());
   const GpuGroup::MarkerContainer &gpuMarkers = m_gpuMarkers.markers();
   for (size_t i = 0; i < gpuMarkers.size(); ++i)
   {
     const GpuMarker &marker = *gpuMarkers[i];
-    markerResult.name = marker.name;
-    markerResult.depth = marker.depth;
-    markerResult.start = marker.startTime();
-    markerResult.end = marker.endTime();
-    results.m_gpuResults.push_back(markerResult);
+    results.addGpuResult(marker.name, marker.depth, marker.startTime(), marker.endTime());
   }
-  results.m_maxDepth = m_gpuMarkers.maxDepth();
-  results.m_startTime = m_startTimer.waitForResult();
-  results.m_endTime = m_endTimer.waitForResult();
 
   return results;
 }
@@ -270,7 +262,12 @@ struct ProfilerPrivate
 {
   typedef std::vector<FrameInfo*> FrameContainer;
   size_t m_currFrame;
+  bool m_dirty;
   QPoint m_windowPosition;
+  QPoint m_topLeftBorder, m_bottomRightBorder;
+  QPointF m_topLeft, m_topLeftOffset, m_bottomRight, m_bottomRightOffset;
+  QSizeF m_surfaceArea;
+  QRectF m_surfaceRect;
   QSize m_windowSize;
   QString m_currToolTip;
   FrameContainer m_frames;
@@ -280,7 +277,7 @@ struct ProfilerPrivate
 };
 
 ProfilerPrivate::ProfilerPrivate() :
-  m_currFrame(0)
+  m_currFrame(0), m_dirty(true)
 {
   // Intentionally Empty
 }
@@ -351,7 +348,7 @@ void Profiler::emitResults()
       break;
     }
     ++frameIdx;
-    p.m_lastResultSet = frame->waitForResult();
+    p.m_lastResultSet = std::move(frame->waitForResult());
     emit onFrameResult(p.m_lastResultSet);
     p.m_frames.push_back(frame);
     frame->clear();
@@ -367,61 +364,82 @@ void Profiler::resizeGL(int width, int height)
   P(ProfilerPrivate);
   p.m_windowSize.setWidth(width);
   p.m_windowSize.setHeight(height);
+  p.m_dirty = true;
 }
 
 void Profiler::paintGL()
 {
   P(ProfilerPrivate);
 
-  // Find our bounds
-  float xBorder = 0.015f;
-  float yBorder = 0.015f;
-  QPointF topLeft(0.0f + xBorder, 0.9f + yBorder);
-  QPointF bottomRight(1.0f - xBorder, 1.0f - yBorder);
-  QSizeF bounds(bottomRight.x() - topLeft.x(), bottomRight.y() - topLeft.y());
-  QRectF area(topLeft, bounds);
+  // Recalculate Profiler information if needed
+  if (p.m_dirty)
+  {
+    p.m_dirty = false;
+    p.m_topLeft.setX(p.m_topLeftOffset.x() + float(p.m_topLeftBorder.x()) / p.m_windowSize.width());
+    p.m_topLeft.setY(p.m_topLeftOffset.y() + float(p.m_topLeftBorder.y()) / p.m_windowSize.height());
+    p.m_bottomRight.setX(1.0f - (p.m_bottomRightOffset.x() + float(p.m_bottomRightBorder.x()) / p.m_windowSize.width()));
+    p.m_bottomRight.setY(1.0f - (p.m_bottomRightOffset.y() + float(p.m_bottomRightBorder.y()) / p.m_windowSize.height()));
+    p.m_surfaceArea.setWidth(p.m_bottomRight.x() - p.m_topLeft.x());
+    p.m_surfaceArea.setHeight(p.m_bottomRight.y() - p.m_topLeft.y());
+    p.m_surfaceRect.setTopLeft(p.m_topLeft);
+    p.m_surfaceRect.setSize(p.m_surfaceArea);
+  }
 
-  DebugDraw::drawRect(area, Qt::white);
+  // Draw Background
+  DebugDraw::Screen::drawRect(p.m_surfaceRect, Qt::white);
 
   // Find our step
-  float ySteps = bounds.height() / p.m_lastResultSet.m_maxDepth;
-  uint64_t begin = p.m_lastResultSet.m_startTime;
-  uint64_t end = p.m_lastResultSet.m_endTime;
-  float frameTime = end - begin;
+  float markerYStep = p.m_surfaceArea.height() / p.m_lastResultSet.maxDepth();
+  uint64_t frameBegin = p.m_lastResultSet.startTime();
+  uint64_t frameEnd = p.m_lastResultSet.endTime();
+  float frameTime = float(frameEnd - frameBegin);
 
   // Find mouse pos
-  QPoint pos = Input::mousePosition() - p.m_windowPosition;
-  QPointF posF(float(pos.x()) / p.m_windowSize.width(), float(pos.y()) / p.m_windowSize.height());
+  QPoint absoluteMousePos = Input::mousePosition();
+  QPoint relativeMousePos = absoluteMousePos - p.m_windowPosition;
+  QPointF normalizedRelativeMousePos(
+    float(relativeMousePos.x()) / p.m_windowSize.width(),
+    float(relativeMousePos.y()) / p.m_windowSize.height()
+  );
 
-  const QVector<FrameResult::GpuMarkerResult> &gpuResults = p.m_lastResultSet.m_gpuResults;
+  // Draw each marker
+  QColor markerColor;
+  QRectF normalizedMarkerRect;
+  float normalizedMarkerStart, normalizedMarkerEnd;
+  const FrameResult::MarkerResultContainer &gpuResults = p.m_lastResultSet.gpuResults();
   for (int i = 0; i < gpuResults.size(); ++i)
   {
-    const FrameResult::GpuMarkerResult &result = gpuResults[i];
-    float start = (result.start - begin) / frameTime;
-    float end = (result.end - begin) / frameTime;
-    area.setLeft(topLeft.x() + bounds.width() * start);
-    area.setRight(topLeft.x() + bounds.width() * end);
-    area.setTop(topLeft.y() + ySteps * result.depth);
-    area.setBottom(topLeft.y() + ySteps * (result.depth + 1));
-    if (area.contains(posF))
+    const FrameResult::MarkerResult &result = gpuResults[i];
+
+    // Calculate normalized marker area
+    normalizedMarkerStart = (result.start - frameBegin) / frameTime;
+    normalizedMarkerEnd = (result.end - frameBegin) / frameTime;
+    normalizedMarkerRect.setLeft(p.m_topLeft.x() + p.m_surfaceArea.width() * normalizedMarkerStart);
+    normalizedMarkerRect.setRight(p.m_topLeft.x() + p.m_surfaceArea.width() * normalizedMarkerEnd);
+    normalizedMarkerRect.setTop(p.m_topLeft.y() + markerYStep * result.depth);
+    normalizedMarkerRect.setBottom(p.m_topLeft.y() + markerYStep * (result.depth + 1));
+
+    // Display debug information if selected
+    if (normalizedMarkerRect.contains(normalizedRelativeMousePos))
     {
+      markerColor = Qt::yellow;
       if (p.m_currToolTip != result.name)
       {
         p.m_currToolTip = result.name;
         QString str = result.name + " " + QString::number((result.end - result.start) / 1e6f);
         QToolTip::showText(Input::mousePosition(), str);
       }
-      DebugDraw::drawRect(area, Qt::yellow);
     }
     else
     {
+      markerColor = Qt::red;
       if (p.m_currToolTip == result.name)
       {
         p.m_currToolTip = "";
         QToolTip::hideText();
       }
-      DebugDraw::drawRect(area, Qt::red);
     }
+    DebugDraw::Screen::drawRect(normalizedMarkerRect, markerColor);
 
   }
 }
@@ -429,6 +447,25 @@ void Profiler::paintGL()
 void Profiler::moveEvent(const QMoveEvent *ev)
 {
   P(ProfilerPrivate);
-
   p.m_windowPosition = ev->pos();
+}
+
+void Profiler::setBorder(int left, int right, int top, int bottom)
+{
+  P(ProfilerPrivate);
+  p.m_topLeftBorder.setX(left);
+  p.m_topLeftBorder.setY(top);
+  p.m_bottomRightBorder.setX(right);
+  p.m_bottomRightBorder.setY(bottom);
+  p.m_dirty = true;
+}
+
+void Profiler::setOffset(float left, float right, float top, float bottom)
+{
+  P(ProfilerPrivate);
+  p.m_topLeftOffset.setX(left);
+  p.m_topLeftOffset.setY(top);
+  p.m_bottomRightOffset.setX(right);
+  p.m_bottomRightOffset.setY(bottom);
+  p.m_dirty = true;
 }

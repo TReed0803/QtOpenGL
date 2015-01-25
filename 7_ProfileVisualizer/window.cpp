@@ -69,6 +69,8 @@ Window::Window()
 {
 #ifdef    GL_DEBUG
   m_profiler = new Profiler(this);
+  m_profiler->setBorder(10, 10, 0, 10);
+  m_profiler->setOffset(0.0f, 0.0f, 0.8f, 0.0f);
 #endif // GL_DEBUG
   m_transform.translate(0.0f, 0.0f, -5.0f);
   OpenGLError::pushErrorHandler(this);
@@ -146,14 +148,14 @@ void Window::resizeGL(int width, int height)
   m_projection.perspective(45.0f, width / float(height), 0.0f, 1000.0f);
   PROFILER_RESIZE_GL(width, height);
 }
-
+#include <QPainter>
 void Window::paintGL()
 {
   // Clear
+  PROFILER_SYNC_FRAME();
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // Render using our shader
-  PROFILER_SYNC_FRAME();
+  // Render the scene
   PROFILER_PUSH_GPU_MARKER("Render Scene");
   {
     PROFILER_PUSH_GPU_MARKER("Prepare Scene");
@@ -172,9 +174,12 @@ void Window::paintGL()
     m_program->release();
   }
   PROFILER_POP_GPU_MARKER();
-  PROFILER_EMIT_RESULTS();
-  PROFILER_PAINT_GL();
 
+  // Finalize the frame
+  PROFILER_EMIT_RESULTS();
+
+  // Render the profiler
+  PROFILER_PAINT_GL();
   DebugDraw::draw();
 }
 
@@ -311,6 +316,7 @@ void Window::messageLogged(const QOpenGLDebugMessage &msg)
 
 void Window::onFrameResult(const FrameResult &result)
 {
+  (void)result;
 //  qDebug() << result;
 }
 
@@ -366,6 +372,7 @@ void Window::mouseReleaseEvent(QMouseEvent *event)
 void Window::moveEvent(QMoveEvent *ev)
 {
   PROFILER_MOVE_EVENT(ev);
+  QOpenGLWindow::moveEvent(ev);
 }
 
 /*******************************************************************************

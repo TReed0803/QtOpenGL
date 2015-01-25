@@ -20,6 +20,10 @@ public:
   void resizeGL(int width, int height);
   void paintGL();
   void moveEvent(const QMoveEvent *ev);
+
+  // Options
+  void setBorder(int left, int right, int top, int bottom);
+  void setOffset(float left, float right, float top, float bottom);
 signals:
   void onFrameResult(const FrameResult& result);
 private:

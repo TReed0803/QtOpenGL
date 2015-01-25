@@ -41,7 +41,7 @@ protected:
   void keyReleaseEvent(QKeyEvent *event);
   void mousePressEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);
-  void moveEvent(QMoveEvent * ev);
+  void moveEvent(QMoveEvent *ev);
 
 private:
   // OpenGL State Information
