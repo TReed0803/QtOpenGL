@@ -5,9 +5,6 @@
 #include <QDebug>
 #include "frameresult.h"
 
-#define INVALID_TIMER -1
-#define INVALID_TIME ((uint64_t)-1)
-
 struct Marker
 {
   int depth;
@@ -296,7 +293,7 @@ void Profiler::synchronizeFrame()
   }
 }
 
-void Profiler::draw()
+void Profiler::emitResults()
 {
   P(ProfilerPrivate);
   ++p.m_currFrame;

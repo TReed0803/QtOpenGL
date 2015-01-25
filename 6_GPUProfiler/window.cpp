@@ -166,7 +166,7 @@ void Window::paintGL()
     m_program->release();
   }
   PROFILER_POP_GPU_MARKER();
-  PROFILER_DRAW();
+  PROFILER_EMIT_RESULTS();
 }
 
 void Window::teardownGL()

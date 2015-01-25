@@ -16,7 +16,7 @@ public:
   void pushGpuMarker(char const *name, QColor const &color);
   void popGpuMarker();
   void synchronizeFrame();
-  void draw();
+  void emitResults();
 signals:
   void onFrameResult(const FrameResult& result);
 private:
@@ -30,7 +30,7 @@ private:
 # define PROFILER_POP_CPU_MARKER() GL_PROFILER->popCpuMarker();
 # define PROFILER_PUSH_GPU_MARKER(name,color) GL_PROFILER->pushGpuMarker(name, color);
 # define PROFILER_POP_GPU_MARKER() GL_PROFILER->popGpuMarker();
-# define PROFILER_DRAW() GL_PROFILER->draw();
+# define PROFILER_EMIT_RESULTS() GL_PROFILER->emitResults();
 #else
 # define PROFILER_SYNC_FRAME()
 # define PROFILER_PUSH_CPU_MARKER(name,color)
