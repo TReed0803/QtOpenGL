@@ -9,6 +9,7 @@ QT       += core gui
 TARGET = 5_DebugLogging
 CONFIG   += console gl_debug
 CONFIG   -= app_bundle
+INCLUDEPATH += $$PWD/OpenGL
 
 TEMPLATE = app
 
@@ -18,17 +19,20 @@ SOURCES += \
     camera3d.cpp \
     input.cpp \
     transform3d.cpp \
-    openglerror.cpp
+    OpenGL/openglerror.cpp
 
 HEADERS += \
     window.h \
-    macros.h \
-    fwdopengl.h \
     camera3d.h \
     input.h \
     transform3d.h \
     vertex.h \
-    openglerror.h
+    macros.h \
+    OpenGL/openglerror.h \
+    OpenGL/openglbuffer.h \
+    OpenGL/openglshaderprogram.h \
+    OpenGL/openglvertexarrayobject.h \
+    OpenGL/openglcommon.h
 
 RESOURCES += \
     resources.qrc

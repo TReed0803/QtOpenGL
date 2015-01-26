@@ -11,8 +11,9 @@
 #include "debugdraw.h"
 #include "frameresult.h"
 
-// Note: Must always be final include (in source)
-#include "fwdopengl.h"
+// Custom includes
+#include <OpenGLError>
+#include <OpenGLShaderProgram>
 
 // Front Verticies
 #define VERTEX_FTR Vertex( QVector3D( 0.5f,  0.5f,  0.5f), QVector3D( 1.0f, 0.0f, 0.0f ) )
@@ -321,7 +322,6 @@ void Window::messageLogged(const QOpenGLDebugMessage &msg)
 void Window::onFrameResult(const FrameResult &result)
 {
   (void)result;
-//  qDebug() << result;
 }
 
 bool Window::event(QEvent *e)

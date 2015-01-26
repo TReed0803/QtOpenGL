@@ -3,16 +3,19 @@
 
 #include <QOpenGLWindow>
 #include <QOpenGLFunctions>
-#include <QOpenGLBuffer>
-#include <QOpenGLVertexArrayObject>
 #include <QOpenGLDebugMessage>
 #include <QMatrix4x4>
 #include "transform3d.h"
 #include "camera3d.h"
-#include "fwdopengl.h"
+
+// Custom Includes
+#include <OpenGLBuffer>
+#include <OpenGLVertexArrayObject>
 
 class Profiler;
 class FrameResult;
+class OpenGLError;
+class OpenGLShaderProgram;
 class QOpenGLDebugLogger;
 
 class Window : public QOpenGLWindow,

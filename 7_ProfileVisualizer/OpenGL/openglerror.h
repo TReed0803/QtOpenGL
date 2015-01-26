@@ -14,6 +14,7 @@ public:
   enum ErrorType
   {
     ErrorOn_bind,
+    ErrorOn_read,
     ErrorOn_create,
     ErrorOn_unmap,
     ErrorOn_link,
