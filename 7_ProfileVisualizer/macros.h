@@ -27,7 +27,7 @@
 #define PGET_5(a,...) PGET_4 CYCLE() (__VA_ARGS__)
 #define PGET_N(n,...) APPEND(PGET_,n) CYCLE() (__VA_ARGS__)
 
-// Declare variables using separator `sep`
+// Declare variables using comma separator
 #define PDECL_0(...)
 #define PDECL_1(...)                                PGET_1 CYCLE() (__VA_ARGS__) v1
 #define PDECL_2(...) PDECL_1 CYCLE() (__VA_ARGS__), PGET_2 CYCLE() (__VA_ARGS__) v2
@@ -37,7 +37,7 @@
 #define PDECL_N(n,...) APPEND(PDECL_,n) CYCLE() (__VA_ARGS__)
 #define PDECL(...) PDECL_N(NARGS(__VA_ARGS__),__VA_ARGS__)
 
-// Declare variables using separator `sep`
+// Declare variables using comma separator
 #define PCAST_0(...)
 #define PCAST_1(...)                                *(( std::remove_reference< PGET_1 CYCLE() (__VA_ARGS__) >::type *)0)
 #define PCAST_2(...) PCAST_1 CYCLE() (__VA_ARGS__), *(( std::remove_reference< PGET_2 CYCLE() (__VA_ARGS__) >::type *)0)
@@ -47,7 +47,7 @@
 #define PCAST_N(n,...) APPEND(PCAST_,n) CYCLE() (__VA_ARGS__)
 #define PCAST(...) PCAST_N(NARGS(__VA_ARGS__),__VA_ARGS__)
 
-// Pass variables using separator `sep`
+// Pass variables using comma separator
 #define PCALL_0()
 #define PCALL_1() v1
 #define PCALL_2() PCALL_1(), v2
