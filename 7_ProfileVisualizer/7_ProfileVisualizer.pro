@@ -35,7 +35,9 @@ HEADERS += \
     profiler.h \
     frameresult.h \
     debugdraw.h \
-    debugvertex.h
+    debugvertex.h \
+    glbegin.h \
+    glend.h
 
 RESOURCES += \
     resources.qrc

@@ -1,6 +1,8 @@
 #ifndef MACROS_H
 #define MACROS_H
 
+#include <type_traits>
+
 // Delay the preprocessor by one step
 #define CYCLE()
 
@@ -34,6 +36,16 @@
 #define PDECL_5(...) PDECL_4 CYCLE() (__VA_ARGS__), PGET_5 CYCLE() (__VA_ARGS__) v5
 #define PDECL_N(n,...) APPEND(PDECL_,n) CYCLE() (__VA_ARGS__)
 #define PDECL(...) PDECL_N(NARGS(__VA_ARGS__),__VA_ARGS__)
+
+// Declare variables using separator `sep`
+#define PCAST_0(...)
+#define PCAST_1(...)                                *(( std::remove_reference< PGET_1 CYCLE() (__VA_ARGS__) >::type *)0)
+#define PCAST_2(...) PCAST_1 CYCLE() (__VA_ARGS__), *(( std::remove_reference< PGET_2 CYCLE() (__VA_ARGS__) >::type *)0)
+#define PCAST_3(...) PCAST_2 CYCLE() (__VA_ARGS__), *(( std::remove_reference< PGET_3 CYCLE() (__VA_ARGS__) >::type *)0)
+#define PCAST_4(...) PCAST_3 CYCLE() (__VA_ARGS__), *(( std::remove_reference< PGET_4 CYCLE() (__VA_ARGS__) >::type *)0)
+#define PCAST_5(...) PCAST_4 CYCLE() (__VA_ARGS__), *(( std::remove_reference< PGET_5 CYCLE() (__VA_ARGS__) >::type *)0)
+#define PCAST_N(n,...) APPEND(PCAST_,n) CYCLE() (__VA_ARGS__)
+#define PCAST(...) PCAST_N(NARGS(__VA_ARGS__),__VA_ARGS__)
 
 // Pass variables using separator `sep`
 #define PCALL_0()

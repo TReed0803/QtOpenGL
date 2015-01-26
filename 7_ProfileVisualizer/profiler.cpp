@@ -263,6 +263,7 @@ struct ProfilerPrivate
   typedef std::vector<FrameInfo*> FrameContainer;
   size_t m_currFrame;
   bool m_dirty;
+  static Profiler *m_profiler;
   QPoint m_windowPosition;
   QPoint m_topLeftBorder, m_bottomRightBorder;
   QPointF m_topLeft, m_topLeftOffset, m_bottomRight, m_bottomRightOffset;
@@ -275,6 +276,8 @@ struct ProfilerPrivate
   ProfilerPrivate();
   ~ProfilerPrivate();
 };
+
+Profiler *ProfilerPrivate::m_profiler = Q_NULLPTR;
 
 ProfilerPrivate::ProfilerPrivate() :
   m_currFrame(0), m_dirty(true)
@@ -308,6 +311,7 @@ Profiler::~Profiler()
 
 void Profiler::pushGpuMarker(const char *name)
 {
+  if (!sg_debug) return;
   P(ProfilerPrivate);
   FrameInfo *frame = p.m_frames[p.m_currFrame];
   frame->pushGpuMarker(name);
@@ -315,6 +319,7 @@ void Profiler::pushGpuMarker(const char *name)
 
 void Profiler::popGpuMarker()
 {
+  if (!sg_debug) return;
   P(ProfilerPrivate);
   FrameInfo *frame = p.m_frames[p.m_currFrame];
   frame->popGpuMarker();
@@ -469,3 +474,16 @@ void Profiler::setOffset(float left, float right, float top, float bottom)
   p.m_bottomRightOffset.setY(bottom);
   p.m_dirty = true;
 }
+
+void Profiler::setProfiler(Profiler *profiler)
+{
+  ProfilerPrivate::m_profiler = profiler;
+}
+
+Profiler *Profiler::profiler()
+{
+  return ProfilerPrivate::m_profiler;
+}
+
+bool sg_debug = false;
+

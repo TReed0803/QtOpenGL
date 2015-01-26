@@ -8,7 +8,7 @@ class DebugVertex;
 
 struct DebugDraw
 {
-  static const int MaxDebugVertex = 1024;
+  static const int MaxDebugVertex = 16384;
   static void initialize(QObject *parent = 0);
   struct Screen
   {

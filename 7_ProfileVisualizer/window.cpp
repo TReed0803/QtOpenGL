@@ -70,7 +70,8 @@ Window::Window()
 #ifdef    GL_DEBUG
   m_profiler = new Profiler(this);
   m_profiler->setBorder(10, 10, 0, 10);
-  m_profiler->setOffset(0.0f, 0.0f, 0.8f, 0.0f);
+  m_profiler->setOffset(0.0f, 0.0f, 0.95f, 0.0f);
+  Profiler::setProfiler(m_profiler);
 #endif // GL_DEBUG
   m_transform.translate(0.0f, 0.0f, -5.0f);
   OpenGLError::pushErrorHandler(this);
@@ -148,9 +149,11 @@ void Window::resizeGL(int width, int height)
   m_projection.perspective(45.0f, width / float(height), 0.0f, 1000.0f);
   PROFILER_RESIZE_GL(width, height);
 }
-#include <QPainter>
+
 void Window::paintGL()
 {
+#include "glbegin.h"
+
   // Clear
   PROFILER_SYNC_FRAME();
   glClear(GL_COLOR_BUFFER_BIT);
@@ -174,13 +177,14 @@ void Window::paintGL()
     m_program->release();
   }
   PROFILER_POP_GPU_MARKER();
-
-  // Finalize the frame
   PROFILER_EMIT_RESULTS();
+
+#include "glend.h"
 
   // Render the profiler
   PROFILER_PAINT_GL();
   DebugDraw::draw();
+
 }
 
 void Window::teardownGL()
