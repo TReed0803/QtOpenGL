@@ -1,8 +1,8 @@
 #ifndef OPENGLBUFFER_H
 #define OPENGLBUFFER_H
 
+#include <OpenGLCommon>
 #include <QOpenGLBuffer>
-#include "openglcommon.h"
 
 // Register to check OpenGLBuffer
 class OpenGLBufferChecked : public QOpenGLBuffer

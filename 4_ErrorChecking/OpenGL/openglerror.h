@@ -66,4 +66,3 @@ inline OpenGLError::ObjectType OpenGLError::objectType() const { return m_object
 inline OpenGLError::FunctionType OpenGLError::functionType() const { return m_functionType; }
 
 #endif // OPENGLERROR_H
-

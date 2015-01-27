@@ -7,12 +7,11 @@
 #include "transform3d.h"
 #include "camera3d.h"
 
-// Custom Includes
-#include <OpenGLBuffer>
-#include <OpenGLVertexArrayObject>
-
+// OpenGL Classes
 class OpenGLError;
 class OpenGLShaderProgram;
+#include <OpenGLBuffer>
+#include <OpenGLVertexArrayObject>
 
 class Window : public QOpenGLWindow,
                protected QOpenGLFunctions

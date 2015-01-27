@@ -1,8 +1,8 @@
 #ifndef OPENGLVERTEXARRAYOBJECT_H
 #define OPENGLVERTEXARRAYOBJECT_H
 
+#include <OpenGLCommon>
 #include <QOpenGLVertexArrayObject>
-#include "openglcommon.h"
 
 // Register to check OpenGLBuffer
 class OpenGLVertexArrayObjectChecked : public QOpenGLVertexArrayObject

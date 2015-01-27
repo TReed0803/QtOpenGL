@@ -1,8 +1,8 @@
 #ifndef OPENGLSHADERPROGRAM_H
 #define OPENGLSHADERPROGRAM_H
 
+#include <OpenGLCommon>
 #include <QOpenGLShaderProgram>
-#include "openglcommon.h"
 
 // Register to check OpenGLBuffer
 class OpenGLShaderProgramChecked : public QOpenGLShaderProgram

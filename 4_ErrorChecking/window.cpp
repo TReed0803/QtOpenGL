@@ -5,7 +5,7 @@
 #include "vertex.h"
 #include "input.h"
 
-// Custom includes
+// OpenGL Includes
 #include <OpenGLError>
 #include <OpenGLShaderProgram>
 
