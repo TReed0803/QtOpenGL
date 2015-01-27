@@ -14,6 +14,10 @@ public:
   GL_CHECK(QOpenGLBuffer,read,int,void*,int);
 };
 
-GL_FINALIZE(OpenGLBuffer,Checked);
+// Final class
+class OpenGLBuffer : public OpenGLBufferChecked
+{
+  // Intentionally Empty
+};
 
 #endif // OPENGLBUFFER_H

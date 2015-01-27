@@ -8,9 +8,15 @@
 class OpenGLVertexArrayObjectChecked : public QOpenGLVertexArrayObject
 {
 public:
+  explicit OpenGLVertexArrayObjectChecked(QObject *parent = 0) : QOpenGLVertexArrayObject(parent) {}
   GL_CHECK(QOpenGLVertexArrayObject,create);
 };
 
-GL_FINALIZE(OpenGLVertexArrayObject,Checked);
+// Final class
+class OpenGLVertexArrayObject : public OpenGLVertexArrayObjectChecked
+{
+public:
+  explicit OpenGLVertexArrayObject(QObject *parent = 0) : OpenGLVertexArrayObjectChecked(parent) {}
+};
 
 #endif // OPENGLVERTEXARRAYOBJECT_H
