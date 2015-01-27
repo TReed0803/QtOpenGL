@@ -1,8 +1,8 @@
 #ifndef OPENGLBUFFER_H
 #define OPENGLBUFFER_H
 
+#include <OpenGLCommon>
 #include <QOpenGLBuffer>
-#include "openglcommon.h"
 
 // Register to check OpenGLBuffer
 class OpenGLBufferChecked : public QOpenGLBuffer
@@ -14,6 +14,10 @@ public:
   GL_CHECK(QOpenGLBuffer,read,int,void*,int);
 };
 
-GL_FINALIZE(OpenGLBuffer,Checked);
+// Final class
+class OpenGLBuffer : public OpenGLBufferChecked
+{
+  // Intentionally Empty
+};
 
 #endif // OPENGLBUFFER_H

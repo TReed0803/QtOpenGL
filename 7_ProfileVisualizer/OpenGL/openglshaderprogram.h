@@ -1,8 +1,8 @@
 #ifndef OPENGLSHADERPROGRAM_H
 #define OPENGLSHADERPROGRAM_H
 
+#include <OpenGLCommon>
 #include <QOpenGLShaderProgram>
-#include "openglcommon.h"
 
 // Register to check OpenGLBuffer
 class OpenGLShaderProgramChecked : public QOpenGLShaderProgram
@@ -19,6 +19,11 @@ public:
   GL_CHECK(QOpenGLShaderProgram,link);
 };
 
-GL_QFINALIZE(OpenGLShaderProgram,Checked);
+// Final class
+class OpenGLShaderProgram : public OpenGLShaderProgramChecked
+{
+public:
+  explicit OpenGLShaderProgram(QObject *parent = 0) : OpenGLShaderProgramChecked(parent) {}
+};
 
 #endif // OPENGLSHADERPROGRAM_H
