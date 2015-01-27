@@ -91,6 +91,10 @@ void Window::initializeGL()
     connect(m_debugLogger, SIGNAL(messageLogged(QOpenGLDebugMessage)), this, SLOT(messageLogged(QOpenGLDebugMessage)));
     m_debugLogger->startLogging();
   }
+  else
+  {
+    qDebug() << "GL_DEBUG Debug Logger (NONE)\n";
+  }
 #endif // GL_DEBUG
 
   // Application-specific initialization
@@ -231,6 +235,10 @@ void Window::messageLogged(const QOpenGLDebugMessage &msg)
   case QOpenGLDebugMessage::LowSeverity:
     error += "~~";
     break;
+  case QOpenGLDebugMessage::InvalidSeverity:
+  case QOpenGLDebugMessage::AnySeverity:
+    error += "??";
+    break;
   }
 
   error += " (";
@@ -246,20 +254,7 @@ void Window::messageLogged(const QOpenGLDebugMessage &msg)
     CASE(ApplicationSource);
     CASE(OtherSource);
     CASE(InvalidSource);
-  }
-#undef CASE
-
-  // Format based on source
-#define CASE(c) case QOpenGLDebugMessage::c: error += #c; break
-  switch (msg.source())
-  {
-    CASE(APISource);
-    CASE(WindowSystemSource);
-    CASE(ShaderCompilerSource);
-    CASE(ThirdPartySource);
-    CASE(ApplicationSource);
-    CASE(OtherSource);
-    CASE(InvalidSource);
+    CASE(AnySource);
   }
 #undef CASE
 
@@ -278,6 +273,8 @@ void Window::messageLogged(const QOpenGLDebugMessage &msg)
     CASE(MarkerType);
     CASE(GroupPushType);
     CASE(GroupPopType);
+    CASE(AnyType);
+    CASE(InvalidType);
   }
 #undef CASE
 

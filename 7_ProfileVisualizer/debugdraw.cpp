@@ -1,14 +1,12 @@
 #include "debugdraw.h"
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLVertexArrayObject>
+#include <OpenGLShaderProgram>
+#include <OpenGLVertexArrayObject>
 #include <QRectF>
 #include <QColor>
-#include <QOpenGLBuffer>
+#include <OpenGLBuffer>
 #include "debugvertex.h"
-#include "fwdopengl.h"
-#include "fwdopengl.h"
 
 static size_t m_currOffset;
 static OpenGLBuffer m_buffer;

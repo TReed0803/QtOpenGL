@@ -4,7 +4,7 @@
 #include <QString>
 #include <QVector>
 #include <QDebug>
-
+#include <vector>
 class FrameResult
 {
 public:
@@ -20,6 +20,7 @@ public:
 
   FrameResult();
   FrameResult(FrameResult &&rhs);
+  void operator=(FrameResult &&rhs);
   FrameResult(size_t maxDepth, quint64 startTime, quint64 endTime);
   void addGpuResult(const QString &name, size_t depth, quint64 startTime, quint64 endTime);
   inline const MarkerResultContainer &gpuResults() const;

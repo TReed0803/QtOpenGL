@@ -28,6 +28,14 @@ void FrameResult::addGpuResult(const QString &name, size_t depth, quint64 startT
   m_gpuResults.push_back(res);
 }
 
+void FrameResult::operator=(FrameResult &&rhs)
+{
+  m_maxDepth = rhs.m_maxDepth;
+  m_startTime = rhs.m_startTime;
+  m_endTime = rhs.m_endTime;
+  m_gpuResults = std::move(rhs.m_gpuResults);
+}
+
 QDebug operator<<(QDebug dbg, const FrameResult::MarkerResult &result)
 {
   return dbg << qPrintable(result.name) << ": " << float(result.end - result.start) / 1e06 << "\n";

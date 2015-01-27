@@ -103,7 +103,7 @@ private:
 };
 
 template <typename T>
-MarkerGroup<T>::MarkerGroup(QObject *parent = 0) :
+MarkerGroup<T>::MarkerGroup(QObject *parent) :
   m_currMarker(0), m_statusMarker(0), m_currDepth(0), m_parent(parent)
 {
   // Intentionally Blank

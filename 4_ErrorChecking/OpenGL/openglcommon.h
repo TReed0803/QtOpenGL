@@ -20,10 +20,10 @@
 
 // Accept callings
 #define GL_CALL_1(caller,fn) caller::fn()
-#define GL_CALL_2(caller,fn,...) caller::fn(PCALL_1(__VA_ARGS__))
-#define GL_CALL_3(caller,fn,...) caller::fn(PCALL_2(__VA_ARGS__))
-#define GL_CALL_4(caller,fn,...) caller::fn(PCALL_3(__VA_ARGS__))
-#define GL_CALL_5(caller,fn,...) caller::fn(PCALL_4(__VA_ARGS__))
+#define GL_CALL_2(caller,fn,...) caller::fn(PCALL_1())
+#define GL_CALL_3(caller,fn,...) caller::fn(PCALL_2())
+#define GL_CALL_4(caller,fn,...) caller::fn(PCALL_3())
+#define GL_CALL_5(caller,fn,...) caller::fn(PCALL_4())
 
 // Both
 #ifdef WIN32
@@ -44,6 +44,7 @@
 #define GL_TYPEDEF_1(name) typedef APPEND(name,Checked) APPEND(_,APPEND(name,1))
 #define GL_TYPEDEF(name,n) APPEND(GL_TYPEDEF_,n)(name)
 
+// Finalize
 #ifdef GL_DEBUG
 #define GL_FINALIZE(cclass,subclass) class cclass : public APPEND(cclass,subclass) { }
 #define GL_QFINALIZE(cclass,subclass) class cclass : public APPEND(cclass,subclass) { public: explicit cclass(QObject*p=0) : APPEND(cclass,subclass)(p) {} }

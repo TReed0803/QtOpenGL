@@ -10,7 +10,7 @@ public:
   // Constructors
   Q_DECL_CONSTEXPR DebugVertex();
   Q_DECL_CONSTEXPR explicit DebugVertex(const QVector3D &position);
-  Q_DECL_CONSTEXPR DebugVertex(const QVector3D &position, const QColor &color);
+  DebugVertex(const QVector3D &position, const QColor &color);
   Q_DECL_CONSTEXPR DebugVertex(const QVector3D &position, const QVector3D &color);
 
   // Accessors / Mutators
@@ -41,7 +41,7 @@ Q_DECLARE_TYPEINFO(DebugVertex, Q_MOVABLE_TYPE);
 // Constructors
 Q_DECL_CONSTEXPR inline DebugVertex::DebugVertex() {}
 Q_DECL_CONSTEXPR inline DebugVertex::DebugVertex(const QVector3D &position) : m_position(position) {}
-Q_DECL_CONSTEXPR inline DebugVertex::DebugVertex(const QVector3D &position, const QColor &color) : m_position(position), m_color(color.redF(), color.greenF(), color.blueF()) {}
+inline DebugVertex::DebugVertex(const QVector3D &position, const QColor &color) : m_position(position), m_color(color.redF(), color.greenF(), color.blueF()) {}
 Q_DECL_CONSTEXPR inline DebugVertex::DebugVertex(const QVector3D &position, const QVector3D &color) : m_position(position), m_color(color) {}
 
 // Accessors / Mutators
