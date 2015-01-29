@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>objects/bunny.obj</file>
+    </qresource>
+</RCC>
