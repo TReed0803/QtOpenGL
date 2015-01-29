@@ -2,13 +2,26 @@
 #include <QSurfaceFormat>
 #include "window.h"
 
+static bool checkVersion(QOpenGLContext &context, QSurfaceFormat *fmt)
+{
+  QSurfaceFormat currSurface = context.format();
+  QPair<int,int> currVersion = currSurface.version();
+  QPair<int,int> reqVersion = fmt->version();
+  if (currVersion.first > reqVersion.first)
+    return true;
+  return (currVersion.first == reqVersion.first && currVersion.second >= reqVersion.second);
+}
+
 static QSurfaceFormat* getFirstSupported(QSurfaceFormat *fmt, va_list ap)
 {
   QOpenGLContext context;
   while (fmt)
   {
     context.setFormat(*fmt);
-    if (context.create()) return fmt;
+    if (context.create())
+    {
+      if (checkVersion(context, fmt)) return fmt;
+    }
     fmt = va_arg(ap,QSurfaceFormat*);
   }
   return NULL;

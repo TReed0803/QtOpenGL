@@ -40,11 +40,56 @@ QString OpenGLShaderProgramWrapped::getVersionComment()
   QOpenGLContext *ctx = QOpenGLContext::currentContext();
   QSurfaceFormat format = ctx->format();
   QPair<int,int> version = format.version();
-  comment += QString::number(version.first) + QString::number(version.second) + "0";
+
+  // Concatenate version number
+  // Note: Version number calculation is different based on GLES/GL and
+  //       current context version number. It's a little more difficult than
+  //       just concatenating some numbers together.
   if (ctx->isOpenGLES())
   {
-    comment += " es";
+    comment += QString::number(version.first) + QString::number(version.second) + "0 es";
   }
+  else
+  {
+    switch (version.first)
+    {
+      case 2:
+        switch (version.second)
+        {
+          case 0:
+            comment += "110";
+            break;
+          case 1:
+            comment += "120";
+            break;
+          default:
+            comment += "120";
+            break;
+        }
+        break;
+      case 3:
+        switch (version.second)
+        {
+          case 0:
+            comment += "130";
+            break;
+          case 1:
+            comment += "140";
+            break;
+          case 2:
+            comment += "150";
+            break;
+          default:
+            comment += QString::number(version.first) + QString::number(version.second) + "0";
+            break;
+        }
+        break;
+      default:
+        comment += QString::number(version.first) + QString::number(version.second) + "0";
+        break;
+    }
+  }
+
   return comment + "\n";
 }
 
