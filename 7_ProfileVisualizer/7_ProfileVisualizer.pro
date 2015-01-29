@@ -12,7 +12,7 @@ CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/OpenGL
 
 TEMPLATE = app
-QMAKE_CXXFLAGS += -std=c++11
+unix:QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += \
     main.cpp \
@@ -35,14 +35,14 @@ HEADERS += \
     frameresult.h \
     debugdraw.h \
     debugvertex.h \
-    glbegin.h \
-    glend.h \
     macros.h \
     OpenGL/openglerror.h \
     OpenGL/openglbuffer.h \
     OpenGL/openglshaderprogram.h \
     OpenGL/openglvertexarrayobject.h \
-    OpenGL/openglcommon.h
+    OpenGL/openglcommon.h \
+    OpenGL/openglmarkerscoped.h \
+    OpenGL/openglfunctions.h
 
 RESOURCES += \
     resources.qrc

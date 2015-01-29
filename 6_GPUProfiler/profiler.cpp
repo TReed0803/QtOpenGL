@@ -16,53 +16,55 @@ struct Marker
 struct GpuMarker : public Marker
 {
   GpuMarker(QObject *obj = 0);
-  ~GpuMarker();
   inline bool isResultAvailable();
   inline GLuint64 startTime() const;
   inline GLuint64 endTime() const;
   inline void start();
   inline void stop();
 private:
+  bool m_valid;
   QOpenGLTimerQuery m_startTimer;
   QOpenGLTimerQuery m_endTimer;
 };
 
 GpuMarker::GpuMarker(QObject *obj) :
-  m_startTimer(obj), m_endTimer(obj)
+  m_valid(true), m_startTimer(obj), m_endTimer(obj)
 {
-  m_startTimer.create();
-  m_endTimer.create();
-}
-
-GpuMarker::~GpuMarker()
-{
-  m_startTimer.destroy();
-  m_endTimer.destroy();
+  if (!m_startTimer.create()) m_valid = false;
+  if (!m_endTimer.create()) m_valid = false;
 }
 
 inline bool GpuMarker::isResultAvailable()
 {
-  return (m_startTimer.isResultAvailable() && m_endTimer.isResultAvailable());
+  if (m_valid)
+    return (m_startTimer.isResultAvailable() && m_endTimer.isResultAvailable());
+  return true;
 }
 
 inline GLuint64 GpuMarker::startTime() const
 {
-  return m_startTimer.waitForResult();
+  if (m_valid)
+    return m_startTimer.waitForResult();
+  return 0;
 }
 
 inline GLuint64 GpuMarker::endTime() const
 {
-  return m_endTimer.waitForResult();
+  if (m_valid)
+    return m_endTimer.waitForResult();
+  return 0;
 }
 
 inline void GpuMarker::start()
 {
-  m_startTimer.recordTimestamp();
+  if (m_valid)
+    m_startTimer.recordTimestamp();
 }
 
 inline void GpuMarker::stop()
 {
-  m_endTimer.recordTimestamp();
+  if (m_valid)
+    m_endTimer.recordTimestamp();
 }
 
 /*******************************************************************************

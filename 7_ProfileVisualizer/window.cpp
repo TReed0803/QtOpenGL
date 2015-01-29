@@ -157,7 +157,6 @@ void Window::resizeGL(int width, int height)
 
 void Window::paintGL()
 {
-#include "glbegin.h"
 
   // Clear
   PROFILER_SYNC_FRAME();
@@ -183,8 +182,6 @@ void Window::paintGL()
   }
   PROFILER_POP_GPU_MARKER();
   PROFILER_EMIT_RESULTS();
-
-#include "glend.h"
 
   // Render the profiler
   PROFILER_PAINT_GL();

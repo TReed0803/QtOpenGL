@@ -1,6 +1,8 @@
 #ifndef MACROS_H
 #define MACROS_H
 
+#include <type_traits>
+
 // Append two preprocessor arguments together
 #define _APPEND(a,b) a##b
 #define APPEND(a,b) _APPEND(a,b)
@@ -47,6 +49,26 @@
 # define PDECL_I(n,...) APPEND(APPEND(PDECL_,n)(__VA_ARGS__),)
 #else
 # define PDECL_N(n,...) APPEND(PDECL_,n)(__VA_ARGS__)
+#endif
+
+#define CAST_VOID(t) *(static_cast<std::remove_reference<t>::type*>(0))
+
+// Declare casting for decltype usage
+#define PCAST_1(e0,...) CAST_VOID(e0)
+#define PCAST_2(e0,e1,...) CAST_VOID(e0), CAST_VOID(e1)
+#define PCAST_3(e0,e1,e2,...) CAST_VOID(e0), CAST_VOID(e1), CAST_VOID(e2)
+#define PCAST_4(e0,e1,e2,e3,...) CAST_VOID(e0), CAST_VOID(e1), CAST_VOID(e2), CAST_VOID(e3)
+#define PCAST_5(e0,e1,e2,e3,e4,...) CAST_VOID(e0), CAST_VOID(e1), CAST_VOID(e2), CAST_VOID(e3), CAST_VOID(e4)
+#define PCAST_6(e0,e1,e2,e3,e4,e5,...) CAST_VOID(e0), CAST_VOID(e1), CAST_VOID(e2), CAST_VOID(e3), CAST_VOID(e4), CAST_VOID(e5)
+#define PCAST_7(e0,e1,e2,e3,e4,e5,e6,...) CAST_VOID(e0), CAST_VOID(e1), CAST_VOID(e2), CAST_VOID(e3), CAST_VOID(e4), CAST_VOID(e5), CAST_VOID(e6)
+#define PCAST_8(e0,e1,e2,e3,e4,e5,e6,e7,...) CAST_VOID(e0), CAST_VOID(e1), CAST_VOID(e2), CAST_VOID(e3), CAST_VOID(e4), CAST_VOID(e5), CAST_VOID(e6), CAST_VOID(e7)
+#define PCAST_9(e0,e1,e2,e3,e4,e5,e6,e7,e8,...) CAST_VOID(e0), CAST_VOID(e1), CAST_VOID(e2), CAST_VOID(e3), CAST_VOID(e4), CAST_VOID(e5), CAST_VOID(e6), CAST_VOID(e7), CAST_VOID(e8)
+#define PCAST_10(e0,e1,e2,e3,e4,e5,e6,e7,e8,e9,...) CAST_VOID(e0), CAST_VOID(e1), CAST_VOID(e2), CAST_VOID(e3), CAST_VOID(e4), CAST_VOID(e5), CAST_VOID(e6), CAST_VOID(e7), CAST_VOID(e8), CAST_VOID(e9)
+#ifdef WIN32
+# define PCAST_N(n,...) PCAST_I(n,__VA_ARGS__)
+# define PCAST_I(n,...) APPEND(APPEND(PCAST_,n)(__VA_ARGS__),)
+#else
+# define PCAST_N(n,...) APPEND(PCAST_,n)(__VA_ARGS__)
 #endif
 
 // Pass variables using comma separator

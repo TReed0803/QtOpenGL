@@ -6,8 +6,6 @@
 class FrameResult;
 class QMoveEvent;
 
-extern bool sg_debug;
-
 struct ProfilerPrivate;
 class Profiler : public QObject
 {
@@ -35,7 +33,7 @@ private:
   ProfilerPrivate *m_private;
 };
 
-#ifdef    GL_DEBUG
+#if defined(GL_DEBUG) && !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
 # define PROFILER_SYNC_FRAME() ::Profiler::profiler()->synchronizeFrame()
 # define PROFILER_PUSH_GPU_MARKER(name) ::Profiler::profiler()->pushGpuMarker(name)
 # define PROFILER_POP_GPU_MARKER() ::Profiler::profiler()->popGpuMarker()

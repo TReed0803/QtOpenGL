@@ -2,7 +2,6 @@
 #define WINDOW_H
 
 #include <QOpenGLWindow>
-#include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLDebugMessage>
@@ -12,6 +11,7 @@
 
 // Custom Includes
 #include <OpenGLBuffer>
+#include <OpenGLFunctions>
 #include <OpenGLVertexArrayObject>
 
 class Profiler;
@@ -22,7 +22,7 @@ class QOpenGLDebugLogger;
 class QMoveEvent;
 
 class Window : public QOpenGLWindow,
-               protected QOpenGLFunctions
+               protected OpenGLFunctions
 {
   Q_OBJECT
 

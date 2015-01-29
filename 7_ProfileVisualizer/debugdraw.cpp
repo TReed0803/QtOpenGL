@@ -1,17 +1,17 @@
 #include "debugdraw.h"
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
-#include <OpenGLShaderProgram>
-#include <OpenGLVertexArrayObject>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLVertexArrayObject>
 #include <QRectF>
 #include <QColor>
-#include <OpenGLBuffer>
+#include <QOpenGLBuffer>
 #include "debugvertex.h"
 
 static size_t m_currOffset;
-static OpenGLBuffer m_buffer;
-static OpenGLVertexArrayObject *m_object;
-static OpenGLShaderProgram *m_program;
+static QOpenGLBuffer m_buffer;
+static QOpenGLVertexArrayObject *m_object;
+static QOpenGLShaderProgram *m_program;
 
 static void drawArray(const DebugVertex *array, size_t size)
 {
@@ -33,7 +33,7 @@ static QRectF normalize(const QRectF &rect)
 void DebugDraw::initialize(QObject *parent)
 {
   // Create shader
-  m_program = new OpenGLShaderProgram(parent);
+  m_program = new QOpenGLShaderProgram(parent);
   m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/debug.vert");
   m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/debug.frag");
   m_program->link();
@@ -46,7 +46,7 @@ void DebugDraw::initialize(QObject *parent)
   m_buffer.allocate(sizeof(DebugVertex) * MaxDebugVertex);
 
   // Create Vertex Array Object
-  m_object = new OpenGLVertexArrayObject(parent);
+  m_object = new QOpenGLVertexArrayObject(parent);
   m_object->create();
   m_object->bind();
   m_program->enableAttributeArray(0);

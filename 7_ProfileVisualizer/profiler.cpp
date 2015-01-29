@@ -11,6 +11,8 @@
 #include "frameresult.h"
 #include "input.h"
 
+#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
+
 struct Marker
 {
   QString name;
@@ -24,53 +26,55 @@ struct Marker
 struct GpuMarker : public Marker
 {
   GpuMarker(QObject *obj = 0);
-  ~GpuMarker();
   inline bool isResultAvailable();
   inline GLuint64 startTime() const;
   inline GLuint64 endTime() const;
   inline void start();
   inline void stop();
 private:
+  bool m_valid;
   QOpenGLTimerQuery m_startTimer;
   QOpenGLTimerQuery m_endTimer;
 };
 
 GpuMarker::GpuMarker(QObject *obj) :
-  m_startTimer(obj), m_endTimer(obj)
+  m_valid(true), m_startTimer(obj), m_endTimer(obj)
 {
-  m_startTimer.create();
-  m_endTimer.create();
-}
-
-GpuMarker::~GpuMarker()
-{
-  m_startTimer.destroy();
-  m_endTimer.destroy();
+  if (!m_startTimer.create()) m_valid = false;
+  if (!m_endTimer.create()) m_valid = false;
 }
 
 inline bool GpuMarker::isResultAvailable()
 {
-  return (m_startTimer.isResultAvailable() && m_endTimer.isResultAvailable());
+  if (m_valid)
+    return (m_startTimer.isResultAvailable() && m_endTimer.isResultAvailable());
+  return true;
 }
 
 inline GLuint64 GpuMarker::startTime() const
 {
-  return m_startTimer.waitForResult();
+  if (m_valid)
+    return m_startTimer.waitForResult();
+  return 0;
 }
 
 inline GLuint64 GpuMarker::endTime() const
 {
-  return m_endTimer.waitForResult();
+  if (m_valid)
+    return m_endTimer.waitForResult();
+  return 0;
 }
 
 inline void GpuMarker::start()
 {
-  m_startTimer.recordTimestamp();
+  if (m_valid)
+    m_startTimer.recordTimestamp();
 }
 
 inline void GpuMarker::stop()
 {
-  m_endTimer.recordTimestamp();
+  if (m_valid)
+    m_endTimer.recordTimestamp();
 }
 
 /*******************************************************************************
@@ -195,30 +199,35 @@ struct FrameInfo
   inline void endFrame();
 
 private:
+  bool m_valid;
   QObject *m_parent;
   QOpenGLTimerQuery m_startTimer;
   QOpenGLTimerQuery m_endTimer;
 };
 
 FrameInfo::FrameInfo(QObject *parent) :
-  m_parent(parent), m_startTimer(parent), m_endTimer(parent)
+  m_valid(true), m_parent(parent), m_startTimer(parent), m_endTimer(parent)
 {
-  m_startTimer.create();
-  m_endTimer.create();
+  if (!m_startTimer.create()) m_valid = false;
+  if (!m_endTimer.create()) m_valid = false;
 }
 
 inline bool FrameInfo::isResultAvailable()
 {
-  return m_startTimer.isResultAvailable() && m_endTimer.isResultAvailable() && m_gpuMarkers.isResultAvailable();
+  if (m_valid)
+    return m_startTimer.isResultAvailable() && m_endTimer.isResultAvailable() && m_gpuMarkers.isResultAvailable();
+  return true;
 }
 
 FrameResult FrameInfo::waitForResult()
 {
   // Poll until available
-  while (!m_gpuMarkers.isResultAvailable());
+  while (!isResultAvailable());
 
   // Aggregate the results
-  FrameResult results(m_gpuMarkers.maxDepth(), m_startTimer.waitForResult(), m_endTimer.waitForResult());
+  quint64 startTime = (m_valid) ? m_startTimer.waitForResult() : 0;
+  quint64 endTime = (m_valid) ? m_endTimer.waitForResult() : 0;
+  FrameResult results(m_gpuMarkers.maxDepth(), startTime, endTime);
   const GpuGroup::MarkerContainer &gpuMarkers = m_gpuMarkers.markers();
   for (size_t i = 0; i < gpuMarkers.size(); ++i)
   {
@@ -246,12 +255,12 @@ inline void FrameInfo::clear()
 
 inline void FrameInfo::startFrame()
 {
-  m_startTimer.recordTimestamp();
+  if (m_valid) m_startTimer.recordTimestamp();
 }
 
 inline void FrameInfo::endFrame()
 {
-  m_endTimer.recordTimestamp();
+  if (m_valid) m_endTimer.recordTimestamp();
 }
 
 /*******************************************************************************
@@ -311,16 +320,16 @@ Profiler::~Profiler()
 
 void Profiler::pushGpuMarker(const char *name)
 {
-  if (!sg_debug) return;
   P(ProfilerPrivate);
+  if (p.m_frames.empty()) return;
   FrameInfo *frame = p.m_frames[p.m_currFrame];
   frame->pushGpuMarker(name);
 }
 
 void Profiler::popGpuMarker()
 {
-  if (!sg_debug) return;
   P(ProfilerPrivate);
+  if (p.m_frames.empty()) return;
   FrameInfo *frame = p.m_frames[p.m_currFrame];
   frame->popGpuMarker();
 }
@@ -485,5 +494,78 @@ Profiler *Profiler::profiler()
   return ProfilerPrivate::m_profiler;
 }
 
-bool sg_debug = false;
+#else
 
+Profiler::Profiler(QObject *parent)
+{
+  (void)parent;
+}
+
+Profiler::~Profiler()
+{
+  // Intentionally Empty
+}
+
+void Profiler::pushGpuMarker(const char *name)
+{
+  (void)name;
+}
+
+void Profiler::popGpuMarker()
+{
+  // Intentionally Empty
+}
+
+void Profiler::synchronizeFrame()
+{
+  // Intentionally Empty
+}
+
+void Profiler::emitResults()
+{
+  // Intentionally Empty
+}
+
+void Profiler::resizeGL(int width, int height)
+{
+  (void)width;
+  (void)height;
+}
+
+void Profiler::paintGL()
+{
+  // Intentionally Empty
+}
+
+void Profiler::moveEvent(const QMoveEvent *ev)
+{
+  (void)ev;
+}
+
+void Profiler::setBorder(int left, int right, int top, int bottom)
+{
+  (void)left;
+  (void)right;
+  (void)top;
+  (void)bottom;
+}
+
+void Profiler::setOffset(float left, float right, float top, float bottom)
+{
+  (void)left;
+  (void)right;
+  (void)top;
+  (void)bottom;
+}
+
+void Profiler::setProfiler(Profiler *profiler)
+{
+  (void)profiler;
+}
+
+Profiler *Profiler::profiler()
+{
+  return Q_NULLPTR;
+}
+
+#endif
