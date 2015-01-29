@@ -7,6 +7,7 @@
 #include <QToolTip>
 #include <QOpenGLTimerQuery>
 #include <QMoveEvent>
+#include <QOpenGLContext>
 #include "debugdraw.h"
 #include "frameresult.h"
 #include "input.h"
@@ -272,6 +273,8 @@ struct ProfilerPrivate
   typedef std::vector<FrameInfo*> FrameContainer;
   size_t m_currFrame;
   bool m_dirty;
+  bool m_valid;
+  bool m_initialized;
   static Profiler *m_profiler;
   QPoint m_windowPosition;
   QPoint m_topLeftBorder, m_bottomRightBorder;
@@ -289,7 +292,7 @@ struct ProfilerPrivate
 Profiler *ProfilerPrivate::m_profiler = Q_NULLPTR;
 
 ProfilerPrivate::ProfilerPrivate() :
-  m_currFrame(0), m_dirty(true)
+  m_currFrame(0), m_dirty(true), m_valid(true), m_initialized(false)
 {
   // Intentionally Empty
 }
@@ -321,6 +324,7 @@ Profiler::~Profiler()
 void Profiler::pushGpuMarker(const char *name)
 {
   P(ProfilerPrivate);
+  if (!p.m_valid) return;
   if (p.m_frames.empty()) return;
   FrameInfo *frame = p.m_frames[p.m_currFrame];
   frame->pushGpuMarker(name);
@@ -329,6 +333,7 @@ void Profiler::pushGpuMarker(const char *name)
 void Profiler::popGpuMarker()
 {
   P(ProfilerPrivate);
+  if (!p.m_valid) return;
   if (p.m_frames.empty()) return;
   FrameInfo *frame = p.m_frames[p.m_currFrame];
   frame->popGpuMarker();
@@ -337,6 +342,11 @@ void Profiler::popGpuMarker()
 void Profiler::synchronizeFrame()
 {
   P(ProfilerPrivate);
+  if (!p.m_initialized)
+  {
+    if (QOpenGLContext::currentContext()->isOpenGLES()) p.m_valid = false;
+  }
+  if (!p.m_valid) return;
   if (p.m_currFrame >= p.m_frames.size())
   {
     p.m_frames.push_back(new FrameInfo(this));
@@ -347,6 +357,7 @@ void Profiler::synchronizeFrame()
 void Profiler::emitResults()
 {
   P(ProfilerPrivate);
+  if (!p.m_valid) return;
 
   p.m_frames[p.m_currFrame]->endFrame();
   ++p.m_currFrame;
@@ -376,6 +387,7 @@ void Profiler::emitResults()
 void Profiler::resizeGL(int width, int height)
 {
   P(ProfilerPrivate);
+  if (!p.m_valid) return;
   p.m_windowSize.setWidth(width);
   p.m_windowSize.setHeight(height);
   p.m_dirty = true;
@@ -384,6 +396,7 @@ void Profiler::resizeGL(int width, int height)
 void Profiler::paintGL()
 {
   P(ProfilerPrivate);
+  if (!p.m_valid) return;
 
   // Recalculate Profiler information if needed
   if (p.m_dirty)
@@ -461,12 +474,14 @@ void Profiler::paintGL()
 void Profiler::moveEvent(const QMoveEvent *ev)
 {
   P(ProfilerPrivate);
+  if (!p.m_valid) return;
   p.m_windowPosition = ev->pos();
 }
 
 void Profiler::setBorder(int left, int right, int top, int bottom)
 {
   P(ProfilerPrivate);
+  if (!p.m_valid) return;
   p.m_topLeftBorder.setX(left);
   p.m_topLeftBorder.setY(top);
   p.m_bottomRightBorder.setX(right);
@@ -477,6 +492,7 @@ void Profiler::setBorder(int left, int right, int top, int bottom)
 void Profiler::setOffset(float left, float right, float top, float bottom)
 {
   P(ProfilerPrivate);
+  if (!p.m_valid) return;
   p.m_topLeftOffset.setX(left);
   p.m_topLeftOffset.setY(top);
   p.m_bottomRightOffset.setX(right);
