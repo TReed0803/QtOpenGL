@@ -1,5 +1,34 @@
 <RCC>
     <qresource prefix="/">
         <file>objects/bunny.obj</file>
+        <file>objects/airboat.obj</file>
+        <file>objects/al.obj</file>
+        <file>objects/alfa147.obj</file>
+        <file>objects/batman.obj</file>
+        <file>objects/cessna.obj</file>
+        <file>objects/cube.obj</file>
+        <file>objects/diamond.obj</file>
+        <file>objects/dodecahedron.obj</file>
+        <file>objects/gourd.obj</file>
+        <file>objects/horse.obj</file>
+        <file>objects/humanoid_quad.obj</file>
+        <file>objects/humanoid_tri.obj</file>
+        <file>objects/lamp.obj</file>
+        <file>objects/magnolia.obj</file>
+        <file>objects/ncube.obj</file>
+        <file>objects/octahedron.obj</file>
+        <file>objects/powerlines.obj</file>
+        <file>objects/pyramid.obj</file>
+        <file>objects/qcube.obj</file>
+        <file>objects/roi.obj</file>
+        <file>objects/sandal.obj</file>
+        <file>objects/shuttle.obj</file>
+        <file>objects/skyscraper.obj</file>
+        <file>objects/slotmachine.obj</file>
+        <file>objects/symphysis.obj</file>
+        <file>objects/teapot.obj</file>
+        <file>objects/tetrahedron.obj</file>
+        <file>objects/trumpet.obj</file>
+        <file>objects/violincase.obj</file>
     </qresource>
 </RCC>
