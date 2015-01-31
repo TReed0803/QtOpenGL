@@ -66,7 +66,8 @@ static const Vertex sg_vertexes[] = {
  * OpenGL Events
  ******************************************************************************/
 
-Window::Window()
+Window::Window() :
+  m_frameCount(0)
 {
 #ifdef    GL_DEBUG
   m_profiler = new Profiler(this);
@@ -76,6 +77,7 @@ Window::Window()
 #endif // GL_DEBUG
   m_transform.translate(0.0f, 0.0f, -5.0f);
   OpenGLError::pushErrorHandler(this);
+  m_frameTimer.start();
 }
 
 Window::~Window()
@@ -198,6 +200,16 @@ void Window::teardownGL()
 
 void Window::update()
 {
+  // Update FPS
+  if (++m_frameCount > FPSFrameDelay)
+  {
+    qint64 ms = m_frameTimer.elapsed();
+    int frames = m_frameCount / (ms / 1000.0f);
+    setTitle(QString("FPS: %1").arg(frames));
+    m_frameCount = 0;
+    m_frameTimer.start();
+  }
+
   // Update input
   Input::update();
 

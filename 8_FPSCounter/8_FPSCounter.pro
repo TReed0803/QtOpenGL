@@ -6,7 +6,7 @@
 
 QT       += core gui widgets
 
-TARGET = 9_ObjParser
+TARGET = 8_FPSCounter
 CONFIG   += console gl_debug
 CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/OpenGL
@@ -23,14 +23,7 @@ SOURCES += \
     profiler.cpp \
     frameresult.cpp \
     debugdraw.cpp \
-    OpenGL/shaderprogram.cpp \
-    OpenGL/openglerror.cpp \
-    OpenGL/halfedgemesh.cpp \
-    OpenGL/filereader.cpp \
-    OpenGL/halfedgeobjparser.cpp \
-    OpenGL/abstractobjparser.cpp \
-    OpenGL/abstractmesh.cpp \
-    OpenGL/openglmesh.cpp
+    OpenGL/openglerror.cpp
 
 HEADERS += \
     window.h \
@@ -49,20 +42,10 @@ HEADERS += \
     OpenGL/openglvertexarrayobject.h \
     OpenGL/openglcommon.h \
     OpenGL/openglmarkerscoped.h \
-    OpenGL/openglfunctions.h \
-    OpenGL/halfedgemesh.h \
-    OpenGL/abstractreader.h \
-    OpenGL/filereader.h \
-    OpenGL/common.h \
-    OpenGL/halfedgeobjparser.h \
-    OpenGL/abstractobjparser.h \
-    OpenGL/abstractmesh.h \
-    OpenGL/openglmesh.h
+    OpenGL/openglfunctions.h
 
 RESOURCES += \
-    resources.qrc \
-    ../objects.qrc \
-    ../objects.qrc
+    resources.qrc
 
 CONFIG(debug,debug|release) {
   CONFIG(gl_debug) {

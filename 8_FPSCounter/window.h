@@ -6,6 +6,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLDebugMessage>
 #include <QMatrix4x4>
+#include <QElapsedTimer>
 #include "transform3d.h"
 #include "camera3d.h"
 
@@ -28,6 +29,7 @@ class Window : public QOpenGLWindow,
 
 // OpenGL Events
 public:
+  static const uint64_t FPSFrameDelay = 60;
   Window();
   ~Window();
   void initializeGL();
@@ -55,6 +57,8 @@ private:
   OpenGLShaderProgram *m_program;
   QOpenGLDebugLogger *m_debugLogger;
   Profiler *m_profiler;
+  uint64_t m_frameCount;
+  QElapsedTimer m_frameTimer;
 
   // Shader Information
   int u_modelToWorld;
