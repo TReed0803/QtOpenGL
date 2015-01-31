@@ -1,7 +1,8 @@
-in highp vec4 vColor;
+in highp vec4 vNormal;
 out highp vec4 fColor;
 
 void main()
 {
-   fColor = vColor;
+  highp vec3 N = normalize(vNormal.xyz);
+  fColor = vec4(N,1.0);
 }

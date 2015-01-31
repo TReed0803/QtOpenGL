@@ -135,19 +135,19 @@ void DebugDraw::draw()
   QOpenGLFunctions *f = ctx->functions();
 
   m_program->bind();
-
-  m_objectWorld->bind();
   {
-    f->glDrawArrays(GL_LINES, 0, m_currOffsetWorld / sizeof(DebugVertex));
-  }
-  m_objectWorld->release();
+    m_objectWorld->bind();
+    {
+      f->glDrawArrays(GL_LINES, 0, m_currOffsetWorld / sizeof(DebugVertex));
+    }
+    m_objectWorld->release();
 
-  m_object->bind();
-  {
-    f->glDrawArrays(GL_TRIANGLES, 0, m_currOffset / sizeof(DebugVertex));
+    m_object->bind();
+    {
+      f->glDrawArrays(GL_TRIANGLES, 0, m_currOffset / sizeof(DebugVertex));
+    }
+    m_object->release();
   }
-  m_object->release();
-
   m_program->release();
 
   m_currOffset = 0;

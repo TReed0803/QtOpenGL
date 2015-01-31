@@ -49,6 +49,8 @@ protected:
   void mousePressEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);
   void moveEvent(QMoveEvent *ev);
+  void wheelEvent(QWheelEvent *ev);
+  void touchEvent(QTouchEvent *ev);
 
 private:
   // OpenGL State Information
@@ -66,11 +68,14 @@ private:
 
   // Object Information
   OpenGLMesh *m_mesh;
-  HalfEdgeMesh *m_heMesh;
-  std::vector<uint64_t> m_res;
+  HalfEdgeMesh *m_halfEdgeMesh;
+  HalfEdgeMesh::Results m_queryResults;
+  bool m_wait;
 
   // Private Helpers
   void printVersionInformation();
+  void loadObj(const QString &fileName);
+  void openObj();
 };
 
 #endif // WINDOW_H

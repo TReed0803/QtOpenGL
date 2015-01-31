@@ -204,7 +204,7 @@ HalfEdgeMesh::Face *HalfEdgeMesh::getFace(uint64_t idx)
   return p.getFace(idx);
 }
 
-HalfEdgeMesh::HalfEdge *HalfEdgeMesh::getEdge(uint64_t idx)
+HalfEdgeMesh::HalfEdge *HalfEdgeMesh::getEdge(uint64_t idx) const
 {
   P(HalfEdgeMeshPrivate);
   return p.getEdge(idx);
@@ -236,24 +236,28 @@ OpenGLMesh* HalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
     buffer.bind();
 
     // Send data to GPU
+    QVector3D n;
     buffer.allocate(sizeof(::Vertex) * p.m_faces.size() * 3);
     ::Vertex *data = static_cast<::Vertex*>(buffer.map(QOpenGLBuffer::WriteOnly));
     for (size_t i = 0; i < p.m_faces.size(); ++i)
     {
       edge = getEdge(p.m_faces[i].i_first);
-      data[3*i] = ::Vertex(getVertex(edge->i_to)->position);
+      n = calculateNormal(edge);
+      data[3*i] = ::Vertex(getVertex(edge->i_to)->position, QVector3D(1.0,1.0,1.0), n);
       edge = getEdge(edge->i_next);
-      data[3*i+1] = ::Vertex(getVertex(edge->i_to)->position);
+      data[3*i+1] = ::Vertex(getVertex(edge->i_to)->position, QVector3D(1.0,1.0,1.0), n);
       edge = getEdge(edge->i_next);
-      data[3*i+2] = ::Vertex(getVertex(edge->i_to)->position);
+      data[3*i+2] = ::Vertex(getVertex(edge->i_to)->position, QVector3D(1.0,1.0,1.0), n);
     }
     buffer.unmap();
 
     // Bind attributes
     f.glVertexAttribPointer(0, ::Vertex::PositionTupleSize, GL_FLOAT, GL_FALSE, ::Vertex::stride(), (void*)::Vertex::positionOffset());
     f.glVertexAttribPointer(1, ::Vertex::ColorTupleSize, GL_FLOAT, GL_FALSE, ::Vertex::stride(), (void*)::Vertex::colorOffset());
+    f.glVertexAttribPointer(2, ::Vertex::NormalTupleSize, GL_FLOAT, GL_FALSE, ::Vertex::stride(), (void*)::Vertex::normalOffset());
     f.glEnableVertexAttribArray(0);
     f.glEnableVertexAttribArray(1);
+    f.glEnableVertexAttribArray(2);
   }
   vao->release();
 
@@ -286,6 +290,12 @@ uint64_t HalfEdgeMesh::countEdges() const
   P(HalfEdgeMeshPrivate);
   return p.m_edges.size() / 2;
 }
+#include <QDebug>
+uint64_t HalfEdgeMesh::getIndex(const HalfEdgeMesh::HalfEdge *edge) const
+{
+  P(HalfEdgeMeshPrivate);
+  return (edge - p.m_edges.data()) + 1;
+}
 
 std::vector<uint64_t> HalfEdgeMesh::findFaceless()
 {
@@ -296,6 +306,12 @@ std::vector<uint64_t> HalfEdgeMesh::findFaceless()
     if (p.m_edges[i].i_face == 0) he.push_back(i + 1);
   }
   return he;
+}
+
+const std::vector<HalfEdgeMesh::HalfEdge> &HalfEdgeMesh::edges() const
+{
+  P(HalfEdgeMeshPrivate);
+  return p.m_edges;
 }
 
 HalfEdgeMesh::HalfEdge *HalfEdgeMesh::getTwin(uint64_t edge)
@@ -332,4 +348,21 @@ void HalfEdgeMesh::triangulateFace(const AbstractObjParser::Face &f)
     addFace(f[i-1], f[i], newIndex);
   }
   addFace(f[i-1], f[0], newIndex);
+}
+
+QVector3D HalfEdgeMesh::calculateNormal(const HalfEdge *edge)
+{
+  QVector3D pos1 = getVertex(edge->i_to)->position;
+  edge = getEdge(edge->i_next);
+  QVector3D pos2 = getVertex(edge->i_to)->position;
+  edge = getEdge(edge->i_next);
+  QVector3D pos3 = getVertex(edge->i_to)->position;
+  edge = getEdge(edge->i_next);
+
+  QVector3D a = pos2 - pos1;
+  QVector3D b = pos3 - pos1;
+  QVector3D c = QVector3D::crossProduct(a,b);
+  c.normalize();
+
+  return c;
 }

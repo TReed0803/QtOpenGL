@@ -12,57 +12,19 @@
 #include "profiler.h"
 #include "debugdraw.h"
 #include "frameresult.h"
+#include <QDropEvent>
+#include <QTouchEvent>
 
 // Custom includes
 #include <OpenGLError>
 #include <OpenGLShaderProgram>
 
-// Front Verticies
-#define VERTEX_FTR Vertex( QVector3D( 0.5f,  0.5f,  0.5f), QVector3D( 1.0f, 0.0f, 0.0f ) )
-#define VERTEX_FTL Vertex( QVector3D(-0.5f,  0.5f,  0.5f), QVector3D( 0.0f, 1.0f, 0.0f ) )
-#define VERTEX_FBL Vertex( QVector3D(-0.5f, -0.5f,  0.5f), QVector3D( 0.0f, 0.0f, 1.0f ) )
-#define VERTEX_FBR Vertex( QVector3D( 0.5f, -0.5f,  0.5f), QVector3D( 0.0f, 0.0f, 0.0f ) )
-
-// Back Verticies
-#define VERTEX_BTR Vertex( QVector3D( 0.5f,  0.5f, -0.5f), QVector3D( 1.0f, 1.0f, 0.0f ) )
-#define VERTEX_BTL Vertex( QVector3D(-0.5f,  0.5f, -0.5f), QVector3D( 0.0f, 1.0f, 1.0f ) )
-#define VERTEX_BBL Vertex( QVector3D(-0.5f, -0.5f, -0.5f), QVector3D( 1.0f, 0.0f, 1.0f ) )
-#define VERTEX_BBR Vertex( QVector3D( 0.5f, -0.5f, -0.5f), QVector3D( 1.0f, 1.0f, 1.0f ) )
-
-// Create a colored cube
-static const Vertex sg_vertexes[] = {
-  // Face 1 (Front)
-    VERTEX_FTR, VERTEX_FTL, VERTEX_FBL,
-    VERTEX_FBL, VERTEX_FBR, VERTEX_FTR,
-  // Face 2 (Back)
-    VERTEX_BBR, VERTEX_BTL, VERTEX_BTR,
-    VERTEX_BTL, VERTEX_BBR, VERTEX_BBL,
-  // Face 3 (Top)
-    VERTEX_FTR, VERTEX_BTR, VERTEX_BTL,
-    VERTEX_BTL, VERTEX_FTL, VERTEX_FTR,
-  // Face 4 (Bottom)
-    VERTEX_FBR, VERTEX_FBL, VERTEX_BBL,
-    VERTEX_BBL, VERTEX_BBR, VERTEX_FBR,
-  // Face 5 (Left)
-    VERTEX_FBL, VERTEX_FTL, VERTEX_BTL,
-    VERTEX_FBL, VERTEX_BTL, VERTEX_BBL,
-  // Face 6 (Right)
-    VERTEX_FTR, VERTEX_FBR, VERTEX_BBR,
-    VERTEX_BBR, VERTEX_BTR, VERTEX_FTR
-};
-
-#undef VERTEX_BBR
-#undef VERTEX_BBL
-#undef VERTEX_BTL
-#undef VERTEX_BTR
-
-#undef VERTEX_FBR
-#undef VERTEX_FBL
-#undef VERTEX_FTL
-#undef VERTEX_FTR
-
-// Define our profiler access
-#define GL_PROFILER m_profiler
+// Query Macros
+#define from [&](){ std::vector<uint64_t> results; for(const auto &
+#define in :
+#define where ) if(
+#define select ) { results.push_back(
+#define end ); } return std::move(results); }
 
 /*******************************************************************************
  * OpenGL Events
@@ -79,6 +41,9 @@ Window::Window()
   m_transform.translate(0.0f, 0.0f, -5.0f);
   m_transform.scale(15.0f);
   OpenGLError::pushErrorHandler(this);
+  m_halfEdgeMesh = Q_NULLPTR;
+  m_mesh = Q_NULLPTR;
+  m_wait = false;
 }
 
 Window::~Window()
@@ -97,6 +62,10 @@ void Window::initializeGL()
 
   // Set global information
   glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+  glLineWidth(10.0f);
+  glClearDepthf(1.0f);
+  glDepthFunc(GL_LEQUAL);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 #ifdef    GL_DEBUG
@@ -123,29 +92,12 @@ void Window::initializeGL()
     m_program->link();
     m_program->bind();
 
+    loadObj(":/objects/bunny.obj");
+
     // Cache Uniform Locations
     u_modelToWorld = m_program->uniformLocation("modelToWorld");
     u_worldToCamera = m_program->uniformLocation("worldToCamera");
     u_cameraToView = m_program->uniformLocation("cameraToView");
-
-    // Create Buffer (Do not release until VAO is created)
-
-    // Initialize an object
-    QElapsedTimer timer;
-    {
-      timer.start();
-      m_heMesh = new HalfEdgeMesh(this, ":/objects/bunny.obj");
-      quint64 ms = timer.elapsed();
-      qDebug() << "Create HalfEdgeMesh (sec):" << float(ms) / 1e3f;
-      timer.start();
-      m_mesh = m_heMesh->createOpenGLMesh(OpenGLMesh::Contiguous | OpenGLMesh::Interleaved);
-      ms = timer.elapsed();
-      qDebug() << "Create OpenGLMesh (sec)  :" << float(ms) / 1e3f;
-      qDebug() << "Mesh Vertexes:" << m_heMesh->countVertexes();
-      qDebug() << "Mesh Faces:" << m_heMesh->countFaces();
-      qDebug() << "Mesh HalfEdges:" << m_heMesh->countHalfEdges();
-      m_res = m_heMesh->findFaceless();
-    }
 
     // Release (unbind) all
     m_program->release();
@@ -157,7 +109,7 @@ void Window::initializeGL()
 void Window::resizeGL(int width, int height)
 {
   m_projection.setToIdentity();
-  m_projection.perspective(45.0f, width / float(height), 0.0f, 1000.0f);
+  m_projection.perspective(45.0f, width / float(height), 0.1f, 1000.0f);
   PROFILER_RESIZE_GL(width, height);
 }
 
@@ -166,7 +118,7 @@ void Window::paintGL()
 
   // Clear
   PROFILER_SYNC_FRAME();
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Render the scene
   PROFILER_PUSH_GPU_MARKER("Render Scene");
@@ -179,15 +131,21 @@ void Window::paintGL()
     {
       PROFILER_PUSH_GPU_MARKER("Draw Object");
       m_program->setUniformValue(u_modelToWorld, m_transform.toMatrix());
-      m_mesh->draw();
-      HalfEdgeMesh::HalfEdge *edge, *twin;
-      for (size_t i = 0; i < m_res.size(); ++i)
+      if (m_mesh && !m_wait)
       {
-        edge = m_heMesh->getEdge(m_res[i]);
-        twin = m_heMesh->getTwin(m_res[i]);
-        QVector3D from = m_projection * m_camera.toMatrix() * m_transform.toMatrix() * m_heMesh->getVertex(twin->i_to)->position;
-        QVector3D to   = m_projection * m_camera.toMatrix() * m_transform.toMatrix() * m_heMesh->getVertex(edge->i_to)->position;
-        DebugDraw::World::drawLine(from, to, Qt::red);
+        m_mesh->draw();
+        HalfEdgeMesh::HalfEdge *edge, *twin;
+        for (size_t i = 0; i < m_queryResults.size(); ++i)
+        {
+          edge = m_halfEdgeMesh->getEdge(m_queryResults[i]);
+          twin = m_halfEdgeMesh->getTwin(m_queryResults[i]);
+          QVector3D origin = m_projection * m_camera.toMatrix() * m_transform.toMatrix() * m_halfEdgeMesh->getVertex(twin->i_to)->position;
+          QVector3D to   = m_projection * m_camera.toMatrix() * m_transform.toMatrix() * m_halfEdgeMesh->getVertex(edge->i_to)->position;
+          if (origin.x() > 1.0 || origin.x() < -1.0f || origin.y() > 1.0 || origin.y() < -1.0f)
+            if  (to.x() > 1.0 || to.x() < -1.0f || to.y() > 1.0 || to.y() < -1.0f)
+              continue;
+          DebugDraw::World::drawLine(origin, to, Qt::red);
+        }
       }
       PROFILER_POP_GPU_MARKER();
     }
@@ -241,17 +199,22 @@ void Window::update()
     }
     if (Input::keyPressed(Qt::Key_Q))
     {
-      translation -= m_camera.up();
+      translation -= Camera3D::LocalUp;
     }
     if (Input::keyPressed(Qt::Key_E))
     {
-      translation += m_camera.up();
+      translation += Camera3D::LocalUp;
     }
     m_camera.translate(transSpeed * translation);
   }
 
-  // Update instance information
-  //m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
+  if (Input::keyPressed(Qt::Key_Control))
+  {
+    if (Input::keyTriggered(Qt::Key_O))
+    {
+      openObj();
+    }
+  }
 
   // Schedule a redraw
   QOpenGLWindow::update();
@@ -383,6 +346,26 @@ void Window::moveEvent(QMoveEvent *ev)
   QOpenGLWindow::moveEvent(ev);
 }
 
+void Window::wheelEvent(QWheelEvent *ev)
+{
+  m_transform.grow(ev->delta());
+}
+
+void Window::touchEvent(QTouchEvent *ev)
+{
+  auto te = ev->touchPoints();
+  auto p = te[0];
+  QPointF begin = p.lastScreenPos();
+  QPointF endd = p.screenPos();
+  QPointF delta = endd - begin;
+  QVector3D v(delta.y(), delta.x(), 0.0f);
+  if (v.length() > 0.001f)
+  {
+    v.normalize();
+    m_transform.rotate(5.0f, v);
+  }
+}
+
 /*******************************************************************************
  * Private Helpers
  ******************************************************************************/
@@ -409,4 +392,57 @@ void Window::printVersionInformation()
 
   // qPrintable() will print our QString w/o quotes around it.
   qDebug() << qPrintable(glType) << qPrintable(glVersion) << "(" << qPrintable(glProfile) << ")";
+}
+
+void Window::loadObj(const QString &fileName)
+{
+  // Remove old mesh
+  delete m_mesh;
+  delete m_halfEdgeMesh;
+  m_queryResults.clear();
+
+  // Initialize an object
+  quint64 ms;
+  QElapsedTimer timer;
+  {
+    {
+      timer.start();
+      m_halfEdgeMesh = new HalfEdgeMesh(this, fileName);
+      ms = timer.elapsed();
+      qDebug() << "Create HalfEdgeMesh (sec):" << float(ms) / 1e3f;
+    }
+    {
+      makeCurrent();
+      timer.start();
+      m_mesh = m_halfEdgeMesh->createOpenGLMesh(OpenGLMesh::Contiguous | OpenGLMesh::Interleaved);
+      ms = timer.elapsed();
+      qDebug() << "Create OpenGLMesh (sec)  :" << float(ms) / 1e3f;
+    }
+    auto query = from a in m_halfEdgeMesh->edges() where a.i_face == 0 select m_halfEdgeMesh->getIndex(&a) end;
+    {
+      timer.start();
+      m_queryResults = query();
+      ms = timer.elapsed();
+      qDebug() << "Mesh Query Time (sec)    :" << float(ms) / 1e3f;
+    }
+    qDebug() << "--------------------------------------";
+    qDebug() << "Mesh Vertexes:" << m_halfEdgeMesh->countVertexes();
+    qDebug() << "Mesh Faces:" << m_halfEdgeMesh->countFaces();
+    qDebug() << "Mesh HalfEdges:" << m_halfEdgeMesh->countHalfEdges();
+    qDebug() << "Boundary Edges:" << m_queryResults.size();
+  }
+}
+
+#include <QFileDialog>
+void Window::openObj()
+{
+  m_wait = true;
+  QString fileName = QFileDialog::getOpenFileName(
+        Q_NULLPTR, tr("Open Model"), ".",
+        tr("Wavefront Object File (*.obj))"));
+  if (!fileName.isNull())
+  {
+    loadObj(fileName);
+  }
+  m_wait = false;
 }

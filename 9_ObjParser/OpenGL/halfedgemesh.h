@@ -32,6 +32,8 @@ public:
     uint64_t i_next;
   };
 
+  typedef std::vector<uint64_t> Results;
+
   HalfEdgeMesh(QObject *parent, QFile *file);
   HalfEdgeMesh(QObject *parent, const QString &fileName);
   ~HalfEdgeMesh();
@@ -41,7 +43,7 @@ public:
   void addFace(const AbstractObjParser::FaceIndex &v1, const AbstractObjParser::FaceIndex &v2, const AbstractObjParser::FaceIndex &v3);
   uint64_t resolveEdge(const AbstractObjParser::FaceIndex &v1, const AbstractObjParser::FaceIndex &v2);
   Face *getFace(uint64_t idx);
-  HalfEdge *getEdge(uint64_t idx);
+  HalfEdge *getEdge(uint64_t idx) const;
   HalfEdge *getTwin(uint64_t edge);
   Vertex *getVertex(uint64_t idx);
   virtual OpenGLMesh* createOpenGLMesh(OpenGLMesh::Options options);
@@ -50,10 +52,13 @@ public:
   uint64_t countFaces() const;
   uint64_t countHalfEdges() const;
   uint64_t countEdges() const;
+  uint64_t getIndex(const HalfEdge *edge) const;
   std::vector<uint64_t> findFaceless();
+  const std::vector<HalfEdge>& edges() const;
 private:
   HalfEdgeMeshPrivate *m_private;
   void triangulateFace(const AbstractObjParser::Face &f);
+  QVector3D calculateNormal(const HalfEdge *edge);
 };
 
 #endif // HALFEDGEMESH_H
