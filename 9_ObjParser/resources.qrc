@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>shaders/simple.frag</file>
+        <file>shaders/simple.vert</file>
+        <file>shaders/debug.frag</file>
+        <file>shaders/debug.vert</file>
+        <file>shaders/debugWorld.frag</file>
+        <file>shaders/debugWorld.vert</file>
+    </qresource>
+</RCC>
