@@ -6,7 +6,7 @@
 
 QT       += core gui widgets
 
-TARGET = 8_ES3Support
+TARGET = 9_ES3Support
 CONFIG   += console gl_debug
 CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/OpenGL

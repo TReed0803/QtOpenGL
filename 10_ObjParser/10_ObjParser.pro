@@ -6,7 +6,7 @@
 
 QT       += core gui widgets
 
-TARGET = 9_ObjParser
+TARGET = 10_ObjParser
 CONFIG   += console gl_debug
 CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/OpenGL
