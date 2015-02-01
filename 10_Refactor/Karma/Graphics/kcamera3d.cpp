@@ -1,38 +1,38 @@
 #include "kcamera3d.h"
 #include <QDebug>
 
-const QVector3D KCamera3D::LocalForward(0.0f, 0.0f, -1.0f);
-const QVector3D KCamera3D::LocalUp(0.0f, 1.0f, 0.0f);
-const QVector3D KCamera3D::LocalRight(1.0f, 0.0f, 0.0f);
+const KVector3D KCamera3D::LocalForward(0.0f, 0.0f, -1.0f);
+const KVector3D KCamera3D::LocalUp(0.0f, 1.0f, 0.0f);
+const KVector3D KCamera3D::LocalRight(1.0f, 0.0f, 0.0f);
 
 // Transform By (Add/Scale)
-void KCamera3D::translate(const QVector3D &dt)
+void KCamera3D::translate(const KVector3D &dt)
 {
   m_dirty = true;
   m_translation += dt;
 }
 
-void KCamera3D::rotate(const QQuaternion &dr)
+void KCamera3D::rotate(const KQuaternion &dr)
 {
   m_dirty = true;
   m_rotation = dr * m_rotation;
 }
 
 // Transform To (Setters)
-void KCamera3D::setTranslation(const QVector3D &t)
+void KCamera3D::setTranslation(const KVector3D &t)
 {
   m_dirty = true;
   m_translation = t;
 }
 
-void KCamera3D::setRotation(const QQuaternion &r)
+void KCamera3D::setRotation(const KQuaternion &r)
 {
   m_dirty = true;
   m_rotation = r;
 }
 
 // Accessors
-const QMatrix4x4 &KCamera3D::toMatrix()
+const KMatrix4x4 &KCamera3D::toMatrix()
 {
   if (m_dirty)
   {
@@ -45,17 +45,17 @@ const QMatrix4x4 &KCamera3D::toMatrix()
 }
 
 // Queries
-QVector3D KCamera3D::forward() const
+KVector3D KCamera3D::forward() const
 {
   return m_rotation.rotatedVector(LocalForward);
 }
 
-QVector3D KCamera3D::up() const
+KVector3D KCamera3D::up() const
 {
   return m_rotation.rotatedVector(LocalUp);
 }
 
-QVector3D KCamera3D::right() const
+KVector3D KCamera3D::right() const
 {
   return m_rotation.rotatedVector(LocalRight);
 }

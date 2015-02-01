@@ -2,7 +2,7 @@
 #define KINPUTMANAGER_H
 
 #include <Qt>
-#include <QPoint>
+#include <KPoint>
 
 class KInputManager
 {
@@ -28,8 +28,8 @@ public:
   static bool buttonTriggered(Qt::MouseButton button);
   static bool buttonPressed(Qt::MouseButton button);
   static bool buttonReleased(Qt::MouseButton button);
-  static QPoint mousePosition();
-  static QPoint mouseDelta();
+  static KPoint mousePosition();
+  static KPoint mouseDelta();
 
   // State updating
   static void update();

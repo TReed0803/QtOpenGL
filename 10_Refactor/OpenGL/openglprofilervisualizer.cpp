@@ -2,15 +2,18 @@
 #include "openglframeresults.h"
 
 #include <cstdint>
+
 #include <QMoveEvent>
 #include <QToolTip>
+#include <QPoint>
+#include <QPointF>
+#include <QSize>
+#include <QSizeF>
+#include <QRectF>
+#include <QString>
+#include <QColor>
 
-#include <KPoint>
-#include <KPointF>
-#include <KSize>
-#include <KSizeF>
 #include <KRectF>
-#include <KString>
 #include <KColor>
 #include <KDebugDraw>
 #include <KInputManager>
@@ -24,13 +27,13 @@ public:
   OpenGLProfilerVisualizerPrivate();
 
   bool m_dirty;
-  KPoint m_windowPosition;
-  KPoint m_topLeftBorder, m_bottomRightBorder;
-  KPointF m_topLeft, m_topLeftOffset, m_bottomRight, m_bottomRightOffset;
-  KSizeF m_surfaceArea;
-  KRectF m_surfaceRect;
-  KSize m_windowSize;
-  KString m_currToolTip;
+  QPoint m_windowPosition;
+  QPoint m_topLeftBorder, m_bottomRightBorder;
+  QPointF m_topLeft, m_topLeftOffset, m_bottomRight, m_bottomRightOffset;
+  QSizeF m_surfaceArea;
+  QRectF m_surfaceRect;
+  QSize m_windowSize;
+  QString m_currToolTip;
   OpenGLFrameResults m_lastResultSet;
 };
 
@@ -94,16 +97,16 @@ void OpenGLProfilerVisualizer::paintGL()
   float frameTime = float(frameEnd - frameBegin);
 
   // Find mouse pos
-  KPoint absoluteMousePos = KInputManager::mousePosition();
-  KPoint relativeMousePos = absoluteMousePos - p.m_windowPosition;
-  KPointF normalizedRelativeMousePos(
+  QPoint absoluteMousePos = KInputManager::mousePosition();
+  QPoint relativeMousePos = absoluteMousePos - p.m_windowPosition;
+  QPointF normalizedRelativeMousePos(
     float(relativeMousePos.x()) / p.m_windowSize.width(),
     float(relativeMousePos.y()) / p.m_windowSize.height()
   );
 
   // Draw each marker
-  KColor markerColor;
-  KRectF normalizedMarkerRect;
+  QColor markerColor;
+  QRectF normalizedMarkerRect;
   float normalizedMarkerStart, normalizedMarkerEnd;
   const OpenGLMarkerResults &gpuResults = p.m_lastResultSet.gpuResults();
   for (size_t i = 0; i < gpuResults.size(); ++i)
@@ -125,7 +128,7 @@ void OpenGLProfilerVisualizer::paintGL()
       if (p.m_currToolTip != result.name())
       {
         p.m_currToolTip = result.name();
-        KString str = result.name() + " " + KString::number(result.elapsedMilliseconds());
+        QString str = result.name() + " " + QString::number(result.elapsedMilliseconds());
         QToolTip::showText(KInputManager::mousePosition(), str);
       }
     }

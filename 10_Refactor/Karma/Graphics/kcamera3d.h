@@ -8,42 +8,42 @@ class KCamera3D
 public:
 
   // Constants
-  static const QVector3D LocalForward;
-  static const QVector3D LocalUp;
-  static const QVector3D LocalRight;
+  static const KVector3D LocalForward;
+  static const KVector3D LocalUp;
+  static const KVector3D LocalRight;
 
   // Constructors
   KCamera3D();
 
   // Transform By (Add/Scale)
-  void translate(const QVector3D &dt);
+  void translate(const KVector3D &dt);
   void translate(float dx, float dy, float dz);
-  void rotate(const QQuaternion &dr);
-  void rotate(float angle, const QVector3D &axis);
+  void rotate(const KQuaternion &dr);
+  void rotate(float angle, const KVector3D &axis);
   void rotate(float angle, float ax, float ay, float az);
 
   // Transform To (Setters)
-  void setTranslation(const QVector3D &t);
+  void setTranslation(const KVector3D &t);
   void setTranslation(float x, float y, float z);
-  void setRotation(const QQuaternion &r);
-  void setRotation(float angle, const QVector3D &axis);
+  void setRotation(const KQuaternion &r);
+  void setRotation(float angle, const KVector3D &axis);
   void setRotation(float angle, float ax, float ay, float az);
 
   // Accessors
-  const QVector3D& translation() const;
-  const QQuaternion& rotation() const;
-  const QMatrix4x4& toMatrix();
+  const KVector3D& translation() const;
+  const KQuaternion& rotation() const;
+  const KMatrix4x4& toMatrix();
 
   // Queries
-  QVector3D forward() const;
-  QVector3D up() const;
-  QVector3D right() const;
+  KVector3D forward() const;
+  KVector3D up() const;
+  KVector3D right() const;
 
 private:
   bool m_dirty;
-  QVector3D m_translation;
-  QQuaternion m_rotation;
-  QMatrix4x4 m_world;
+  KVector3D m_translation;
+  KQuaternion m_rotation;
+  KMatrix4x4 m_world;
 
 #ifndef QT_NO_DATASTREAM
   friend QDataStream &operator<<(QDataStream &out, const KCamera3D &transform);
@@ -57,18 +57,18 @@ Q_DECLARE_TYPEINFO(KCamera3D, Q_MOVABLE_TYPE);
 inline KCamera3D::KCamera3D() : m_dirty(true) {}
 
 // Transform By (Add/Scale)
-inline void KCamera3D::translate(float dx, float dy,float dz) { translate(QVector3D(dx, dy, dz)); }
-inline void KCamera3D::rotate(float angle, const QVector3D &axis) { rotate(QQuaternion::fromAxisAndAngle(axis, angle)); }
-inline void KCamera3D::rotate(float angle, float ax, float ay,float az) { rotate(QQuaternion::fromAxisAndAngle(ax, ay, az, angle)); }
+inline void KCamera3D::translate(float dx, float dy,float dz) { translate(KVector3D(dx, dy, dz)); }
+inline void KCamera3D::rotate(float angle, const KVector3D &axis) { rotate(KQuaternion::fromAxisAndAngle(axis, angle)); }
+inline void KCamera3D::rotate(float angle, float ax, float ay,float az) { rotate(KQuaternion::fromAxisAndAngle(ax, ay, az, angle)); }
 
 // Transform To (Setters)
-inline void KCamera3D::setTranslation(float x, float y, float z) { setTranslation(QVector3D(x, y, z)); }
-inline void KCamera3D::setRotation(float angle, const QVector3D &axis) { setRotation(QQuaternion::fromAxisAndAngle(axis, angle)); }
-inline void KCamera3D::setRotation(float angle, float ax, float ay, float az) { setRotation(QQuaternion::fromAxisAndAngle(ax, ay, az, angle)); }
+inline void KCamera3D::setTranslation(float x, float y, float z) { setTranslation(KVector3D(x, y, z)); }
+inline void KCamera3D::setRotation(float angle, const KVector3D &axis) { setRotation(KQuaternion::fromAxisAndAngle(axis, angle)); }
+inline void KCamera3D::setRotation(float angle, float ax, float ay, float az) { setRotation(KQuaternion::fromAxisAndAngle(ax, ay, az, angle)); }
 
 // Accessors
-inline const QVector3D& KCamera3D::translation() const { return m_translation; }
-inline const QQuaternion& KCamera3D::rotation() const { return m_rotation; }
+inline const KVector3D& KCamera3D::translation() const { return m_translation; }
+inline const KQuaternion& KCamera3D::rotation() const { return m_rotation; }
 
 // Qt Streams
 #ifndef QT_NO_DEBUG_STREAM

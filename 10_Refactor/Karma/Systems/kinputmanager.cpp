@@ -29,9 +29,9 @@ typedef std::vector<ButtonInstance> ButtonContainer;
 // Globals
 static KeyContainer sg_keyInstances;
 static ButtonContainer sg_buttonInstances;
-static QPoint sg_mouseCurrPosition;
-static QPoint sg_mousePrevPosition;
-static QPoint sg_mouseDelta;
+static KPoint sg_mouseCurrPosition;
+static KPoint sg_mousePrevPosition;
+static KPoint sg_mouseDelta;
 
 /*******************************************************************************
  * Static Helper Fucntions
@@ -100,12 +100,12 @@ KInputManager::InputState KInputManager::buttonState(Qt::MouseButton button)
   return (it != sg_buttonInstances.end()) ? it->second : InputInvalid;
 }
 
-QPoint KInputManager::mousePosition()
+KPoint KInputManager::mousePosition()
 {
   return QCursor::pos();
 }
 
-QPoint KInputManager::mouseDelta()
+KPoint KInputManager::mouseDelta()
 {
   return sg_mouseDelta;
 }

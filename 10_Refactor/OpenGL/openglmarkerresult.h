@@ -1,7 +1,7 @@
 #ifndef OPENGLMARKERRESULT_H
 #define OPENGLMARKERRESULT_H
 
-#include <KString>
+#include <QString>
 #include <vector>
 class QDebug;
 
@@ -32,7 +32,7 @@ public:
 
 private:
   int m_depth;
-  KString m_name;
+  QString m_name;
   quint64 m_startTime;
   quint64 m_endTime;
 };
