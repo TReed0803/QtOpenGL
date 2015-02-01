@@ -1,7 +1,7 @@
 #include "kinputmanager.h"
-#include <QCursor>
-#include <vector>
 #include <algorithm>
+#include <vector>
+#include <QCursor>
 
 /*******************************************************************************
  * Static Helper Structs

@@ -2,10 +2,10 @@
 #define KDEBUGDRAW_H
 
 class KCamera3D;
-class KMatrix4x4;
-class KVector3D;
-class KRectF;
 class KColor;
+class KMatrix4x4;
+class KRectF;
+class KVector3D;
 
 struct KDebugDraw
 {

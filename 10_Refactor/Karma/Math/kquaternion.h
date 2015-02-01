@@ -1,8 +1,8 @@
 #ifndef KQUATERNION_H
 #define KQUATERNION_H
 
+#include <KVector3D>
 #include <QQuaternion>
-class KVector3D;
 
 class KQuaternion : public QQuaternion
 {

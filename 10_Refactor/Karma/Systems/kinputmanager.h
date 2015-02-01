@@ -1,8 +1,8 @@
 #ifndef KINPUTMANAGER_H
 #define KINPUTMANAGER_H
 
-#include <Qt>
 #include <KPoint>
+#include <Qt>
 
 class KInputManager
 {

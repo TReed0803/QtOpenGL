@@ -1,8 +1,8 @@
 #ifndef OPENGLMARKERRESULT_H
 #define OPENGLMARKERRESULT_H
 
-#include <QString>
 #include <vector>
+#include <QString>
 class QDebug;
 
 class OpenGLMarkerResult

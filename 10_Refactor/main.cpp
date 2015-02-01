@@ -1,6 +1,6 @@
+#include "window.h"
 #include <QApplication>
 #include <QSurfaceFormat>
-#include "window.h"
 
 static bool checkVersion(QOpenGLContext &context, QSurfaceFormat *fmt)
 {

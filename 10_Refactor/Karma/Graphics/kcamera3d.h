@@ -1,7 +1,9 @@
 #ifndef KCAMERA_H
 #define KCAMERA_H
 
-#include <KTransform3D>
+#include <KMatrix4x4>
+#include <KVector3D>
+#include <KQuaternion>
 
 class KCamera3D
 {

@@ -1,13 +1,13 @@
 #include "openglwindow.h"
+#include "openglframeresults.h"
+#include "openglframetimer.h"
 #include "openglprofiler.h"
 #include "openglprofilervisualizer.h"
-#include "openglframetimer.h"
-#include "openglframeresults.h"
 
+#include <QCoreApplication>
 #include <QKeyEvent>
 #include <QOpenGLDebugLogger>
 #include <QOpenGLDebugMessage>
-#include <QCoreApplication>
 
 #include <KCommon>
 #include <KDebugDraw>

@@ -1,7 +1,7 @@
 #include "openglerror.h"
-#include <QObject>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QObject>
 
 /*******************************************************************************
  * OpenGLError static types

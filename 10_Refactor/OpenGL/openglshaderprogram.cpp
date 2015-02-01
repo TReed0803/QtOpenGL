@@ -1,7 +1,7 @@
-#include <QSurfaceFormat>
+#include "openglshaderprogram.h"
 #include <QFile>
 #include <QOpenGLContext>
-#include "openglshaderprogram.h"
+#include <QSurfaceFormat>
 
 bool OpenGLShaderProgramWrapped::addShaderFromSourceCode(QOpenGLShader::ShaderType type, const char *source)
 {

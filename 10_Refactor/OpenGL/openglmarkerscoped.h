@@ -1,7 +1,7 @@
 #ifndef OPENGLMARKERSCOPE_H
 #define OPENGLMARKERSCOPE_H
 
-#include "openglprofiler.h"
+#include <OpenGLProfiler>
 
 class OpenGLMarkerScoped
 {

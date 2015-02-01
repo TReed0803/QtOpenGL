@@ -5,12 +5,12 @@
 #include <OpenGLShaderProgram>
 #include <OpenGLVertexArrayObject>
 
-#include <KVertex>
 #include <KCamera3D>
 #include <KDebugDraw>
 #include <KInputManager>
 #include <KMatrix4x4>
 #include <KTransform3D>
+#include <KVertex>
 
 // Front Verticies
 #define VERTEX_FTR KVertex( KVector3D( 0.5f,  0.5f,  0.5f), KVector3D( 1.0f, 0.0f, 0.0f ) )

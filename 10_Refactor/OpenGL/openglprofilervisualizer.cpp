@@ -3,20 +3,20 @@
 
 #include <cstdint>
 
+#include <QColor>
 #include <QMoveEvent>
-#include <QToolTip>
 #include <QPoint>
 #include <QPointF>
+#include <QRectF>
 #include <QSize>
 #include <QSizeF>
-#include <QRectF>
 #include <QString>
-#include <QColor>
+#include <QToolTip>
 
-#include <KRectF>
 #include <KColor>
 #include <KDebugDraw>
 #include <KInputManager>
+#include <KRectF>
 
 /*******************************************************************************
  * OpenGLProfilerVisualizerPrivate

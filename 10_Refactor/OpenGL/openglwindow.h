@@ -1,8 +1,8 @@
 #ifndef OPENGLWINDOW_H
 #define OPENGLWINDOW_H
 
-#include <QOpenGLWindow>
 #include <OpenGLFunctions>
+#include <QOpenGLWindow>
 
 class QEvent;
 class OpenGLError;

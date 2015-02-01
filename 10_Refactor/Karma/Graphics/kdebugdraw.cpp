@@ -1,14 +1,14 @@
 #include "kdebugdraw.h"
 
 #include <vector>
-#include <OpenGLShaderProgram>
 #include <OpenGLBuffer>
 #include <OpenGLFunctions>
+#include <OpenGLShaderProgram>
 #include <OpenGLVertexArrayObject>
-#include <KVertex>
-#include <KRectF>
 #include <KCamera3D>
+#include <KRectF>
 #include <KTransform3D>
+#include <KVertex>
 
 /*******************************************************************************
  * KDebugDrawPrivate

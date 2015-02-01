@@ -1,9 +1,9 @@
 #ifndef KTRANSFORM3D_H
 #define KTRANSFORM3D_H
 
-#include <KVector3D>
-#include <KQuaternion>
 #include <KMatrix4x4>
+#include <KQuaternion>
+#include <KVector3D>
 
 class KTransform3D
 {

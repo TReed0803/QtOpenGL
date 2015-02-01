@@ -1,9 +1,9 @@
 #ifndef OPENGLFRAMERESULTS_H
 #define OPENGLFRAMERESULTS_H
 
+#include <OpenGLMarkerResult>
 #include <QString>
 #include <QVector>
-#include <OpenGLMarkerResult>
 
 class OpenGLFrameResults
 {
