@@ -11,6 +11,11 @@ CONFIG   += console gl_debug
 CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/OpenGL
 INCLUDEPATH += $$PWD/Karma
+INCLUDEPATH += $$PWD/Karma/Base
+INCLUDEPATH += $$PWD/Karma/Events
+INCLUDEPATH += $$PWD/Karma/Graphics
+INCLUDEPATH += $$PWD/Karma/Math
+INCLUDEPATH += $$PWD/Karma/Systems
 
 TEMPLATE = app
 unix:QMAKE_CXXFLAGS += -std=c++11
@@ -23,11 +28,14 @@ SOURCES += \
     OpenGL/openglframetimer.cpp \
     OpenGL/openglframeresults.cpp \
     OpenGL/openglerror.cpp \
-    Karma/kinputmanager.cpp \
-    Karma/kcamera3d.cpp \
-    Karma/ktransform3d.cpp \
     OpenGL/openglshaderprogram.cpp \
-    Karma/kupdateevent.cpp
+    OpenGL/openglprofilervisualizer.cpp \
+    Karma/Events/kupdateevent.cpp \
+    Karma/Graphics/kcamera3d.cpp \
+    Karma/Graphics/kdebugdraw.cpp \
+    Karma/Graphics/ktransform3d.cpp \
+    Karma/Systems/kinputmanager.cpp \
+    OpenGL/openglmarkerresult.cpp
 
 HEADERS += \
     window.h \
@@ -40,20 +48,29 @@ HEADERS += \
     OpenGL/openglcommon.h \
     OpenGL/openglerror.h \
     OpenGL/openglmarkerscoped.h \
-    Karma/kmacros.h \
-    Karma/kinputmanager.h \
-    Karma/kcommon.h \
-    Karma/kcamera3d.h \
-    Karma/ktransform3d.h \
-    Karma/kmatrix4x4.h \
-    Karma/kvector3d.h \
-    Karma/kvector2d.h \
-    Karma/kvertex.h \
-    Karma/kquaternion.h \
     OpenGL/openglbuffer.h \
     OpenGL/openglshaderprogram.h \
     OpenGL/openglvertexarrayobject.h \
-    Karma/kupdateevent.h
+    OpenGL/openglprofilervisualizer.h \
+    Karma/Base/kcolor.h \
+    Karma/Base/kcommon.h \
+    Karma/Base/kmacros.h \
+    Karma/Events/kupdateevent.h \
+    Karma/Graphics/kcamera3d.h \
+    Karma/Graphics/kdebugdraw.h \
+    Karma/Graphics/ktransform3d.h \
+    Karma/Graphics/kvertex.h \
+    Karma/Math/kmatrix4x4.h \
+    Karma/Math/kquaternion.h \
+    Karma/Math/krectf.h \
+    Karma/Math/kvector2d.h \
+    Karma/Math/kvector3d.h \
+    Karma/Systems/kinputmanager.h \
+    Karma/Math/kpoint.h \
+    Karma/Math/kpointf.h \
+    Karma/Math/ksize.h \
+    Karma/Math/ksizef.h \
+    Karma/Base/kstring.h
 
 RESOURCES += \
     resources.qrc

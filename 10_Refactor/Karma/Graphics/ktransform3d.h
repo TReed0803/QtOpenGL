@@ -31,13 +31,13 @@ public:
   void grow(float factor);
 
   // Transform To (Setters)
-  void setTranslation(const QVector3D &t);
+  void setTranslation(const KVector3D &t);
   void setTranslation(float x, float y, float z);
-  void setScale(const QVector3D &s);
+  void setScale(const KVector3D &s);
   void setScale(float x, float y, float z);
   void setScale(float k);
-  void setRotation(const QQuaternion &r);
-  void setRotation(float angle, const QVector3D &axis);
+  void setRotation(const KQuaternion &r);
+  void setRotation(float angle, const KVector3D &axis);
   void setRotation(float angle, float ax, float ay, float az);
 
   // Accessors

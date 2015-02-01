@@ -321,6 +321,7 @@ public:
 
   // Member Information
   bool m_valid;
+  bool m_started;
   size_t m_currFrame;
   FrameContainer m_frames;
 
@@ -332,7 +333,7 @@ public:
 OpenGLProfiler *OpenGLProfilerPrivate::CurrentProfiler = new OpenGLProfiler(Q_NULLPTR);
 
 OpenGLProfilerPrivate::OpenGLProfilerPrivate() :
-  m_valid(false), m_currFrame(0)
+  m_valid(false), m_started(false), m_currFrame(0)
 {
   // Intentionally Empty
 }
@@ -373,7 +374,7 @@ bool OpenGLProfiler::initialize()
   // Attempt to create the first frame
   // This can fail if OpenGL Desktop without Timer Query support.
   FrameInfo *frame = new FrameInfo(this);
-  if (frame->isValid())
+  if (!frame->isValid())
   {
     delete frame;
     return false;
@@ -409,6 +410,8 @@ void OpenGLProfiler::beginFrame()
   {
     currFrame->startFrame();
   }
+
+  p.m_started = true;
 }
 
 void OpenGLProfiler::pushGpuMarker(const char *name)
@@ -417,6 +420,7 @@ void OpenGLProfiler::pushGpuMarker(const char *name)
 
   // Early-out if Profiler doesn't support Timers
   if (!p.m_valid) return;
+  if (!p.m_started) return;
 
   // At this point, it's impossible for there not
   // to at least be one allocated frame. Since initialize()
@@ -436,6 +440,7 @@ void OpenGLProfiler::popGpuMarker()
 
   // Early-out if Profiler doesn't support Timers
   if (!p.m_valid) return;
+  if (!p.m_started) return;
 
   // At this point, it's impossible for there not
   // to at least be one allocated frame. Since initialize()
@@ -455,6 +460,11 @@ void OpenGLProfiler::endFrame()
 
   // Early-out if Profiler doesn't support Timers
   if (!p.m_valid) return;
+  if (!p.m_started) return;
+
+  // Mark the frame as completed
+  p.m_frames[p.m_currFrame]->endFrame();
+  ++p.m_currFrame;
 
   // Loop through all completed frames, emitting results
   size_t idx;
@@ -486,6 +496,7 @@ void OpenGLProfiler::endFrame()
   // when we moved them to the back of the vector.
   p.m_currFrame -= idx;
   p.m_frames.erase(p.m_frames.begin(), p.m_frames.begin() + idx);
+  p.m_started = false;
 }
 
 void OpenGLProfiler::setProfiler(OpenGLProfiler *profiler)

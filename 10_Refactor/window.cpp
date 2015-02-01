@@ -7,6 +7,7 @@
 
 #include <KVertex>
 #include <KCamera3D>
+#include <KDebugDraw>
 #include <KInputManager>
 #include <KMatrix4x4>
 #include <KTransform3D>
@@ -176,6 +177,7 @@ void Window::paintGL()
   }
   OpenGLProfiler::EndFrame();
 
+  KDebugDraw::draw(p.m_worldToCamera, p.m_cameraToView);
   OpenGLWindow::paintGL();
 }
 

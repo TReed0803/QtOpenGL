@@ -1,4 +1,5 @@
 #include "openglframeresults.h"
+#include <QDebug>
 
 OpenGLFrameResults::OpenGLFrameResults()
 {
@@ -20,11 +21,11 @@ OpenGLFrameResults::OpenGLFrameResults(size_t maxDepth, quint64 startTime, quint
 
 void OpenGLFrameResults::addGpuResult(const QString &name, size_t depth, quint64 startTime, quint64 endTime)
 {
-  MarkerResult res;
-  res.name = name;
-  res.depth = depth;
-  res.start = startTime;
-  res.end = endTime;
+  OpenGLMarkerResult res;
+  res.setName(name);
+  res.setDepth(depth);
+  res.setStartTime(startTime);
+  res.setEndTime(endTime);
   m_gpuResults.push_back(res);
 }
 
@@ -36,14 +37,9 @@ void OpenGLFrameResults::operator=(OpenGLFrameResults &&rhs)
   m_gpuResults = std::move(rhs.m_gpuResults);
 }
 
-QDebug operator<<(QDebug dbg, const OpenGLFrameResults::MarkerResult &result)
+QDebug &operator<<(QDebug &dbg, const OpenGLFrameResults &results)
 {
-  return dbg << qPrintable(result.name) << ": " << float(result.end - result.start) / 1e06 << "\n";
-}
-
-QDebug operator<<(QDebug dbg, const OpenGLFrameResults &results)
-{
-  foreach (OpenGLFrameResults::MarkerResult const& result, results.gpuResults())
+  foreach (OpenGLMarkerResult const& result, results.gpuResults())
   {
     dbg << result;
   }

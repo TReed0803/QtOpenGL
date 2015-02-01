@@ -1,5 +1,6 @@
 #include "openglwindow.h"
 #include "openglprofiler.h"
+#include "openglprofilervisualizer.h"
 #include "openglframetimer.h"
 #include "openglframeresults.h"
 
@@ -9,6 +10,7 @@
 #include <QCoreApplication>
 
 #include <KCommon>
+#include <KDebugDraw>
 #include <KInputManager>
 #include <KUpdateEvent>
 
@@ -22,12 +24,13 @@ public:
 
   // Rendering Statistics
   OpenGLProfiler m_profiler;
+  OpenGLProfilerVisualizer m_profilerVisualizer;
   OpenGLFrameTimer m_frameTimer;
   QOpenGLDebugLogger *m_debugLogger;
 };
 
 OpenGLWindowPrivate::OpenGLWindowPrivate(QObject *parent) :
-  m_frameTimer(parent), m_profiler(parent)
+  m_profiler(parent), m_profilerVisualizer(parent), m_frameTimer(parent), m_debugLogger(Q_NULLPTR)
 {
   // Intentionally Empty
 }
@@ -87,6 +90,11 @@ void OpenGLWindow::initializeGL()
 
   // Initialize
   initializeOpenGLFunctions();
+  KDebugDraw::initialize();
+  if (p.m_profiler.initialize())
+  {
+    connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), &p.m_profilerVisualizer, SLOT(frameResultsAvailable(OpenGLFrameResults)));
+  }
   connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
   connect(this, SIGNAL(frameSwapped()), &p.m_frameTimer, SLOT(frameSwapped()));
 
@@ -105,27 +113,27 @@ void OpenGLWindow::initializeGL()
   }
 #endif // GL_DEBUG
 
-  // Log Frame Results
   connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), this, SLOT(frameResultAvailable(OpenGLFrameResults)));
-
   QOpenGLWindow::initializeGL();
 }
 
 void OpenGLWindow::resizeGL(int width, int height)
 {
-  (void)width;
-  (void)height;
+  P(OpenGLWindowPrivate);
+  p.m_profilerVisualizer.resizeGL(width, height);
   QOpenGLWindow::resizeGL(width, height);
 }
 
 void OpenGLWindow::paintGL()
 {
+  P(OpenGLWindowPrivate);
+  p.m_profilerVisualizer.paintGL();
   QOpenGLWindow::paintGL();
 }
 
 void OpenGLWindow::teardownGL()
 {
-  // Intentionally Empty
+  KDebugDraw::teardown();
 }
 
 /*******************************************************************************
@@ -187,6 +195,13 @@ void OpenGLWindow::mousePressEvent(QMouseEvent *event)
 void OpenGLWindow::mouseReleaseEvent(QMouseEvent *event)
 {
   KInputManager::registerMouseRelease(event->button());
+}
+
+void OpenGLWindow::moveEvent(QMoveEvent *event)
+{
+  P(OpenGLWindowPrivate);
+  p.m_profilerVisualizer.moveEvent(event);
+  QOpenGLWindow::moveEvent(event);
 }
 
 void OpenGLWindow::updateEvent(KUpdateEvent *event)

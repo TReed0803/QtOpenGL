@@ -10,6 +10,7 @@ class OpenGLFrameResults;
 class QOpenGLDebugMessage;
 class QKeyEvent;
 class QMouseEvent;
+class QMoveEvent;
 class QWheelEvent;
 class QTouchEvent;
 class KUpdateEvent;
@@ -43,6 +44,7 @@ protected:
   virtual void keyReleaseEvent(QKeyEvent *event);
   virtual void mousePressEvent(QMouseEvent *event);
   virtual void mouseReleaseEvent(QMouseEvent *event);
+  virtual void moveEvent(QMoveEvent *event);
   virtual void updateEvent(KUpdateEvent *event);
 
 public slots:

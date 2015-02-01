@@ -3,46 +3,42 @@
 
 #include <QString>
 #include <QVector>
-#include <QDebug>
+#include <OpenGLMarkerResult>
 
 class OpenGLFrameResults
 {
 public:
-
-  struct MarkerResult
-  {
-    QString name;
-    size_t depth;
-    quint64 start;
-    quint64 end;
-  };
-  typedef QVector<MarkerResult> MarkerResultContainer;
-
+  // Constructors / Destructors
   OpenGLFrameResults();
   OpenGLFrameResults(OpenGLFrameResults &&rhs);
-  void operator=(OpenGLFrameResults &&rhs);
   OpenGLFrameResults(size_t maxDepth, quint64 startTime, quint64 endTime);
+
+  // Public Methods
   void addGpuResult(const QString &name, size_t depth, quint64 startTime, quint64 endTime);
-  inline const MarkerResultContainer &gpuResults() const;
+
+  // Operators
+  void operator=(OpenGLFrameResults &&rhs);
+
+  // Query Methods
   inline size_t maxDepth() const;
   inline quint64 startTime() const;
   inline quint64 endTime() const;
+  inline const OpenGLMarkerResults &gpuResults() const;
 
 private:
   size_t m_maxDepth;
   quint64 m_startTime, m_endTime;
-  MarkerResultContainer m_gpuResults;
+  OpenGLMarkerResults m_gpuResults;
 };
 
-inline const OpenGLFrameResults::MarkerResultContainer &OpenGLFrameResults::gpuResults() const { return m_gpuResults; }
 inline size_t OpenGLFrameResults::maxDepth() const { return m_maxDepth; }
 inline quint64 OpenGLFrameResults::startTime() const { return m_startTime; }
 inline quint64 OpenGLFrameResults::endTime() const { return m_endTime; }
+inline const OpenGLMarkerResults &OpenGLFrameResults::gpuResults() const { return m_gpuResults; }
 
 // Qt Streams
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug dbg, const OpenGLFrameResults::MarkerResult &results);
-QDebug operator<<(QDebug dbg, const OpenGLFrameResults &results);
+QDebug &operator<<(QDebug &dbg, const OpenGLFrameResults &results);
 #endif
 
 #endif // OPENGLFRAMERESULTS_H

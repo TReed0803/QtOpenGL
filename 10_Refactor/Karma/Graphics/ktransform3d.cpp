@@ -1,56 +1,56 @@
 #include "ktransform3d.h"
 #include <QDebug>
 
-const QVector3D KTransform3D::LocalForward(0.0f, 0.0f, 1.0f);
-const QVector3D KTransform3D::LocalUp(0.0f, 1.0f, 0.0f);
-const QVector3D KTransform3D::LocalRight(1.0f, 0.0f, 0.0f);
+const KVector3D KTransform3D::LocalForward(0.0f, 0.0f, 1.0f);
+const KVector3D KTransform3D::LocalUp(0.0f, 1.0f, 0.0f);
+const KVector3D KTransform3D::LocalRight(1.0f, 0.0f, 0.0f);
 
 // Transform By (Add/Scale)
-void KTransform3D::translate(const QVector3D &dt)
+void KTransform3D::translate(const KVector3D &dt)
 {
   m_dirty = true;
   m_translation += dt;
 }
 
-void KTransform3D::scale(const QVector3D &ds)
+void KTransform3D::scale(const KVector3D &ds)
 {
   m_dirty = true;
   m_scale *= ds;
 }
 
-void KTransform3D::rotate(const QQuaternion &dr)
+void KTransform3D::rotate(const KQuaternion &dr)
 {
   m_dirty = true;
   m_rotation = dr * m_rotation;
 }
 
-void KTransform3D::grow(const QVector3D &ds)
+void KTransform3D::grow(const KVector3D &ds)
 {
   m_dirty = true;
   m_scale += ds;
 }
 
 // Transform To (Setters)
-void KTransform3D::setTranslation(const QVector3D &t)
+void KTransform3D::setTranslation(const KVector3D &t)
 {
   m_dirty = true;
   m_translation = t;
 }
 
-void KTransform3D::setScale(const QVector3D &s)
+void KTransform3D::setScale(const KVector3D &s)
 {
   m_dirty = true;
   m_scale = s;
 }
 
-void KTransform3D::setRotation(const QQuaternion &r)
+void KTransform3D::setRotation(const KQuaternion &r)
 {
   m_dirty = true;
   m_rotation = r;
 }
 
 // Accessors
-const QMatrix4x4 &KTransform3D::toMatrix()
+const KMatrix4x4 &KTransform3D::toMatrix()
 {
   if (m_dirty)
   {
@@ -64,17 +64,17 @@ const QMatrix4x4 &KTransform3D::toMatrix()
 }
 
 // Queries
-QVector3D KTransform3D::forward() const
+KVector3D KTransform3D::forward() const
 {
   return m_rotation.rotatedVector(LocalForward);
 }
 
-QVector3D KTransform3D::up() const
+KVector3D KTransform3D::up() const
 {
   return m_rotation.rotatedVector(LocalUp);
 }
 
-QVector3D KTransform3D::right() const
+KVector3D KTransform3D::right() const
 {
   return m_rotation.rotatedVector(LocalRight);
 }
