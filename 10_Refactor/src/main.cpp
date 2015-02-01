@@ -1,59 +1,58 @@
 #include "window.h"
+#include <vector>
 #include <QApplication>
 #include <QSurfaceFormat>
 
-static bool checkVersion(QOpenGLContext &context, QSurfaceFormat *fmt)
+static bool checkVersion(QOpenGLContext &context, QSurfaceFormat &format)
 {
   QSurfaceFormat currSurface = context.format();
   QPair<int,int> currVersion = currSurface.version();
-  QPair<int,int> reqVersion = fmt->version();
+  QPair<int,int> reqVersion = format.version();
   if (currVersion.first > reqVersion.first)
     return true;
   return (currVersion.first == reqVersion.first && currVersion.second >= reqVersion.second);
 }
 
-static QSurfaceFormat* getFirstSupported(QSurfaceFormat *fmt, va_list ap)
+static QSurfaceFormat* getFirstSupported(std::vector<QSurfaceFormat> &formats)
 {
   QOpenGLContext context;
-  while (fmt)
+  for (QSurfaceFormat &format : formats)
   {
-    context.setFormat(*fmt);
+    context.setFormat(format);
     if (context.create())
     {
-      if (checkVersion(context, fmt)) return fmt;
+      if (checkVersion(context, format)) return &format;
     }
-    fmt = va_arg(ap,QSurfaceFormat*);
   }
   return NULL;
 }
-
-static QSurfaceFormat* getFirstSupported(QSurfaceFormat *fmt, ...)
-{
-  va_list ap;
-  va_start(ap,fmt);
-  QSurfaceFormat *first = getFirstSupported(fmt, ap);
-  va_end(ap);
-  return first;
-}
-
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
+  std::vector<QSurfaceFormat> formats;
 
-  // Set OpenGL Version information
-  // Note: This format must be set before show() is called.
-  QSurfaceFormat glFormat;
-  glFormat.setRenderableType(QSurfaceFormat::OpenGL);
-  glFormat.setProfile(QSurfaceFormat::CoreProfile);
-  glFormat.setVersion(3,3);
+#if !defined(QT_OPENGL_ES)
+  {
+    QSurfaceFormat glFormat;
+    glFormat.setRenderableType(QSurfaceFormat::OpenGL);
+    glFormat.setProfile(QSurfaceFormat::CoreProfile);
+    glFormat.setVersion(3,3);
+    formats.push_back(glFormat);
+  }
+#endif
 
-  QSurfaceFormat glesFormat;
-  glesFormat.setRenderableType(QSurfaceFormat::OpenGLES);
-  glesFormat.setProfile(QSurfaceFormat::CoreProfile);
-  glesFormat.setVersion(3,0);
+#if defined(QT_OPENGL_ES)
+  {
+    QSurfaceFormat glesFormat;
+    glesFormat.setRenderableType(QSurfaceFormat::OpenGLES);
+    glesFormat.setProfile(QSurfaceFormat::CoreProfile);
+    glesFormat.setVersion(3,0);
+    formats.push_back(glesFormat);
+  }
+#endif
 
   // Find out which version we support
-  QSurfaceFormat *format = getFirstSupported(&glFormat, &glesFormat, NULL);
+  QSurfaceFormat *format = getFirstSupported(formats);
   if (format == NULL)
   {
     qFatal("No valid supported version of OpenGL found on device!");

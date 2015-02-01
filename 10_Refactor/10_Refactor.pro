@@ -13,11 +13,6 @@ INCLUDEPATH += $$PWD/src
 INCLUDEPATH += $$PWD/includes
 INCLUDEPATH += $$PWD/includes/OpenGL
 INCLUDEPATH += $$PWD/includes/Karma
-INCLUDEPATH += $$PWD/includes/Karma/Base
-INCLUDEPATH += $$PWD/includes/Karma/Math
-INCLUDEPATH += $$PWD/includes/Karma/Events
-INCLUDEPATH += $$PWD/includes/Karma/Graphics
-INCLUDEPATH += $$PWD/includes/Karma/Systems
 
 TEMPLATE = app
 unix:QMAKE_CXXFLAGS += -std=c++11
@@ -32,47 +27,47 @@ SOURCES += \
     src/OpenGL/openglerror.cpp \
     src/OpenGL/openglshaderprogram.cpp \
     src/OpenGL/openglprofilervisualizer.cpp \
-    src/Karma/Events/kupdateevent.cpp \
-    src/Karma/Graphics/kcamera3d.cpp \
-    src/Karma/Graphics/kdebugdraw.cpp \
-    src/Karma/Graphics/ktransform3d.cpp \
-    src/Karma/Systems/kinputmanager.cpp \
-    src/OpenGL/openglmarkerresult.cpp
+    src/OpenGL/openglmarkerresult.cpp \
+    src/Karma/kupdateevent.cpp \
+    src/Karma/kcamera3d.cpp \
+    src/Karma/kdebugdraw.cpp \
+    src/Karma/ktransform3d.cpp \
+    src/Karma/kinputmanager.cpp
 
 HEADERS += \
-    src/window.h \
-    src/OpenGL/openglwindow.h \
-    src/OpenGL/openglprofiler.h \
-    src/OpenGL/openglframetimer.h \
-    src/OpenGL/openglframeresults.h \
-    src/OpenGL/openglmarkerresult.h \
-    src/OpenGL/openglfunctions.h \
-    src/OpenGL/openglcommon.h \
-    src/OpenGL/openglerror.h \
-    src/OpenGL/openglmarkerscoped.h \
-    src/OpenGL/openglbuffer.h \
-    src/OpenGL/openglshaderprogram.h \
-    src/OpenGL/openglvertexarrayobject.h \
-    src/OpenGL/openglprofilervisualizer.h \
-    src/Karma/Base/kcolor.h \
-    src/Karma/Base/kcommon.h \
-    src/Karma/Base/kmacros.h \
-    src/Karma/Events/kupdateevent.h \
-    src/Karma/Graphics/kcamera3d.h \
-    src/Karma/Graphics/kdebugdraw.h \
-    src/Karma/Graphics/ktransform3d.h \
-    src/Karma/Graphics/kvertex.h \
-    src/Karma/Math/kmatrix4x4.h \
-    src/Karma/Math/kquaternion.h \
-    src/Karma/Math/krectf.h \
-    src/Karma/Math/kvector2d.h \
-    src/Karma/Math/kvector3d.h \
-    src/Karma/Systems/kinputmanager.h \
-    src/Karma/Math/kpoint.h \
-    src/Karma/Math/kpointf.h \
-    src/Karma/Math/ksize.h \
-    src/Karma/Math/ksizef.h \
-    src/Karma/Base/kstring.h
+    includes/window.h \
+    includes/OpenGL/openglwindow.h \
+    includes/OpenGL/openglprofiler.h \
+    includes/OpenGL/openglframetimer.h \
+    includes/OpenGL/openglframeresults.h \
+    includes/OpenGL/openglmarkerresult.h \
+    includes/OpenGL/openglfunctions.h \
+    includes/OpenGL/openglcommon.h \
+    includes/OpenGL/openglerror.h \
+    includes/OpenGL/openglmarkerscoped.h \
+    includes/OpenGL/openglbuffer.h \
+    includes/OpenGL/openglshaderprogram.h \
+    includes/OpenGL/openglvertexarrayobject.h \
+    includes/OpenGL/openglprofilervisualizer.h \
+    includes/Karma/kcolor.h \
+    includes/Karma/kcommon.h \
+    includes/Karma/kmacros.h \
+    includes/Karma/kupdateevent.h \
+    includes/Karma/kcamera3d.h \
+    includes/Karma/kdebugdraw.h \
+    includes/Karma/ktransform3d.h \
+    includes/Karma/kvertex.h \
+    includes/Karma/kmatrix4x4.h \
+    includes/Karma/kquaternion.h \
+    includes/Karma/krectf.h \
+    includes/Karma/kvector2d.h \
+    includes/Karma/kvector3d.h \
+    includes/Karma/kinputmanager.h \
+    includes/Karma/kpoint.h \
+    includes/Karma/kpointf.h \
+    includes/Karma/ksize.h \
+    includes/Karma/ksizef.h \
+    includes/Karma/kstring.h
 
 RESOURCES += \
     resources.qrc
