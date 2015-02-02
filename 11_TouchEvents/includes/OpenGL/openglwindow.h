@@ -2,29 +2,30 @@
 #define OPENGLWINDOW_H
 
 #include <OpenGLFunctions>
-#include <QOpenGLWindow>
+#include <QOpenGLWidget>
 
-class QEvent;
+class KUpdateEvent;
 class OpenGLError;
 class OpenGLFrameResults;
-class QOpenGLDebugMessage;
+class QEvent;
+class QGestureEvent;
 class QKeyEvent;
 class QMouseEvent;
 class QMoveEvent;
-class QWheelEvent;
+class QOpenGLDebugMessage;
 class QTouchEvent;
-class KUpdateEvent;
+class QWheelEvent;
 
-class OpenGLWindowPrivate;
-class OpenGLWindow : public QOpenGLWindow,
+class OpenGLWidgetPrivate;
+class OpenGLWidget : public QOpenGLWidget,
                      protected OpenGLFunctions
 {
   Q_OBJECT
 
 public:
   // Constructors / Destructors
-  OpenGLWindow(UpdateBehavior updateBehavior = NoPartialUpdate, QWindow *parent = 0);
-  ~OpenGLWindow();
+  OpenGLWidget(QWidget *parent = 0);
+  ~OpenGLWidget();
 
   // Public Methods
   void printVersionInformation();
@@ -46,6 +47,7 @@ protected:
   virtual void mouseReleaseEvent(QMouseEvent *event);
   virtual void moveEvent(QMoveEvent *event);
   virtual void touchEvent(QTouchEvent *event);
+  virtual void gestureEvent(QGestureEvent *event);
   virtual void updateEvent(KUpdateEvent *event);
 
 public slots:
@@ -55,7 +57,7 @@ public slots:
   void frameResultAvailable(const OpenGLFrameResults &result);
 
 private:
-  OpenGLWindowPrivate *m_private;
+  OpenGLWidgetPrivate *m_private;
 };
 
 #endif // OPENGLWINDOW_H

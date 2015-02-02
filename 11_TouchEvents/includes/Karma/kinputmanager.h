@@ -5,8 +5,11 @@
 #include <KTouchPoint>
 #include <Qt>
 
+class QGestureEvent;
 class QKeyEvent;
 class QMouseEvent;
+class KPinchGesture;
+class KPanGesture;
 
 class KInputManager
 {
@@ -36,6 +39,8 @@ public:
   static KPoint mouseDelta();
   static int touchCount();
   static KTouchPoint touchPoint(int idx);
+  static bool pinchGesture(KPinchGesture *info);
+  static bool panGesture(KPanGesture *info);
 
   // State updating
   static void update();
@@ -44,6 +49,7 @@ public:
   static void registerMousePressEvent(QMouseEvent *event);
   static void registerMouseReleaseEvent(QMouseEvent *event);
   static void registerTouchEvent(QTouchEvent *event);
+  static void registerGestureEvent(QGestureEvent *event);
   static void reset();
 };
 

@@ -7,7 +7,7 @@
 QT       += core gui widgets
 
 TARGET = 11_TouchEvents
-CONFIG   += console gl_debug
+CONFIG   += console
 CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/src
 INCLUDEPATH += $$PWD/includes
@@ -68,7 +68,10 @@ HEADERS += \
     includes/Karma/ksize.h \
     includes/Karma/ksizef.h \
     includes/Karma/kstring.h \
-    includes/Karma/ktouchpoint.h
+    includes/Karma/ktouchpoint.h \
+    includes/Karma/kpinchgesture.h \
+    includes/Karma/kpangesture.h \
+    includes/Karma/kgesture.h
 
 RESOURCES += \
     resources.qrc

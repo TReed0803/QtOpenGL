@@ -6,12 +6,12 @@
 class KUpdateEvent;
 
 class WindowPrivate;
-class Window : public OpenGLWindow
+class Window : public OpenGLWidget
 {
   Q_OBJECT
 
 public:
-  Window(UpdateBehavior updateBehavior = NoPartialUpdate, QWindow *parent = 0);
+  Window(QWidget *parent = 0);
   ~Window();
 
 protected:

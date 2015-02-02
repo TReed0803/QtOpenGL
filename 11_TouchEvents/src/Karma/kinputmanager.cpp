@@ -1,6 +1,10 @@
 #include "kinputmanager.h"
+#include "kpangesture.h"
+#include "kpinchgesture.h"
+
 #include <algorithm>
 #include <vector>
+
 #include <QCursor>
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -32,10 +36,13 @@ typedef std::vector<ButtonInstance> ButtonContainer;
 // Globals
 static KeyContainer sg_keyInstances;
 static ButtonContainer sg_buttonInstances;
-static QList<QTouchEvent::TouchPoint> sg_touchPoints;
+static QList<QTouchEvent::TouchPoint> sg_currTouchPoints;
+static QList<QTouchEvent::TouchPoint> sg_prevTouchPoints;
 static KPoint sg_mouseCurrPosition;
 static KPoint sg_mousePrevPosition;
 static KPoint sg_mouseDelta;
+static KPinchGesture sg_pinchGesture;
+static KPanGesture sg_panGesture;
 
 /*******************************************************************************
  * Static Helper Fucntions
@@ -116,12 +123,34 @@ KPoint KInputManager::mouseDelta()
 
 int KInputManager::touchCount()
 {
-  return sg_touchPoints.size();
+  return sg_prevTouchPoints.size();
 }
 
 KTouchPoint KInputManager::touchPoint(int idx)
 {
-  return sg_touchPoints[idx];
+  return sg_prevTouchPoints[idx];
+}
+
+bool KInputManager::pinchGesture(KPinchGesture *info)
+{
+  if (sg_pinchGesture.state() == Qt::GestureUpdated)
+  {
+    if (info)
+      *info = sg_pinchGesture;
+    return true;
+  }
+  return false;
+}
+
+bool KInputManager::panGesture(KPanGesture *info)
+{
+  if (sg_panGesture.state() == Qt::GestureUpdated)
+  {
+    if (info)
+      *info = sg_panGesture;
+    return true;
+  }
+  return false;
 }
 
 void KInputManager::update()
@@ -134,6 +163,10 @@ void KInputManager::update()
   // Update KeyState values
   Update(sg_buttonInstances);
   Update(sg_keyInstances);
+
+  // Update Touch Points
+  sg_prevTouchPoints = sg_currTouchPoints;
+  sg_currTouchPoints.clear();
 }
 
 void KInputManager::registerKeyPressEvent(QKeyEvent *event)
@@ -176,7 +209,26 @@ void KInputManager::registerMouseReleaseEvent(QMouseEvent *event)
 
 void KInputManager::registerTouchEvent(QTouchEvent *event)
 {
-  sg_touchPoints = event->touchPoints();
+  sg_currTouchPoints = event->touchPoints();
+}
+
+static void UpdatePanGesture(QPanGesture *gesture)
+{
+  sg_panGesture = KPanGesture(*gesture);
+}
+
+static void UpdatePinchGesture(QPinchGesture *gesture)
+{
+  sg_pinchGesture = KPinchGesture(*gesture);
+}
+
+void KInputManager::registerGestureEvent(QGestureEvent *event)
+{
+  QGesture *gesture;
+  if ((gesture = event->gesture(Qt::PanGesture)))
+    UpdatePanGesture(static_cast<QPanGesture*>(gesture));
+  if ((gesture = event->gesture(Qt::PinchGesture)))
+    UpdatePinchGesture(static_cast<QPinchGesture*>(gesture));
 }
 
 void KInputManager::reset()

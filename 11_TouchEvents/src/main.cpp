@@ -2,6 +2,8 @@
 #include <vector>
 #include <QApplication>
 #include <QSurfaceFormat>
+#include <QMainWindow>
+#include <QGridLayout>
 
 static bool checkVersion(QOpenGLContext &context, QSurfaceFormat &format)
 {
@@ -26,6 +28,7 @@ static QSurfaceFormat* getFirstSupported(std::vector<QSurfaceFormat> &formats)
   }
   return NULL;
 }
+
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
@@ -63,10 +66,15 @@ int main(int argc, char *argv[])
 #endif // GL_DEBUG
   format->setDepthBufferSize(8);
 
+  // Set the widget up
+  Window *widget = new Window;
+  widget->setFormat(*format);
+
   // Set the window up
-  Window window;
-  window.setFormat(*format);
-  window.resize(QSize(800, 600));
+  QMainWindow window;
+  window.resize(800, 600);
+  window.setCentralWidget(widget);
+  window.setAttribute(Qt::WA_AcceptTouchEvents);
   window.show();
 
   return app.exec();

@@ -5,6 +5,7 @@
 #include "openglprofilervisualizer.h"
 
 #include <QCoreApplication>
+#include <QGestureEvent>
 #include <QKeyEvent>
 #include <QOpenGLDebugLogger>
 #include <QOpenGLDebugMessage>
@@ -17,10 +18,10 @@
 /*******************************************************************************
  * OpenGLWindowPrivate
  ******************************************************************************/
-class OpenGLWindowPrivate
+class OpenGLWidgetPrivate
 {
 public:
-  OpenGLWindowPrivate(QObject *parent = 0);
+  OpenGLWidgetPrivate(QObject *parent = 0);
 
   // Rendering Statistics
   OpenGLProfiler m_profiler;
@@ -29,7 +30,7 @@ public:
   QOpenGLDebugLogger *m_debugLogger;
 };
 
-OpenGLWindowPrivate::OpenGLWindowPrivate(QObject *parent) :
+OpenGLWidgetPrivate::OpenGLWidgetPrivate(QObject *parent) :
   m_profiler(parent), m_profilerVisualizer(parent), m_frameTimer(parent), m_debugLogger(Q_NULLPTR)
 {
   // Intentionally Empty
@@ -40,15 +41,18 @@ OpenGLWindowPrivate::OpenGLWindowPrivate(QObject *parent) :
  ******************************************************************************/
 #define P(c) c &p = *m_private
 
-OpenGLWindow::OpenGLWindow(UpdateBehavior updateBehavior, QWindow *parent) :
-  QOpenGLWindow(updateBehavior, parent), m_private(new OpenGLWindowPrivate(this))
+OpenGLWidget::OpenGLWidget(QWidget *parent) :
+  QOpenGLWidget(parent), m_private(new OpenGLWidgetPrivate(this))
 {
-  P(OpenGLWindowPrivate);
+  P(OpenGLWidgetPrivate);
   connect(&p.m_frameTimer, SIGNAL(timeout(float)), this, SLOT(frameTimeout(float)));
   OpenGLError::pushErrorHandler(this);
+  grabGesture(Qt::PanGesture);
+  grabGesture(Qt::PinchGesture);
+  setAttribute(Qt::WA_AcceptTouchEvents);
 }
 
-OpenGLWindow::~OpenGLWindow()
+OpenGLWidget::~OpenGLWidget()
 {
   makeCurrent();
   delete m_private;
@@ -57,7 +61,7 @@ OpenGLWindow::~OpenGLWindow()
 /*******************************************************************************
  * Public Methods
  ******************************************************************************/
-void OpenGLWindow::printVersionInformation()
+void OpenGLWidget::printVersionInformation()
 {
   QString glType;
   QString glVersion;
@@ -84,9 +88,9 @@ void OpenGLWindow::printVersionInformation()
 /*******************************************************************************
  * OpenGL Protected Methods
  ******************************************************************************/
-void OpenGLWindow::initializeGL()
+void OpenGLWidget::initializeGL()
 {
-  P(OpenGLWindowPrivate);
+  P(OpenGLWidgetPrivate);
 
   // Initialize
   initializeOpenGLFunctions();
@@ -114,24 +118,24 @@ void OpenGLWindow::initializeGL()
 #endif // GL_DEBUG
 
   connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), this, SLOT(frameResultAvailable(OpenGLFrameResults)));
-  QOpenGLWindow::initializeGL();
+  QOpenGLWidget::initializeGL();
 }
 
-void OpenGLWindow::resizeGL(int width, int height)
+void OpenGLWidget::resizeGL(int width, int height)
 {
-  P(OpenGLWindowPrivate);
+  P(OpenGLWidgetPrivate);
   p.m_profilerVisualizer.resizeGL(width, height);
-  QOpenGLWindow::resizeGL(width, height);
+  QOpenGLWidget::resizeGL(width, height);
 }
 
-void OpenGLWindow::paintGL()
+void OpenGLWidget::paintGL()
 {
-  P(OpenGLWindowPrivate);
+  P(OpenGLWidgetPrivate);
   p.m_profilerVisualizer.paintGL();
-  QOpenGLWindow::paintGL();
+  QOpenGLWidget::paintGL();
 }
 
-void OpenGLWindow::teardownGL()
+void OpenGLWidget::teardownGL()
 {
   KDebugDraw::teardown();
 }
@@ -139,7 +143,7 @@ void OpenGLWindow::teardownGL()
 /*******************************************************************************
  * Event Methods
  ******************************************************************************/
-bool OpenGLWindow::event(QEvent *e)
+bool OpenGLWidget::event(QEvent *e)
 {
   if (e->type() == OpenGLError::type())
   {
@@ -151,10 +155,30 @@ bool OpenGLWindow::event(QEvent *e)
     updateEvent(static_cast<KUpdateEvent*>(e));
     return true;
   }
-  return QOpenGLWindow::event(e);
+  else if (e->type() == QEvent::Gesture)
+  {
+    gestureEvent(static_cast<QGestureEvent*>(e));
+    return true;
+  }
+  else if (e->type() == QEvent::TouchBegin)
+  {
+    touchEvent(static_cast<QTouchEvent*>(e));
+    return true;
+  }
+  else if (e->type() == QEvent::TouchUpdate)
+  {
+    touchEvent(static_cast<QTouchEvent*>(e));
+    return true;
+  }
+  else if (e->type() == QEvent::TouchEnd)
+  {
+    touchEvent(static_cast<QTouchEvent*>(e));
+    return true;
+  }
+  return QOpenGLWidget::event(e);
 }
 
-void OpenGLWindow::errorEventGL(OpenGLError *event)
+void OpenGLWidget::errorEventGL(OpenGLError *event)
 {
   qFatal(
     "%s::%s => Returned an error!",
@@ -163,44 +187,48 @@ void OpenGLWindow::errorEventGL(OpenGLError *event)
   );
 }
 
-void OpenGLWindow::keyPressEvent(QKeyEvent *event)
+void OpenGLWidget::keyPressEvent(QKeyEvent *event)
 {
   KInputManager::registerKeyPressEvent(event);
-  QOpenGLWindow::keyPressEvent(event);
+  QOpenGLWidget::keyPressEvent(event);
 }
 
-void OpenGLWindow::keyReleaseEvent(QKeyEvent *event)
+void OpenGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
   KInputManager::registerKeyReleaseEvent(event);
-  QOpenGLWindow::keyReleaseEvent(event);
+  QOpenGLWidget::keyReleaseEvent(event);
 }
 
-void OpenGLWindow::mousePressEvent(QMouseEvent *event)
+void OpenGLWidget::mousePressEvent(QMouseEvent *event)
 {
   KInputManager::registerMousePressEvent(event);
-  QOpenGLWindow::mousePressEvent(event);
+  QOpenGLWidget::mousePressEvent(event);
 }
 
-void OpenGLWindow::mouseReleaseEvent(QMouseEvent *event)
+void OpenGLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
   KInputManager::registerMouseReleaseEvent(event);
-  QOpenGLWindow::mouseReleaseEvent(event);
+  QOpenGLWidget::mouseReleaseEvent(event);
 }
 
-void OpenGLWindow::moveEvent(QMoveEvent *event)
+void OpenGLWidget::moveEvent(QMoveEvent *event)
 {
-  P(OpenGLWindowPrivate);
+  P(OpenGLWidgetPrivate);
   p.m_profilerVisualizer.moveEvent(event);
-  QOpenGLWindow::moveEvent(event);
+  QOpenGLWidget::moveEvent(event);
 }
 
-void OpenGLWindow::touchEvent(QTouchEvent *event)
+void OpenGLWidget::touchEvent(QTouchEvent *event)
 {
   KInputManager::registerTouchEvent(event);
-  QOpenGLWindow::touchEvent(event);
 }
 
-void OpenGLWindow::updateEvent(KUpdateEvent *event)
+void OpenGLWidget::gestureEvent(QGestureEvent *event)
+{
+  KInputManager::registerGestureEvent(event);
+}
+
+void OpenGLWidget::updateEvent(KUpdateEvent *event)
 {
   (void)event;
 }
@@ -208,7 +236,7 @@ void OpenGLWindow::updateEvent(KUpdateEvent *event)
 /*******************************************************************************
  * Public Slots
  ******************************************************************************/
-void OpenGLWindow::update()
+void OpenGLWidget::update()
 {
   KInputManager::update();
 
@@ -218,18 +246,15 @@ void OpenGLWindow::update()
     QCoreApplication::sendEvent(this, &ev);
   }
 
-  QOpenGLWindow::update();
+  QOpenGLWidget::update();
 }
 
-void OpenGLWindow::frameTimeout(float fps)
+void OpenGLWidget::frameTimeout(float fps)
 {
   QString format("FPS: %1");
-  setTitle(
-    format.arg( Karma::round(fps) )
-  );
 }
 
-void OpenGLWindow::messageLogged(const QOpenGLDebugMessage &msg)
+void OpenGLWidget::messageLogged(const QOpenGLDebugMessage &msg)
 {
   QString error;
 
@@ -295,7 +320,7 @@ void OpenGLWindow::messageLogged(const QOpenGLDebugMessage &msg)
   qDebug() << qPrintable(error) << "\n" << qPrintable(msg.message()) << "\n";
 }
 
-void OpenGLWindow::frameResultAvailable(const OpenGLFrameResults &result)
+void OpenGLWidget::frameResultAvailable(const OpenGLFrameResults &result)
 {
   (void)result;
 }
