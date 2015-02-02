@@ -1,9 +1,8 @@
-#include "window.h"
+#include "mainwidget.h"
 #include <vector>
 #include <QApplication>
 #include <QSurfaceFormat>
 #include <QMainWindow>
-#include <QGridLayout>
 
 static bool checkVersion(QOpenGLContext &context, QSurfaceFormat &format)
 {
@@ -67,14 +66,13 @@ int main(int argc, char *argv[])
   format->setDepthBufferSize(8);
 
   // Set the widget up
-  Window *widget = new Window;
+  MainWidget *widget = new MainWidget;
   widget->setFormat(*format);
 
   // Set the window up
   QMainWindow window;
   window.resize(800, 600);
   window.setCentralWidget(widget);
-  window.setAttribute(Qt::WA_AcceptTouchEvents);
   window.show();
 
   return app.exec();

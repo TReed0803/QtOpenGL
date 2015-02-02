@@ -1,4 +1,4 @@
-#include "window.h"
+#include "mainwidget.h"
 
 #include <cmath>
 
@@ -63,9 +63,9 @@ static const KVertex sg_vertexes[] = {
 #undef VERTEX_FTR
 
 /*******************************************************************************
- * WindowPrivate
+ * MainWidgetPrivate
  ******************************************************************************/
-class WindowPrivate
+class MainWidgetPrivate
 {
 public:
   // Cached Uniforms
@@ -89,20 +89,20 @@ public:
 };
 
 /*******************************************************************************
- * Window
+ * MainWidget
  ******************************************************************************/
 #define P(c) c &p = *m_private
 
-Window::Window(QWidget *parent) :
-  OpenGLWidget(parent), m_private(new WindowPrivate)
+MainWidget::MainWidget(QWidget *parent) :
+  OpenGLWidget(parent), m_private(new MainWidgetPrivate)
 {
-  P(WindowPrivate);
+  P(MainWidgetPrivate);
   p.m_modelToWorld.scale(50.0f);
   p.m_modelToWorld.translate(0.0f, 0.0f, -150.0f);
   p.m_dragVelocity = 0.0f;
 }
 
-Window::~Window()
+MainWidget::~MainWidget()
 {
   makeCurrent();
   delete m_private;
@@ -111,9 +111,9 @@ Window::~Window()
 /*******************************************************************************
  * OpenGL Methods
  ******************************************************************************/
-void Window::initializeGL()
+void MainWidget::initializeGL()
 {
-  P(WindowPrivate);
+  P(MainWidgetPrivate);
   OpenGLWidget::initializeGL();
   printVersionInformation();
 
@@ -156,17 +156,17 @@ void Window::initializeGL()
   }
 }
 
-void Window::resizeGL(int width, int height)
+void MainWidget::resizeGL(int width, int height)
 {
-  P(WindowPrivate);
+  P(MainWidgetPrivate);
   p.m_cameraToView.setToIdentity();
   p.m_cameraToView.perspective(45.0f, width / float(height), 0.0f, 1000.0f);
   OpenGLWidget::resizeGL(width, height);
 }
 
-void Window::paintGL()
+void MainWidget::paintGL()
 {
-  P(WindowPrivate);
+  P(MainWidgetPrivate);
 
   OpenGLProfiler::BeginFrame();
   {
@@ -193,7 +193,7 @@ void Window::paintGL()
   OpenGLWidget::paintGL();
 }
 
-void Window::teardownGL()
+void MainWidget::teardownGL()
 {
   OpenGLWidget::teardownGL();
 }
@@ -201,16 +201,21 @@ void Window::teardownGL()
 /*******************************************************************************
  * Events
  ******************************************************************************/
-void Window::updateEvent(KUpdateEvent *event)
+void MainWidget::updateEvent(KUpdateEvent *event)
 {
-  P(WindowPrivate);
+  P(MainWidgetPrivate);
   (void)event;
 
   // Camera Transformation
   if (KInputManager::buttonPressed(Qt::RightButton))
   {
-    static const float transSpeed = 0.5f;
-    static const float rotSpeed   = 0.5f;
+    float transSpeed = 3.0f;
+    float rotSpeed   = 0.5f;
+
+    if (KInputManager::keyPressed(Qt::Key_Control))
+    {
+      transSpeed = 1.0f;
+    }
 
     // Handle rotations
     p.m_worldToCamera.rotate(-rotSpeed * KInputManager::mouseDelta().x(), KCamera3D::LocalUp);
@@ -234,11 +239,11 @@ void Window::updateEvent(KUpdateEvent *event)
     {
       translation += p.m_worldToCamera.right();
     }
-    if (KInputManager::keyPressed(Qt::Key_Q))
+    if (KInputManager::keyPressed(Qt::Key_E))
     {
       translation -= p.m_worldToCamera.up();
     }
-    if (KInputManager::keyPressed(Qt::Key_E))
+    if (KInputManager::keyPressed(Qt::Key_Q))
     {
       translation += p.m_worldToCamera.up();
     }

@@ -16,7 +16,7 @@
 #include <KUpdateEvent>
 
 /*******************************************************************************
- * OpenGLWindowPrivate
+ * OpenGLWidgetPrivate
  ******************************************************************************/
 class OpenGLWidgetPrivate
 {
@@ -37,7 +37,7 @@ OpenGLWidgetPrivate::OpenGLWidgetPrivate(QObject *parent) :
 }
 
 /*******************************************************************************
- * OpenGLWindow
+ * OpenGLWidget
  ******************************************************************************/
 #define P(c) c &p = *m_private
 
@@ -50,6 +50,9 @@ OpenGLWidget::OpenGLWidget(QWidget *parent) :
   grabGesture(Qt::PanGesture);
   grabGesture(Qt::PinchGesture);
   setAttribute(Qt::WA_AcceptTouchEvents);
+  grabKeyboard();
+  grabMouse();
+  setMouseTracking(true);
 }
 
 OpenGLWidget::~OpenGLWidget()
@@ -160,6 +163,21 @@ bool OpenGLWidget::event(QEvent *e)
     gestureEvent(static_cast<QGestureEvent*>(e));
     return true;
   }
+  else if (e->type() == QEvent::Move)
+  {
+    moveEvent(static_cast<QMoveEvent*>(e));
+    return true;
+  }
+  else if (e->type() == QEvent::KeyPress)
+  {
+    keyPressEvent(static_cast<QKeyEvent*>(e));
+    return true;
+  }
+  else if (e->type() == QEvent::KeyRelease)
+  {
+    keyReleaseEvent(static_cast<QKeyEvent*>(e));
+    return true;
+  }
   else if (e->type() == QEvent::TouchBegin)
   {
     touchEvent(static_cast<QTouchEvent*>(e));
@@ -211,6 +229,12 @@ void OpenGLWidget::mouseReleaseEvent(QMouseEvent *event)
   QOpenGLWidget::mouseReleaseEvent(event);
 }
 
+void OpenGLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+  KInputManager::registerMouseMoveEvent(event);
+  QOpenGLWidget::mouseMoveEvent(event);
+}
+
 void OpenGLWidget::moveEvent(QMoveEvent *event)
 {
   P(OpenGLWidgetPrivate);
@@ -252,6 +276,7 @@ void OpenGLWidget::update()
 void OpenGLWidget::frameTimeout(float fps)
 {
   QString format("FPS: %1");
+  setWindowTitle(format.arg(Karma::round(fps)));
 }
 
 void OpenGLWidget::messageLogged(const QOpenGLDebugMessage &msg)

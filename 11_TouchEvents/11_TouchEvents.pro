@@ -19,7 +19,6 @@ unix:QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += \
     src/main.cpp \
-    src/window.cpp \
     src/OpenGL/openglprofiler.cpp \
     src/OpenGL/openglframetimer.cpp \
     src/OpenGL/openglframeresults.cpp \
@@ -32,10 +31,10 @@ SOURCES += \
     src/Karma/kdebugdraw.cpp \
     src/Karma/ktransform3d.cpp \
     src/Karma/kinputmanager.cpp \
-    src/OpenGL/openglwidget.cpp
+    src/OpenGL/openglwidget.cpp \
+    src/mainwidget.cpp
 
 HEADERS += \
-    includes/window.h \
     includes/OpenGL/openglprofiler.h \
     includes/OpenGL/openglframetimer.h \
     includes/OpenGL/openglframeresults.h \
@@ -71,7 +70,8 @@ HEADERS += \
     includes/Karma/kpinchgesture.h \
     includes/Karma/kpangesture.h \
     includes/Karma/kgesture.h \
-    includes/OpenGL/openglwidget.h
+    includes/OpenGL/openglwidget.h \
+    includes/mainwidget.h
 
 RESOURCES += \
     resources.qrc

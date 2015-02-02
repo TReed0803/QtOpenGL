@@ -1,18 +1,18 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef MAINWIDGET_H
+#define MAINWIDGET_H
 
-#include <OpenGLWindow>
+#include <OpenGLWidget>
 
 class KUpdateEvent;
 
-class WindowPrivate;
-class Window : public OpenGLWidget
+class MainWidgetPrivate;
+class MainWidget : public OpenGLWidget
 {
   Q_OBJECT
 
 public:
-  Window(QWidget *parent = 0);
-  ~Window();
+  MainWidget(QWidget *parent = 0);
+  ~MainWidget();
 
 protected:
 
@@ -26,7 +26,7 @@ protected:
   void updateEvent(KUpdateEvent *event);
 
 private:
-  WindowPrivate *m_private;
+  MainWidgetPrivate *m_private;
 };
 
-#endif // WINDOW_H
+#endif // MAINWIDGET_H

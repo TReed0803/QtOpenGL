@@ -129,7 +129,7 @@ void OpenGLProfilerVisualizer::paintGL()
       {
         p.m_currToolTip = result.name();
         QString str = result.name() + " " + QString::number(result.elapsedMilliseconds());
-        QToolTip::showText(KInputManager::mousePosition(), str);
+        QToolTip::showText(QCursor::pos(), str);
       }
     }
     else

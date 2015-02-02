@@ -1,5 +1,5 @@
-#ifndef OPENGLWINDOW_H
-#define OPENGLWINDOW_H
+#ifndef OPENGLWIDGET_H
+#define OPENGLWIDGET_H
 
 #include <OpenGLFunctions>
 #include <QOpenGLWidget>
@@ -45,6 +45,7 @@ protected:
   virtual void keyReleaseEvent(QKeyEvent *event);
   virtual void mousePressEvent(QMouseEvent *event);
   virtual void mouseReleaseEvent(QMouseEvent *event);
+  virtual void mouseMoveEvent(QMouseEvent *event);
   virtual void moveEvent(QMoveEvent *event);
   virtual void touchEvent(QTouchEvent *event);
   virtual void gestureEvent(QGestureEvent *event);
@@ -60,4 +61,4 @@ private:
   OpenGLWidgetPrivate *m_private;
 };
 
-#endif // OPENGLWINDOW_H
+#endif // OPENGLWIDGET_H

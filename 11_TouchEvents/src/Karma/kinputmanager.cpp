@@ -113,7 +113,7 @@ KInputManager::InputState KInputManager::buttonState(Qt::MouseButton button)
 
 KPoint KInputManager::mousePosition()
 {
-  return QCursor::pos();
+  return sg_mouseCurrPosition;
 }
 
 KPoint KInputManager::mouseDelta()
@@ -156,9 +156,8 @@ bool KInputManager::panGesture(KPanGesture *info)
 void KInputManager::update()
 {
   // Update Mouse Delta
-  sg_mousePrevPosition = sg_mouseCurrPosition;
-  sg_mouseCurrPosition = QCursor::pos();
   sg_mouseDelta = sg_mouseCurrPosition - sg_mousePrevPosition;
+  sg_mousePrevPosition = sg_mouseCurrPosition;
 
   // Update KeyState values
   Update(sg_buttonInstances);
@@ -205,6 +204,11 @@ void KInputManager::registerMouseReleaseEvent(QMouseEvent *event)
   {
     it->second = InputUnregistered;
   }
+}
+
+void KInputManager::registerMouseMoveEvent(QMouseEvent *event)
+{
+  sg_mouseCurrPosition = event->pos();
 }
 
 void KInputManager::registerTouchEvent(QTouchEvent *event)

@@ -48,6 +48,7 @@ public:
   static void registerKeyReleaseEvent(QKeyEvent *event);
   static void registerMousePressEvent(QMouseEvent *event);
   static void registerMouseReleaseEvent(QMouseEvent *event);
+  static void registerMouseMoveEvent(QMouseEvent *event);
   static void registerTouchEvent(QTouchEvent *event);
   static void registerGestureEvent(QGestureEvent *event);
   static void reset();
