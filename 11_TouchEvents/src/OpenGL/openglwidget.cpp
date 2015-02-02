@@ -1,4 +1,4 @@
-#include "openglwindow.h"
+#include "openglwidget.h"
 #include "openglframeresults.h"
 #include "openglframetimer.h"
 #include "openglprofiler.h"
