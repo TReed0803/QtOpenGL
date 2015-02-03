@@ -63,7 +63,7 @@ public:
 
 ParseString::ParseString()
 {
-  // Intentionally Empty
+  push_back(0);
 }
 
 ParseString::ParseString(char const* str)
@@ -95,21 +95,26 @@ inline void ParseString::operator=(char const *str)
 
 inline void ParseString::operator+=(char c)
 {
-  push_back(c);
+  back() = c;
+  push_back(0);
 }
 
 inline void ParseString::operator+=(char const *str)
 {
-  while (*str != '\0')
+  if (*str == '\0') return;
+
+  do
   {
-    (*this) += *str;
+    push_back(*str);
     ++str;
-  }
+  } while (*str != '\0');
+  push_back(0);
 }
 
 void ParseString::clear()
 {
   this->base_type::clear();
+  push_back(0);
 }
 
 inline bool ParseString::operator==(ParseString const &rhs) const
@@ -119,10 +124,18 @@ inline bool ParseString::operator==(ParseString const &rhs) const
 
 bool ParseString::operator<(const ParseString &rhs) const
 {
-  return static_cast<base_type const&>(*this) < static_cast<base_type const&>(rhs);
+  return std::strcmp(data(), rhs.data()) < 0;
 }
 
-class ParseMap : public std::map<ParseString, ParseToken>
+struct ParseCompare : public std::binary_function<bool, char const*, char const*>
+{
+  inline bool operator()(char const* lhs, char const* rhs) const
+  {
+    return std::strcmp(lhs, rhs) < 0;
+  }
+};
+
+class ParseMap : public std::map<char const*, ParseToken, ParseCompare>
 {
 public:
   ParseMap()
@@ -506,7 +519,7 @@ ParseToken KAbstractObjParserPrivate::lexTokenIdentifier(Token &token)
 
 ParseToken KAbstractObjParserPrivate::symResolve(Token &token, ParseToken t)
 {
-  ParseMap::const_iterator it = sg_reserved.find(token.m_lexicon);
+  ParseMap::const_iterator it = sg_reserved.find(token.m_lexicon.data());
   if (it != sg_reserved.end()) return it->second;
   return t;
 }

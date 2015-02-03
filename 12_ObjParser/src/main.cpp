@@ -46,43 +46,9 @@ public:
   virtual void onObject(const char *obj) { (void)obj; }
   virtual void onSmooth(const char *obj) { (void)obj; }
 };
-#include <QDebug>
-#include <QDir>
-#include <QFileInfoList>
-#include <QElapsedTimer>
+
 int main(int argc, char *argv[])
 {
-  QElapsedTimer entireTimer;
-  QElapsedTimer overallTimer;
-  QElapsedTimer fileTimer;
-  TimedParser *parser;
-  KFileReader *reader;
-  QFileInfoList files = QDir(":/objects").entryInfoList();
-
-  entireTimer.start();
-  for (int i = 0; i < 10; ++i)
-  {
-    overallTimer.start();
-    foreach (const QFileInfo &fileInfo, files)
-    {
-      QFile file = fileInfo.absoluteFilePath();
-      reader = new KFileReader(&file);
-      parser = new TimedParser(reader);
-      fileTimer.start();
-      if (parser->parse() == false)
-      {
-        qFatal("File '%s' did not parse correctly!", qPrintable(file.fileName()));
-      }
-      quint64 ms = fileTimer.elapsed();
-      qDebug() << qPrintable(file.fileName()) << " => " << ms / 1e3f << "secs.";
-    }
-    quint64 ms = overallTimer.elapsed();
-    qDebug() << " Overall => " << ms / 1e6f << "secs.";
-  }
-  quint64 ms = entireTimer.elapsed();
-  qDebug() << " Entire => " << ms / 1e3f << "secs.";
-  return 0;
-
   QApplication app(argc, argv);
   std::vector<QSurfaceFormat> formats;
 
