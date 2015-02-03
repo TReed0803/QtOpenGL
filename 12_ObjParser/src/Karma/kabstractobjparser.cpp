@@ -8,7 +8,6 @@
 #include <vector>
 #include <array>
 #include <Qt>
-#include <Murmur/MurmurHash3.h>
 
 #define _LEX_ERROR(...) qFatal(__FILE__ ":" STR(__LINE__) ": ERROR - " __VA_ARGS__)
 #define LEX_ERROR(fmt,...) _LEX_ERROR(fmt,__VA_ARGS__)
