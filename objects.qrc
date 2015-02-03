@@ -30,5 +30,6 @@
         <file>objects/tetrahedron.obj</file>
         <file>objects/trumpet.obj</file>
         <file>objects/violincase.obj</file>
+        <file>objects/dragon.obj</file>
     </qresource>
 </RCC>
