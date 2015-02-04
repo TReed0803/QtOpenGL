@@ -43,9 +43,9 @@ public:
   int u_cameraToView;
 
   // Transformations
-  KCamera3D m_worldToCamera;
-  KTransform3D m_modelToWorld;
-  KMatrix4x4 m_cameraToView;
+  KCamera3D m_camera;
+  KTransform3D m_transform;
+  KMatrix4x4 m_projection;
 
   // OpenGL State Information
   OpenGLMesh *m_openGLMesh;
@@ -126,7 +126,7 @@ void MainWidgetPrivate::openObj()
 
 void MainWidgetPrivate::drawBoundaries()
 {
-  KMatrix4x4 modelToView = m_cameraToView * m_worldToCamera.toMatrix() * m_modelToWorld.toMatrix();
+  KMatrix4x4 modelToView = m_projection * m_camera.toMatrix() * m_transform.toMatrix();
   for (IndexPair const &line : m_boundaries)
   {
     QVector3D origin = modelToView * m_halfEdgeMesh->vertex(line.first)->position;
@@ -151,8 +151,8 @@ MainWidget::MainWidget(QWidget *parent) :
   OpenGLWidget(parent), m_private(new MainWidgetPrivate(this))
 {
   P(MainWidgetPrivate);
-  p.m_modelToWorld.scale(50.0f);
-  p.m_modelToWorld.translate(0.0f, 0.0f, -150.0f);
+  p.m_transform.scale(50.0f);
+  p.m_transform.translate(0.0f, 0.0f, -150.0f);
   p.m_dragVelocity = 0.0f;
 }
 
@@ -204,8 +204,8 @@ void MainWidget::initializeGL()
 void MainWidget::resizeGL(int width, int height)
 {
   P(MainWidgetPrivate);
-  p.m_cameraToView.setToIdentity();
-  p.m_cameraToView.perspective(45.0f, width / float(height), 0.1f, 1000.0f);
+  p.m_projection.setToIdentity();
+  p.m_projection.perspective(45.0f, width / float(height), 0.1f, 1000.0f);
   OpenGLWidget::resizeGL(width, height);
 }
 
@@ -220,12 +220,12 @@ void MainWidget::paintGL()
     {
       OpenGLMarkerScoped _("Prepare Scene");
       p.m_program->bind();
-      p.m_program->setUniformValue(p.u_worldToCamera, p.m_worldToCamera.toMatrix());
-      p.m_program->setUniformValue(p.u_cameraToView, p.m_cameraToView);
+      p.m_program->setUniformValue(p.u_worldToCamera, p.m_camera.toMatrix());
+      p.m_program->setUniformValue(p.u_cameraToView, p.m_projection);
     }
     {
       OpenGLMarkerScoped _("Render Scene");
-      p.m_program->setUniformValue(p.u_modelToWorld, p.m_modelToWorld.toMatrix());
+      p.m_program->setUniformValue(p.u_modelToWorld, p.m_transform.toMatrix());
       p.m_openGLMesh->draw();
       p.drawBoundaries();
     }
@@ -233,7 +233,7 @@ void MainWidget::paintGL()
   }
   OpenGLProfiler::EndFrame();
 
-  KDebugDraw::draw(p.m_worldToCamera, p.m_cameraToView);
+  KDebugDraw::draw(p.m_camera, p.m_projection);
   OpenGLWidget::paintGL();
 }
 
@@ -262,36 +262,36 @@ void MainWidget::updateEvent(KUpdateEvent *event)
     }
 
     // Handle rotations
-    p.m_worldToCamera.rotate(-rotSpeed * KInputManager::mouseDelta().x(), KCamera3D::LocalUp);
-    p.m_worldToCamera.rotate(-rotSpeed * KInputManager::mouseDelta().y(), p.m_worldToCamera.right());
+    p.m_camera.rotate(-rotSpeed * KInputManager::mouseDelta().x(), KCamera3D::LocalUp);
+    p.m_camera.rotate(-rotSpeed * KInputManager::mouseDelta().y(), p.m_camera.right());
 
     // Handle translations
     QVector3D translation;
     if (KInputManager::keyPressed(Qt::Key_W))
     {
-      translation += p.m_worldToCamera.forward();
+      translation += p.m_camera.forward();
     }
     if (KInputManager::keyPressed(Qt::Key_S))
     {
-      translation -= p.m_worldToCamera.forward();
+      translation -= p.m_camera.forward();
     }
     if (KInputManager::keyPressed(Qt::Key_A))
     {
-      translation -= p.m_worldToCamera.right();
+      translation -= p.m_camera.right();
     }
     if (KInputManager::keyPressed(Qt::Key_D))
     {
-      translation += p.m_worldToCamera.right();
+      translation += p.m_camera.right();
     }
     if (KInputManager::keyPressed(Qt::Key_E))
     {
-      translation -= p.m_worldToCamera.up();
+      translation -= p.m_camera.up();
     }
     if (KInputManager::keyPressed(Qt::Key_Q))
     {
-      translation += p.m_worldToCamera.up();
+      translation += p.m_camera.up();
     }
-    p.m_worldToCamera.translate(transSpeed * translation);
+    p.m_camera.translate(transSpeed * translation);
   }
 
   if (KInputManager::keyPressed(Qt::Key_Control))
@@ -306,8 +306,8 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   KPinchGesture pinch;
   if (KInputManager::pinchGesture(&pinch))
   {
-    p.m_modelToWorld.scale(pinch.scaleFactor());
-    p.m_modelToWorld.rotate(pinch.lastRotationAngle() - pinch.rotationAngle(), 0.0f, 0.0f, 1.0f);
+    p.m_transform.scale(pinch.scaleFactor());
+    p.m_transform.rotate(pinch.lastRotationAngle() - pinch.rotationAngle(), 0.0f, 0.0f, 1.0f);
   }
 
   // Panning will translate
@@ -315,7 +315,7 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   if (KInputManager::panGesture(&pan))
   {
     KVector3D delta = KVector3D(pan.delta().x(), -pan.delta().y(), 0.0f) * 0.1f;
-    p.m_modelToWorld.translate(delta);
+    p.m_transform.translate(delta);
   }
 
   // Touching will rotate
@@ -330,7 +330,7 @@ void MainWidget::updateEvent(KUpdateEvent *event)
       p.m_dragVelocity = 0.0f;
       break;
     case Qt::TouchPointMoved:
-      p.m_dragAxis = p.m_worldToCamera.rotation().rotatedVector(axis);
+      p.m_dragAxis = p.m_camera.rotation().rotatedVector(axis);
       p.m_dragVelocity = axis.length() * 0.1f;
       p.m_dragAxis.normalize();
       break;
@@ -341,5 +341,5 @@ void MainWidget::updateEvent(KUpdateEvent *event)
 
   // Rotate from drag gesture
   p.m_dragVelocity *= 0.9f;
-  p.m_modelToWorld.rotate(p.m_dragVelocity, p.m_dragAxis);
+  p.m_transform.rotate(p.m_dragVelocity, p.m_dragAxis);
 }

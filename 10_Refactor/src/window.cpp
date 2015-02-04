@@ -68,9 +68,9 @@ public:
   int u_cameraToView;
 
   // Transformations
-  KCamera3D m_worldToCamera;
-  KTransform3D m_modelToWorld;
-  KMatrix4x4 m_cameraToView;
+  KCamera3D m_camera;
+  KTransform3D m_transform;
+  KMatrix4x4 m_projection;
 
   // OpenGL State Information
   OpenGLBuffer m_vertex;
@@ -87,7 +87,7 @@ Window::Window(UpdateBehavior updateBehavior, QWindow *parent) :
   OpenGLWindow(updateBehavior, parent), m_private(new WindowPrivate)
 {
   P(WindowPrivate);
-  p.m_modelToWorld.translate(0.0f, 0.0f, -5.0f);
+  p.m_transform.translate(0.0f, 0.0f, -5.0f);
 }
 
 Window::~Window()
@@ -147,8 +147,8 @@ void Window::initializeGL()
 void Window::resizeGL(int width, int height)
 {
   P(WindowPrivate);
-  p.m_cameraToView.setToIdentity();
-  p.m_cameraToView.perspective(45.0f, width / float(height), 0.0f, 1000.0f);
+  p.m_projection.setToIdentity();
+  p.m_projection.perspective(45.0f, width / float(height), 0.0f, 1000.0f);
   OpenGLWindow::resizeGL(width, height);
 }
 
@@ -163,13 +163,13 @@ void Window::paintGL()
     {
       OpenGLMarkerScoped _("Prepare Scene");
       p.m_program->bind();
-      p.m_program->setUniformValue(p.u_worldToCamera, p.m_worldToCamera.toMatrix());
-      p.m_program->setUniformValue(p.u_cameraToView, p.m_cameraToView);
+      p.m_program->setUniformValue(p.u_worldToCamera, p.m_camera.toMatrix());
+      p.m_program->setUniformValue(p.u_cameraToView, p.m_projection);
     }
     {
       OpenGLMarkerScoped _("Render Scene");
       p.m_object->bind();
-      p.m_program->setUniformValue(p.u_modelToWorld, p.m_modelToWorld.toMatrix());
+      p.m_program->setUniformValue(p.u_modelToWorld, p.m_transform.toMatrix());
       glDrawArrays(GL_TRIANGLES, 0, sizeof(sg_vertexes) / sizeof(sg_vertexes[0]));
       p.m_object->release();
     }
@@ -177,7 +177,7 @@ void Window::paintGL()
   }
   OpenGLProfiler::EndFrame();
 
-  KDebugDraw::draw(p.m_worldToCamera, p.m_cameraToView);
+  KDebugDraw::draw(p.m_camera, p.m_projection);
   OpenGLWindow::paintGL();
 }
 
@@ -201,38 +201,38 @@ void Window::updateEvent(KUpdateEvent *event)
     static const float rotSpeed   = 0.5f;
 
     // Handle rotations
-    p.m_worldToCamera.rotate(-rotSpeed * KInputManager::mouseDelta().x(), KCamera3D::LocalUp);
-    p.m_worldToCamera.rotate(-rotSpeed * KInputManager::mouseDelta().y(), p.m_worldToCamera.right());
+    p.m_camera.rotate(-rotSpeed * KInputManager::mouseDelta().x(), KCamera3D::LocalUp);
+    p.m_camera.rotate(-rotSpeed * KInputManager::mouseDelta().y(), p.m_camera.right());
 
     // Handle translations
     QVector3D translation;
     if (KInputManager::keyPressed(Qt::Key_W))
     {
-      translation += p.m_worldToCamera.forward();
+      translation += p.m_camera.forward();
     }
     if (KInputManager::keyPressed(Qt::Key_S))
     {
-      translation -= p.m_worldToCamera.forward();
+      translation -= p.m_camera.forward();
     }
     if (KInputManager::keyPressed(Qt::Key_A))
     {
-      translation -= p.m_worldToCamera.right();
+      translation -= p.m_camera.right();
     }
     if (KInputManager::keyPressed(Qt::Key_D))
     {
-      translation += p.m_worldToCamera.right();
+      translation += p.m_camera.right();
     }
     if (KInputManager::keyPressed(Qt::Key_Q))
     {
-      translation -= p.m_worldToCamera.up();
+      translation -= p.m_camera.up();
     }
     if (KInputManager::keyPressed(Qt::Key_E))
     {
-      translation += p.m_worldToCamera.up();
+      translation += p.m_camera.up();
     }
-    p.m_worldToCamera.translate(transSpeed * translation);
+    p.m_camera.translate(transSpeed * translation);
   }
 
   // Update instance information
-  p.m_modelToWorld.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
+  p.m_transform.rotate(1.0f, QVector3D(0.4f, 0.3f, 0.3f));
 }
