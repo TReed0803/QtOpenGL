@@ -7,7 +7,7 @@
 QT       += core gui widgets
 
 TARGET = 13_HalfEdgeMesh
-CONFIG   += console
+CONFIG   += console gl_debug
 CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/src
 INCLUDEPATH += $$PWD/includes
@@ -38,7 +38,6 @@ SOURCES += \
     src/Karma/kfilereader.cpp \
     src/Karma/khalfedgemesh.cpp \
     src/Karma/khalfedgeobjparser.cpp \
-    src/Karma/kabstractmesh.cpp \
     src/OpenGL/openglmesh.cpp
 
 HEADERS += \

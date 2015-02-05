@@ -10,7 +10,8 @@ class KAbstractObjParserPrivate;
 class KAbstractObjParser
 {
 public:
-  typedef uint64_t index_type;
+  typedef uint32_t index_type;
+  typedef uint64_t index_pair;
   typedef uint64_t size_type;
   typedef std::array<index_type, 3> index_array;
   KAbstractObjParser(KAbstractReader *reader);

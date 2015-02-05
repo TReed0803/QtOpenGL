@@ -2,13 +2,14 @@
 #include "kabstractreader.h"
 #include "kcommon.h"
 #include "kmacros.h"
-#include <map>
-#include <unordered_map>
-#include <string>
-#include <vector>
-#include <array>
-#include <Qt>
+
 #include <cstring>
+#include <map>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include <Qt>
 
 #define _LEX_ERROR(...) qFatal(__FILE__ ":" STR(__LINE__) ": ERROR - " __VA_ARGS__)
 #define LEX_ERROR(fmt,...) _LEX_ERROR(fmt,__VA_ARGS__)
@@ -105,10 +106,6 @@ inline Token::operator ParseToken()
 #define NEWLINE \
   '\n'
 
-#define NONPRINTING \
-  WHITESPACE:\
-  case NEWLINE
-
 static ParseMap const sg_reserved;
 
 /*******************************************************************************
@@ -146,7 +143,7 @@ public:
   // Parser
   bool parse();
   bool parseFloat(float &f);
-  bool parseInteger(uint64_t &i);
+  bool parseIndex(index_type &i);
   void parseVertex();
   void parseTexture();
   void parseNormal();
@@ -483,7 +480,7 @@ bool KAbstractObjParserPrivate::parseFloat(float &f)
   return true;
 }
 
-bool KAbstractObjParserPrivate::parseInteger(uint64_t &i)
+bool KAbstractObjParserPrivate::parseIndex(index_type &i)
 {
   if (peekToken().m_token == PT_INTEGER)
   {
@@ -553,7 +550,7 @@ void KAbstractObjParserPrivate::parseFace()
 bool KAbstractObjParserPrivate::parseFaceIndices()
 {
   // If there is no starting integer, there is no index
-  if (!parseInteger(m_index_array[0]))
+  if (!parseIndex(m_index_array[0]))
   {
     return false;
   }
@@ -561,7 +558,7 @@ bool KAbstractObjParserPrivate::parseFaceIndices()
   // Check for subequent indices (texture)
   if (checkToken(PT_SEPARATOR))
   {
-    if (!parseInteger(m_index_array[1]))
+    if (!parseIndex(m_index_array[1]))
     {
       m_index_array[1] = 0;
     }
@@ -574,7 +571,7 @@ bool KAbstractObjParserPrivate::parseFaceIndices()
   // Check for subequent indices (normal)
   if (checkToken(PT_SEPARATOR))
   {
-    if (!parseInteger(m_index_array[2]))
+    if (!parseIndex(m_index_array[2]))
     {
        m_index_array[2] = 0;
     }
@@ -586,8 +583,6 @@ bool KAbstractObjParserPrivate::parseFaceIndices()
 
   return true;
 }
-
-/////////////
 
 /*******************************************************************************
  * ObjParser

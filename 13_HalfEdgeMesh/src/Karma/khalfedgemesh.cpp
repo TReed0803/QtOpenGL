@@ -11,63 +11,91 @@
 #include "openglmesh.h"
 #include <OpenGLFunctions>
 
+/*******************************************************************************
+ * Indices (Fast Lookup)
+ ******************************************************************************/
 struct Indices
 {
+public:
+
+  // Typedefs
+  typedef KHalfEdgeMesh::index_type index_type;
+  typedef KHalfEdgeMesh::index_pair index_pair;
+
+  // Member Information
   union
   {
     struct
     {
-      uint32_t high;
-      uint32_t low;
+      index_type high;
+      index_type low;
     };
-    uint64_t all;
+    index_pair all;
   };
-  Indices(uint32_t from, uint32_t to)
-  {
-    if (from > to)
-    {
-      high = from;
-      low = to;
-    }
-    else
-    {
-      high = to;
-      low = from;
-    }
-  }
-  inline bool operator<(const Indices &rhs) const
-  {
-    return all < rhs.all;
-  }
-  inline bool operator==(const Indices &rhs) const
-  {
-    return all == rhs.all;
-  }
+
+  // Constructor / Operators
+  inline Indices(index_type from, index_type to);
+  inline bool operator<(const Indices &rhs) const;
+  inline bool operator==(const Indices &rhs) const;
 };
 
-struct IndicesHash : public std::unary_function<uint64_t, Indices const&>
+inline Indices::Indices(index_type from, index_type to)
 {
-  inline uint64_t operator()(Indices const& rhs) const
+  if (from > to)
+  {
+    high = from;
+    low = to;
+  }
+  else
+  {
+    high = to;
+    low = from;
+  }
+}
+
+inline bool Indices::operator<(const Indices &rhs) const
+{
+  return all < rhs.all;
+}
+inline bool Indices::operator==(const Indices &rhs) const
+{
+  return all == rhs.all;
+}
+
+struct IndicesHash : public std::unary_function<Indices::index_pair const&, Indices const&>
+{
+  inline Indices::index_pair const& operator()(Indices const& rhs) const
   {
     return rhs.all;
   }
 };
 
+/*******************************************************************************
+ * HalfEdgeMeshPrivate
+ ******************************************************************************/
 class KHalfEdgeMeshPrivate
 {
 public:
-  typedef KHalfEdgeMesh::Vertex Vertex;
-  typedef KHalfEdgeMesh::Face Face;
-  typedef KHalfEdgeMesh::HalfEdge HalfEdge;
-  typedef KHalfEdgeMesh::Edge Edge;
-  typedef KHalfEdgeMesh::VertexList VertexList;
-  typedef KHalfEdgeMesh::EdgeList EdgeList;
-  typedef KHalfEdgeMesh::FaceList FaceList;
+
+  // typedefs (Fundamental)
+  typedef KHalfEdgeMesh::index_type index_type;
+  typedef KHalfEdgeMesh::index_pair index_pair;
+  typedef KHalfEdgeMesh::index_array index_array;
+  // typedefs (Indices)
   typedef KHalfEdgeMesh::VertexIndex VertexIndex;
   typedef KHalfEdgeMesh::EdgeIndex EdgeIndex;
   typedef KHalfEdgeMesh::HalfEdgeIndex HalfEdgeIndex;
   typedef KHalfEdgeMesh::FaceIndex FaceIndex;
-  typedef KHalfEdgeMesh::index_array index_array;
+  // typedefs (Elements)
+  typedef KHalfEdgeMesh::Vertex Vertex;
+  typedef KHalfEdgeMesh::HalfEdge HalfEdge;
+  typedef KHalfEdgeMesh::Edge Edge;
+  typedef KHalfEdgeMesh::Face Face;
+  // typedefs (Containers)
+  typedef KHalfEdgeMesh::VertexContainer VertexContainer;
+  typedef KHalfEdgeMesh::HalfEdgeContainer HalfEdgeContainer;
+  typedef KHalfEdgeMesh::EdgeContainer EdgeContainer;
+  typedef KHalfEdgeMesh::FaceContainer FaceContainer;
   typedef std::unordered_map<Indices,EdgeIndex,IndicesHash> EdgeLookup;
 
   // Add Commands (Does not check if value already exists!)
@@ -77,47 +105,56 @@ public:
   FaceIndex addFace(index_array &a, index_array &b, index_array &c);
 
   // Query Commands (start from 1)
-  Vertex *vertex(uint64_t idx);
-  Edge *edge(uint64_t idx);
-  HalfEdge *halfEdge(uint64_t idx);
-  Face *face(uint64_t idx);
-  VertexList &vertices();
-  EdgeList &edges();
-  FaceList &faces();
+  Vertex *vertex(VertexIndex const &idx);
+  Edge *edge(EdgeIndex const &idx);
+  HalfEdge *twin(HalfEdge *idx);
+  HalfEdge *halfEdge(HalfEdgeIndex const &idx);
+  Face *face(FaceIndex const &idx);
+  Vertex const *vertex(VertexIndex const &idx) const;
+  Edge const *edge(EdgeIndex const &idx) const;
+  HalfEdgeIndex twin(HalfEdgeIndex const &idx) const;
+  HalfEdge const *twin(HalfEdge const *idx) const;
+  HalfEdge const *halfEdge(HalfEdgeIndex const &idx) const;
+  Face const *face(FaceIndex const &idx) const;
+  VertexIndex index(Vertex const *v) const;
+  EdgeIndex index(Edge const *e) const;
+  HalfEdgeIndex index(HalfEdge const *he) const;
+  FaceIndex index(Face const *f) const;
+  VertexContainer const &vertices() const;
+  EdgeContainer const &edges() const;
+  FaceContainer const &faces() const;
 
   // Get Commands (start from 1, queries first)
   HalfEdgeIndex findHalfEdge(const index_array &from, const index_array &to);
   HalfEdgeIndex getHalfEdge(const index_array &from, const index_array &to);
+
+  // Helpers
+  void normalizeIndex(KAbstractMesh::index_type &v, size_t const &sizePlusOne);
+  KVector3D calculateFaceNormal(const Face *face);
+  KVector3D calculateVertexNormal(const Vertex *vertex);
+
 private:
-  VertexList m_vertices;
-  EdgeList m_edges;
-  FaceList m_faces;
+  VertexContainer m_vertices;
+  EdgeContainer m_edges;
+  FaceContainer m_faces;
   EdgeLookup m_edgeLookup;
 };
 
 KHalfEdgeMeshPrivate::VertexIndex KHalfEdgeMeshPrivate::addVertex(const KVector3D &v)
 {
-  Vertex vertex;
-  vertex.position = v;
-  vertex.to = 0;
-  m_vertices.push_back(vertex);
+  m_vertices.emplace_back(v, 0);
   return m_vertices.size();
 }
 
 KHalfEdgeMeshPrivate::EdgeIndex KHalfEdgeMeshPrivate::addEdge(const index_array &from, const index_array &to)
 {
-  Edge edge;
   Indices idx(from[0], to[0]);
-  edge.a.face = edge.b.face = 0;
-  edge.a.next = edge.b.next = 0;
-  edge.a.to = idx.low;
-  edge.b.to = idx.high;
-  m_edges.push_back(edge);
+  m_edges.emplace_back(idx.low, idx.high);
 
   // Note: We want idx starting from 1.
   //       So we only sutract 1 from the total edges.
   EdgeIndex offset = m_edges.size();
-  m_edgeLookup.insert(EdgeLookup::value_type(idx, offset));
+  m_edgeLookup.emplace(idx, offset);
 
   return offset;
 }
@@ -133,29 +170,39 @@ KHalfEdgeMeshPrivate::HalfEdgeIndex KHalfEdgeMeshPrivate::addHalfEdge(const inde
     return 2 * edgeIndex;
 }
 
+inline void KHalfEdgeMeshPrivate::normalizeIndex(KAbstractMesh::index_type &v, size_t const &sizePlusOne)
+{
+  if (v < sizePlusOne) return;
+  v %= sizePlusOne;
+  ++v;
+}
+
 KHalfEdgeMeshPrivate::FaceIndex KHalfEdgeMeshPrivate::addFace(index_array &v1, index_array &v2, index_array &v3)
 {
   // Normalize Indices
-  size_t size = m_vertices.size();
-  v1[0] = (v1[0] - 1) % size + 1;
-  v2[0] = (v2[0] - 1) % size + 1;
-  v3[0] = (v3[0] - 1) % size + 1;
+  size_t size = m_vertices.size() + 1;
 
-  // Create Face
-  Face face;
-  FaceIndex faceIdx = m_faces.size() + 1;
+  // Normalize Indices
+  normalizeIndex(v1[0], size);
+  normalizeIndex(v2[0], size);
+  normalizeIndex(v3[0], size);
 
   // Create edges
-  HalfEdge *edge;
   HalfEdgeIndex edgeA = getHalfEdge(v1, v2);
   HalfEdgeIndex edgeB = getHalfEdge(v2, v3);
   HalfEdgeIndex edgeC = getHalfEdge(v3, v1);
 
-  // Set first HalfEdge
-  face.first = edgeA;
-  m_faces.push_back(face);
+  // Set Vertex half edges
+  if (vertex(v1[0])->to == 0) vertex(v1[0])->to = edgeA;
+  if (vertex(v2[0])->to == 0) vertex(v2[0])->to = edgeB;
+  if (vertex(v3[0])->to == 0) vertex(v3[0])->to = edgeC;
+
+  // Create Face
+  m_faces.emplace_back(edgeA);
+  FaceIndex faceIdx = m_faces.size();
 
   // Initialize half edges
+  HalfEdge *edge;
   edge = halfEdge(edgeA);
   edge->face = faceIdx;
   edge->next = edgeB;
@@ -169,37 +216,95 @@ KHalfEdgeMeshPrivate::FaceIndex KHalfEdgeMeshPrivate::addFace(index_array &v1, i
   return faceIdx;
 }
 
-KHalfEdgeMeshPrivate::Vertex *KHalfEdgeMeshPrivate::vertex(uint64_t idx)
+KHalfEdgeMeshPrivate::Vertex *KHalfEdgeMeshPrivate::vertex(const VertexIndex &idx)
 {
   return &m_vertices[idx - 1];
 }
 
-KHalfEdgeMeshPrivate::Edge *KHalfEdgeMeshPrivate::edge(uint64_t idx)
+KHalfEdgeMeshPrivate::Edge *KHalfEdgeMeshPrivate::edge(const EdgeIndex &idx)
 {
   return &m_edges[idx - 1];
 }
 
-KHalfEdgeMeshPrivate::HalfEdge *KHalfEdgeMeshPrivate::halfEdge(uint64_t idx)
+KHalfEdgeMeshPrivate::HalfEdge *KHalfEdgeMeshPrivate::twin(HalfEdge *edge)
+{
+  return halfEdge(twin(index(edge)));
+}
+
+KHalfEdgeMeshPrivate::HalfEdge *KHalfEdgeMeshPrivate::halfEdge(const HalfEdgeIndex &idx)
 {
   return &reinterpret_cast<HalfEdge*>(m_edges.data())[idx - 1];
 }
 
-KHalfEdgeMeshPrivate::Face *KHalfEdgeMeshPrivate::face(uint64_t idx)
+KHalfEdgeMeshPrivate::Face *KHalfEdgeMeshPrivate::face(const FaceIndex &idx)
 {
   return &m_faces[idx - 1];
 }
 
-KHalfEdgeMeshPrivate::VertexList &KHalfEdgeMeshPrivate::vertices()
+KHalfEdgeMeshPrivate::Vertex const *KHalfEdgeMeshPrivate::vertex(const VertexIndex &idx) const
+{
+  return &m_vertices[idx - 1];
+}
+
+KHalfEdgeMeshPrivate::Edge const *KHalfEdgeMeshPrivate::edge(const EdgeIndex &idx) const
+{
+  return &m_edges[idx - 1];
+}
+
+KHalfEdgeMeshPrivate::HalfEdgeIndex KHalfEdgeMeshPrivate::twin(const HalfEdgeIndex &idx) const
+{
+  if (idx % 2)
+    return idx + 1;
+  else
+    return idx - 1;
+}
+
+KHalfEdgeMeshPrivate::HalfEdge const *KHalfEdgeMeshPrivate::twin(HalfEdge const *edge) const
+{
+  return halfEdge(twin(index(edge)));
+}
+
+KHalfEdgeMeshPrivate::HalfEdge const *KHalfEdgeMeshPrivate::halfEdge(const HalfEdgeIndex &idx) const
+{
+  return &reinterpret_cast<HalfEdge const*>(m_edges.data())[idx - 1];
+}
+
+KHalfEdgeMeshPrivate::Face const *KHalfEdgeMeshPrivate::face(const FaceIndex &idx) const
+{
+  return &m_faces[idx - 1];
+}
+
+KHalfEdgeMeshPrivate::VertexIndex KHalfEdgeMeshPrivate::index(Vertex const *v) const
+{
+  return (v - m_vertices.data()) + 1;
+}
+
+KHalfEdgeMeshPrivate::EdgeIndex KHalfEdgeMeshPrivate::index(Edge const *e) const
+{
+  return (e - m_edges.data()) + 1;
+}
+
+KHalfEdgeMeshPrivate::HalfEdgeIndex KHalfEdgeMeshPrivate::index(HalfEdge const *he) const
+{
+  return (he - reinterpret_cast<HalfEdge const*>(m_edges.data())) + 1;
+}
+
+KHalfEdgeMeshPrivate::FaceIndex KHalfEdgeMeshPrivate::index(Face const *f) const
+{
+  return (f - m_faces.data()) + 1;
+}
+
+KHalfEdgeMeshPrivate::VertexContainer const &KHalfEdgeMeshPrivate::vertices() const
 {
   return m_vertices;
 }
 
-KHalfEdgeMeshPrivate::EdgeList &KHalfEdgeMeshPrivate::edges()
+KHalfEdgeMeshPrivate::EdgeContainer const &KHalfEdgeMeshPrivate::edges() const
 {
   return m_edges;
 }
 
-KHalfEdgeMeshPrivate::FaceList &KHalfEdgeMeshPrivate::faces()
+KHalfEdgeMeshPrivate::FaceContainer const &KHalfEdgeMeshPrivate::faces() const
 {
   return m_faces;
 }
@@ -225,6 +330,45 @@ KHalfEdgeMeshPrivate::HalfEdgeIndex KHalfEdgeMeshPrivate::getHalfEdge(const inde
   return idx;
 }
 
+KVector3D KHalfEdgeMeshPrivate::calculateFaceNormal(const Face *face)
+{
+  const HalfEdge *edge = halfEdge(face->first);
+
+  KVector3D pos1 = vertex(edge->to)->position;
+  edge = halfEdge(edge->next);
+  KVector3D pos2 = vertex(edge->to)->position;
+  edge = halfEdge(edge->next);
+  KVector3D pos3 = vertex(edge->to)->position;
+
+  KVector3D a = pos2 - pos1;
+  KVector3D b = pos3 - pos1;
+  KVector3D c = KVector3D::crossProduct(a,b);
+  c.normalize();
+
+  return c;
+}
+
+KVector3D KHalfEdgeMeshPrivate::calculateVertexNormal(const Vertex *vertex)
+{
+  HalfEdgeIndex currIndex(0), twinIndex(0);
+  KVector3D normal;
+  const HalfEdge *startEdge = halfEdge(vertex->to);
+  const HalfEdge *edge = startEdge;
+  do
+  {
+    if (edge->face != 0)
+      normal += calculateFaceNormal(face(edge->face));
+    currIndex = index(edge);
+    twinIndex = twin(currIndex);
+    edge = halfEdge(twinIndex);
+    edge = halfEdge(edge->next);
+  }
+  while (edge != startEdge);
+  normal.normalize();
+
+  return normal;
+}
+
 /*******************************************************************************
  * Half Edge Mesh Public
  ******************************************************************************/
@@ -233,8 +377,7 @@ KHalfEdgeMeshPrivate::HalfEdgeIndex KHalfEdgeMeshPrivate::getHalfEdge(const inde
 KHalfEdgeMesh::KHalfEdgeMesh(QObject *parent, const QString &fileName) :
   KAbstractMesh(parent), m_private(new KHalfEdgeMeshPrivate)
 {
-  QFile file(fileName);
-  KFileReader reader(&file);
+  KFileReader reader(fileName);
   KHalfEdgeObjParser parser(this, &reader);
   parser.parse();
 }
@@ -263,25 +406,49 @@ KHalfEdgeMesh::Vertex const *KHalfEdgeMesh::vertex(VertexIndex idx) const
   return p.vertex(idx);
 }
 
+const KHalfEdgeMesh::HalfEdge *KHalfEdgeMesh::halfEdge(KHalfEdgeMesh::HalfEdgeIndex idx) const
+{
+  P(KHalfEdgeMeshPrivate);
+  return p.halfEdge(idx);
+}
+
+const KHalfEdgeMesh::HalfEdgeIndex KHalfEdgeMesh::twin(KHalfEdgeMesh::HalfEdgeIndex idx) const
+{
+  P(KHalfEdgeMeshPrivate);
+  return p.twin(idx);
+}
+
+const KHalfEdgeMesh::Edge *KHalfEdgeMesh::edge(KHalfEdgeMesh::EdgeIndex idx) const
+{
+  P(KHalfEdgeMeshPrivate);
+  return p.edge(idx);
+}
+
 KHalfEdgeMesh::Face const *KHalfEdgeMesh::face(FaceIndex idx) const
 {
   P(KHalfEdgeMeshPrivate);
   return p.face(idx);
 }
 
-KHalfEdgeMesh::VertexList const &KHalfEdgeMesh::vertices() const
+KHalfEdgeMesh::VertexContainer const &KHalfEdgeMesh::vertices() const
 {
   P(KHalfEdgeMeshPrivate);
   return p.vertices();
 }
 
-KHalfEdgeMesh::EdgeList const &KHalfEdgeMesh::edges() const
+const KHalfEdgeMesh::HalfEdgeContainer &KHalfEdgeMesh::halfEdges() const
+{
+  P(KHalfEdgeMeshPrivate);
+  return reinterpret_cast<HalfEdgeContainer const&>(p.edges());
+}
+
+KHalfEdgeMesh::EdgeContainer const &KHalfEdgeMesh::edges() const
 {
   P(KHalfEdgeMeshPrivate);
   return p.edges();
 }
 
-KHalfEdgeMesh::FaceList const &KHalfEdgeMesh::faces() const
+KHalfEdgeMesh::FaceContainer const &KHalfEdgeMesh::faces() const
 {
   P(KHalfEdgeMeshPrivate);
   return p.faces();
@@ -291,7 +458,7 @@ KHalfEdgeMesh::FaceList const &KHalfEdgeMesh::faces() const
 OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
 {
   P(KHalfEdgeMeshPrivate);
-  FaceList const &faces = p.faces();
+  FaceContainer const &faces = p.faces();
   size_t faceCount = faces.size();
 
   // Currently we don't support options
@@ -316,7 +483,7 @@ OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
     for (size_t i = 0; i < faceCount; ++i)
     {
       edge = p.halfEdge(faces[i].first);
-      n = calculateNormal(edge);
+      n = p.calculateFaceNormal(&faces[i]);
       data[3*i] = KVertex(vertex(edge->to)->position, n);
       edge = p.halfEdge(edge->next);
       data[3*i+1] = KVertex(vertex(edge->to)->position, n);
@@ -337,22 +504,4 @@ OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
   mesh->setMode(OpenGLMesh::Contiguous | OpenGLMesh::Interleaved);
   mesh->setDrawArrays(GL_TRIANGLES, faceCount * 3);
   return mesh;
-}
-
-KVector3D KHalfEdgeMesh::calculateNormal(const HalfEdge *edge)
-{
-  P(KHalfEdgeMeshPrivate);
-
-  KVector3D pos1 = vertex(edge->to)->position;
-  edge = p.halfEdge(edge->next);
-  KVector3D pos2 = vertex(edge->to)->position;
-  edge = p.halfEdge(edge->next);
-  KVector3D pos3 = vertex(edge->to)->position;
-
-  KVector3D a = pos2 - pos1;
-  KVector3D b = pos3 - pos1;
-  KVector3D c = KVector3D::crossProduct(a,b);
-  c.normalize();
-
-  return c;
 }

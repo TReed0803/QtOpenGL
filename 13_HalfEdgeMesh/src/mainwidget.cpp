@@ -50,8 +50,8 @@ public:
   // OpenGL State Information
   OpenGLMesh *m_openGLMesh;
   KHalfEdgeMesh *m_halfEdgeMesh;
-  typedef std::pair<KHalfEdgeMesh::HalfEdgeIndex,KHalfEdgeMesh::HalfEdgeIndex> IndexPair;
-  std::vector<IndexPair> m_boundaries;
+  typedef std::tuple<KHalfEdgeMesh::VertexIndex,KHalfEdgeMesh::VertexIndex> QueryResultType;
+  std::vector<QueryResultType> m_boundaries;
   OpenGLShaderProgram *m_program;
 
   // Touch Information
@@ -93,10 +93,11 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
       ms = timer.elapsed();
       qDebug() << "Create OpenGLMesh (sec)  :" << float(ms) / 1e3f;
     }
-    auto query = SELECT
-        FROM (edge : m_halfEdgeMesh->edges())
-        WHERE (edge.a.face == 0 || edge.b.face == 0)
-        JOIN ( IndexPair( edge.a.to, edge.b.to ) );
+    auto query =
+      SELECT
+        FROM ( edge : m_halfEdgeMesh->edges() )
+        WHERE ( edge.a.face == 0 || edge.b.face == 0 )
+        JOIN ( edge.a.to, edge.b.to );
     {
       timer.start();
       m_boundaries = query();
@@ -107,6 +108,7 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
     qDebug() << "Mesh Vertexes:" << m_halfEdgeMesh->vertices().size();
     qDebug() << "Mesh Faces:" << m_halfEdgeMesh->faces().size();
     qDebug() << "Mesh Edges:" << m_halfEdgeMesh->edges().size();
+    qDebug() << "Mesh HalfEdges:" << m_halfEdgeMesh->halfEdges().size();
     qDebug() << "Boundary Edges:" << m_boundaries.size();
   }
 }
@@ -127,10 +129,10 @@ void MainWidgetPrivate::openObj()
 void MainWidgetPrivate::drawBoundaries()
 {
   KMatrix4x4 modelToView = m_projection * m_camera.toMatrix() * m_transform.toMatrix();
-  for (IndexPair const &line : m_boundaries)
+  for (QueryResultType const &line : m_boundaries)
   {
-    QVector3D origin = modelToView * m_halfEdgeMesh->vertex(line.first)->position;
-    QVector3D to   = modelToView * m_halfEdgeMesh->vertex(line.second)->position;
+    QVector3D origin = modelToView * m_halfEdgeMesh->vertex(std::get<0>(line))->position;
+    QVector3D to   = modelToView * m_halfEdgeMesh->vertex(std::get<1>(line))->position;
 
     // If it's outside of the visible realm, don't send it to the GPU
     if (origin.x() > 1.0 || origin.x() < -1.0f || origin.y() > 1.0 || origin.y() < -1.0f)
@@ -233,7 +235,7 @@ void MainWidget::paintGL()
   }
   OpenGLProfiler::EndFrame();
 
-  KDebugDraw::draw(p.m_camera, p.m_projection);
+  KDebugDraw::draw();
   OpenGLWidget::paintGL();
 }
 

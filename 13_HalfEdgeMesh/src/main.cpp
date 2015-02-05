@@ -28,25 +28,6 @@ static QSurfaceFormat* getFirstSupported(std::vector<QSurfaceFormat> &formats)
   return NULL;
 }
 
-#include <KAbstractObjParser>
-#include <KFileReader>
-
-class TimedParser : public KAbstractObjParser
-{
-public:
-  TimedParser(KAbstractReader *reader) : KAbstractObjParser(reader) {}
-  virtual void onVertex(const float vertex[4]) { (void)vertex; }
-  virtual void onTexture(const float texture[3]) { (void)texture; }
-  virtual void onNormal(const float normal[3]) { (void)normal; }
-  virtual void onParameter(const float parameter[3]) { (void)parameter; }
-  virtual void onFace(const index_type indices[3], size_type count) { (void)indices; (void)count; }
-  virtual void onGroup(const char *group) { (void)group; }
-  virtual void onMaterial(const char *file) { (void)file; }
-  virtual void onUseMaterial(const char *file) { (void)file; }
-  virtual void onObject(const char *obj) { (void)obj; }
-  virtual void onSmooth(const char *obj) { (void)obj; }
-};
-
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);

@@ -2,6 +2,7 @@
 #define KLINQ_H
 
 #include <vector>
+#include <tuple>
 #include <type_traits>
 #include <cstdio>
 
@@ -86,12 +87,12 @@ const QueryContainer<Container> &operator<<(const Container &c, QueryValidator c
 
 // Note: Multiple from queries are allowed, it acts as a nested for-loop.
 // auto query = select from(variable : container)+ where(condition) [join,exclude](value);
-#define DECLVEC(a) static std::vector<std::remove_reference<decltype(a)>::type> _results; if (reenter) goto returnResults
-#define DECLRET( ) continue; returnResults: auto retVal = std::move(_results); _results.clear(); return std::move(retVal); }}
+#define DECLVEC(...) static std::vector<decltype(std::make_tuple(__VA_ARGS__))> _results; if (reenter) goto returnResults
+#define DECLRET( ) continue; returnResults: auto retVal = std::move(_results); _results = decltype(_results)(); return std::move(retVal); }}
 #define SELECT [&]() { bool _where; for (bool reenter = false;;reenter = true
 #define FROM(ain) ) for (auto & ain << ::QueryValidator(reenter)
 #define WHERE(test) ) { _where = (test);
-#define JOIN(a) { DECLVEC(a); if (_where) _results.push_back(a); DECLRET(); }
-#define EXCLUDE(a) { DECLVEC(a); if (!_where) _results.push_back(a); DECLRET(); }
+#define JOIN(...) { DECLVEC(__VA_ARGS__); if (_where) _results.emplace_back(__VA_ARGS__); DECLRET(); }
+#define EXCLUDE(...) { DECLVEC(__VA_ARGS__); if (!_where) _results.emplace_back(__VA_ARGS__); DECLRET(); }
 
 #endif // KLINQ_H

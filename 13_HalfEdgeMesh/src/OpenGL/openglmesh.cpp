@@ -78,6 +78,6 @@ OpenGLMeshPrivate::OpenGLMeshPrivate()
 
 void OpenGLMeshPrivate::drawArrays()
 {
-  OpenGLFunctions f(QOpenGLContext::currentContext());
-  f.glDrawArrays(m_mode, 0, m_count);
+  OpenGLFunctions *f = static_cast<OpenGLFunctions*>(QOpenGLContext::currentContext()->functions());
+  f->glDrawArrays(m_mode, 0, m_count);
 }
