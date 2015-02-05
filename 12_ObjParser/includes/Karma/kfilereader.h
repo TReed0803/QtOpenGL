@@ -2,15 +2,19 @@
 #define KFILEREADER_H
 
 #include <KAbstractReader>
-class QFile;
+#include <QScopedPointer>
+class QString;
 
+class KFileReaderPrivate;
 class KFileReader : public KAbstractReader
 {
 public:
-  KFileReader(QFile *file);
+  KFileReader();
+  KFileReader(const QString &fileName);
+  ~KFileReader();
   int next();
 private:
-  QFile *m_file;
+  QScopedPointer<KFileReaderPrivate> m_private;
 };
 
 #endif // KFILEREADER_H

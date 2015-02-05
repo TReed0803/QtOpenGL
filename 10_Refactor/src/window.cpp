@@ -177,7 +177,7 @@ void Window::paintGL()
   }
   OpenGLProfiler::EndFrame();
 
-  KDebugDraw::draw(p.m_camera, p.m_projection);
+  KDebugDraw::draw();
   OpenGLWindow::paintGL();
 }
 

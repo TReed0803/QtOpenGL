@@ -24,7 +24,7 @@ struct KDebugDraw
 
   // Global states
   static void initialize();
-  static void draw(KCamera3D &camera, KMatrix4x4 const &view);
+  static void draw();
   static void teardown();
 };
 

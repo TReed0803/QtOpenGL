@@ -17,12 +17,9 @@ static std::vector<KVertex> sg_lines;
 static std::vector<KVertex> sg_rectangles;
 
 static size_t sg_bufferSize = 0;
-static int su_worldToCamera = 0;
-static int su_cameraToView = 0;
 static OpenGLBuffer *sg_debugBuffer = Q_NULLPTR;
 static OpenGLVertexArrayObject *sg_vertexArrayObject = Q_NULLPTR;
-static OpenGLShaderProgram *sg_screenProgram = Q_NULLPTR;
-static OpenGLShaderProgram *sg_worldProgram = Q_NULLPTR;
+static OpenGLShaderProgram *sg_program = Q_NULLPTR;
 
 static KRectF normalize(const KRectF &rect)
 {
@@ -48,18 +45,10 @@ void KDebugDraw::initialize()
   OpenGLFunctions f(ctx);
 
   // Create shaders
-  sg_screenProgram = new OpenGLShaderProgram();
-  sg_screenProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/debugScreen.vert");
-  sg_screenProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/debugScreen.frag");
-  sg_screenProgram->link();
-  sg_worldProgram = new OpenGLShaderProgram();
-  sg_worldProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/debugWorld.vert");
-  sg_worldProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/debugWorld.frag");
-  sg_worldProgram->link();
-
-  // Cache uniform locations
-  su_worldToCamera = sg_worldProgram->uniformLocation("worldToCamera");
-  su_cameraToView = sg_worldProgram->uniformLocation("cameraToView");
+  sg_program = new OpenGLShaderProgram();
+  sg_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/debug.vert");
+  sg_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/debug.frag");
+  sg_program->link();
 
   // Create Vertex Array Object
   sg_vertexArrayObject = new OpenGLVertexArrayObject();
@@ -77,10 +66,9 @@ void KDebugDraw::initialize()
 
   // Release (unbind) all
   sg_vertexArrayObject->release();
-  sg_worldProgram->release();
 }
 
-void KDebugDraw::draw(KCamera3D &camera, KMatrix4x4 const &view)
+void KDebugDraw::draw()
 {
   QOpenGLContext *ctx = QOpenGLContext::currentContext();
   OpenGLFunctions f(ctx);
@@ -118,17 +106,10 @@ void KDebugDraw::draw(KCamera3D &camera, KMatrix4x4 const &view)
   // Draw Data
   sg_vertexArrayObject->bind();
   {
-    // Screen
-    sg_screenProgram->bind();
+    sg_program->bind();
     f.glDrawArrays(GL_LINES, 0, sg_lines.size());
-    sg_screenProgram->release();
-    // World
-    sg_worldProgram->bind();
-    sg_worldProgram->setUniformValue(su_worldToCamera, camera.toMatrix());
-    sg_worldProgram->setUniformValue(su_cameraToView, view);
     f.glDrawArrays(GL_TRIANGLES, sg_lines.size(), sg_rectangles.size());
-    sg_worldProgram->release();
-
+    sg_program->release();
   }
   sg_vertexArrayObject->release();
 
@@ -141,8 +122,7 @@ void KDebugDraw::teardown()
 {
   delete sg_debugBuffer;
   delete sg_vertexArrayObject;
-  delete sg_screenProgram;
-  delete sg_worldProgram;
+  delete sg_program;
 }
 
 /*******************************************************************************

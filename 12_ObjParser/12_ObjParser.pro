@@ -7,7 +7,7 @@
 QT       += core gui widgets
 
 TARGET = 12_ObjParser
-CONFIG   += console
+CONFIG   += console gl_debug
 CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/src
 INCLUDEPATH += $$PWD/includes
@@ -33,7 +33,6 @@ SOURCES += \
     src/Karma/kinputmanager.cpp \
     src/OpenGL/openglwidget.cpp \
     src/mainwidget.cpp \
-    src/Karma/kabstractobjparser.cpp \
     src/Karma/kfilereader.cpp
 
 HEADERS += \

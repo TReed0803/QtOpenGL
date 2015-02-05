@@ -7,7 +7,7 @@
 QT       += core gui widgets
 
 TARGET = 11_TouchEvents
-CONFIG   += console
+CONFIG   += console gl_debug
 CONFIG   -= app_bundle
 INCLUDEPATH += $$PWD/src
 INCLUDEPATH += $$PWD/includes
