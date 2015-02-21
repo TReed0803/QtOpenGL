@@ -1,0 +1,78 @@
+#ifndef   GBUFFER_UBO
+#define   GBUFFER_UBO
+
+#include <EncodeDecode.glsl>
+#include <GlobalMatrices.ubo>
+
+in highp vec2 fFragCoord;
+
+uniform sampler2D geometryTexture;
+uniform sampler2D materialTexture;
+uniform sampler2D dynamicsTexture;
+
+float depthCoord(vec2 uv)
+{
+  return decodeDepth(texture2D(geometryTexture, uv).w);
+}
+
+float depth()
+{
+  return depthCoord(fFragCoord);
+}
+
+vec3 positionCoord(vec2 uv)
+{
+  float z = depthCoord(uv);
+  vec4 sPos = vec4(uv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
+  vec4 wPos = viewToWorld * sPos;
+  return (wPos.xyz / wPos.w);
+}
+
+vec3 position()
+{
+  return positionCoord(fFragCoord);
+}
+
+vec3 normalCoord(vec2 uv)
+{
+  return decodeNormal(texture2D(geometryTexture, uv).xy);
+}
+
+vec3 normal()
+{
+  return normalCoord(fFragCoord);
+}
+
+vec3 diffuseCoord(vec2 uv)
+{
+  return texture2D(materialTexture, uv).xyz;
+}
+
+vec3 diffuse()
+{
+  return diffuseCoord(fFragCoord);
+}
+
+vec4 specularCoord(vec2 uv)
+{
+  float specColor = texture2D(geometryTexture, uv).z;
+  float specExponent = texture2D(materialTexture, uv).w;
+  return vec4(specColor, specColor, specColor, specExponent);
+}
+
+vec4 specular()
+{
+  return specularCoord(fFragCoord);
+}
+
+vec2 velocityCoord(vec2 uv)
+{
+  return texture2D(dynamicsTexture, uv).xy;
+}
+
+vec2 velocity()
+{
+  return velocityCoord(fFragCoord);
+}
+
+#endif // GBUFFER_UBO
