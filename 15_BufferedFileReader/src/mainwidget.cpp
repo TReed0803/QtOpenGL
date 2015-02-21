@@ -196,7 +196,7 @@ void MainWidget::initializeGL()
     p.u_cameraToView = p.m_program->uniformLocation("cameraToView");
 
     // Open OBJ
-    p.loadObj(":/objects/dragon.obj");
+    p.loadObj(":/objects/teapot.obj");
 
     // Release (unbind) all
     p.m_program->release();

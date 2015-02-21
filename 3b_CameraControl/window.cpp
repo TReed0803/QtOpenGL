@@ -109,7 +109,7 @@ void Window::initializeGL()
 void Window::resizeGL(int width, int height)
 {
   m_projection.setToIdentity();
-  m_projection.perspective(45.0f, width / float(height), 0.0f, 1000.0f);
+  m_projection.perspective(60.0f, width / float(height), 0.1f, 1000.0f);
 }
 
 void Window::paintGL()
