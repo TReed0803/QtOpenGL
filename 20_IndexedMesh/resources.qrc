@@ -1,9 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>shaders/simple.frag</file>
-        <file>shaders/simple.vert</file>
-        <file>shaders/debug.frag</file>
-        <file>shaders/debug.vert</file>
-        <file>shaders/GlobalMatrices.ubo</file>
-    </qresource>
-</RCC>

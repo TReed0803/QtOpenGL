@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/objects/floor.obj</file>
+        <file>resources/objects/pointLight.obj</file>
+        <file>resources/objects/quad.obj</file>
+        <file>resources/objects/sphere.obj</file>
+        <file>resources/shaders/debug.frag</file>
+        <file>resources/shaders/debug.vert</file>
+        <file>resources/shaders/EncodeDecode.glsl</file>
+        <file>resources/shaders/gbuffer.frag</file>
+        <file>resources/shaders/GBuffer.ubo</file>
+        <file>resources/shaders/gbuffer.vert</file>
+        <file>resources/shaders/GlobalMatrices.ubo</file>
+        <file>resources/shaders/texture.frag</file>
+        <file>resources/shaders/texture.vert</file>
+        <file>resources/shaders/gbuffer/ambient.frag</file>
+        <file>resources/shaders/gbuffer/backbuffer.frag</file>
+        <file>resources/shaders/gbuffer/depth.frag</file>
+        <file>resources/shaders/gbuffer/diffuse.frag</file>
+        <file>resources/shaders/gbuffer/linearDepth.frag</file>
+        <file>resources/shaders/gbuffer/main.vert</file>
+        <file>resources/shaders/gbuffer/motion.frag</file>
+        <file>resources/shaders/gbuffer/normal.frag</file>
+        <file>resources/shaders/gbuffer/position.frag</file>
+        <file>resources/shaders/gbuffer/specular.frag</file>
+        <file>resources/shaders/gbuffer/velocity.frag</file>
+        <file>resources/shaders/lighting/pointLight.frag</file>
+        <file>resources/shaders/lighting/pointLight.vert</file>
+    </qresource>
+</RCC>
