@@ -1,6 +1,7 @@
 #include "openglmaterial.h"
 
 #include <KColor>
+#include <KMacros>
 
 class OpenGLMaterialPrivate
 {
@@ -10,7 +11,7 @@ public:
   float m_specularExponent;
 };
 
-#define P(c) c &p = *m_private
+
 OpenGLMaterial::OpenGLMaterial() :
   m_private(new OpenGLMaterialPrivate)
 {

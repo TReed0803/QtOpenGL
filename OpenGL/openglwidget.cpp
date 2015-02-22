@@ -40,7 +40,7 @@ OpenGLWidgetPrivate::OpenGLWidgetPrivate(QObject *parent) :
 /*******************************************************************************
  * OpenGLWidget
  ******************************************************************************/
-#define P(c) c &p = *m_private
+
 
 OpenGLWidget::OpenGLWidget(QWidget *parent) :
   QOpenGLWidget(parent), m_private(new OpenGLWidgetPrivate(this))

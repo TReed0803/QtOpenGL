@@ -28,7 +28,7 @@ OpenGLRenderbufferObjectPrivate::~OpenGLRenderbufferObjectPrivate()
   m_functions.glDeleteRenderbuffers(1, &m_objectId);
 }
 
-#define P(c) c &p = *m_private
+
 OpenGLRenderbufferObject::OpenGLRenderbufferObject() :
   m_private(0)
 {

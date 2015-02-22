@@ -2,6 +2,7 @@
 #include <QFile>
 #include <QString>
 #include <QTextStream>
+#include <KMacros>
 
 /*******************************************************************************
  * KFileReaderPrivate
@@ -39,7 +40,7 @@ inline int KFileReaderPrivate::next()
 /*******************************************************************************
  * KFileReader
  ******************************************************************************/
-#define P(c) c &p = *m_private
+
 
 KFileReader::KFileReader() :
   m_private(new KFileReaderPrivate())

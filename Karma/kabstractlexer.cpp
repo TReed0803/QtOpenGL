@@ -18,7 +18,7 @@ KAbstractLexerBasePrivate::KAbstractLexerBasePrivate(KAbstractReader *reader) :
   // Intentionally Empty
 }
 
-#define P(c) c &p = *m_private
+
 KAbstractLexerBase::KAbstractLexerBase(KAbstractReader *reader) :
   m_private(new KAbstractLexerBasePrivate(reader))
 {

@@ -2,6 +2,7 @@
 
 #include <OpenGLMaterial>
 #include <KTransform3D>
+#include <KMacros>
 
 class OpenGLInstancePrivate
 {
@@ -11,7 +12,7 @@ public:
   OpenGLMaterial m_material;
 };
 
-#define P(c) c &p = *m_private
+
 OpenGLInstance::OpenGLInstance() :
   m_private(new OpenGLInstancePrivate)
 {

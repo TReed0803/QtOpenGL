@@ -435,7 +435,7 @@ bool KAbstractObjParserPrivate::parseFaceIndices()
 /*******************************************************************************
  * ObjParser
  ******************************************************************************/
-#define P(c) c &p = *m_private
+
 
 KAbstractObjParser::KAbstractObjParser(KAbstractReader *reader) :
   m_private(new KAbstractObjParserPrivate(this, reader))

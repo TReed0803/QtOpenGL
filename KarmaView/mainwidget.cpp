@@ -361,8 +361,6 @@ void MainWidgetPrivate::drawBackbuffer()
 /*******************************************************************************
  * MainWidget
  ******************************************************************************/
-#define P(c) c &p = *m_private
-
 MainWidget::MainWidget(QWidget *parent) :
   OpenGLWidget(parent), m_private(new MainWidgetPrivate(this))
 {

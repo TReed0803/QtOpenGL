@@ -28,7 +28,7 @@ OpenGLTexturePrivate::~OpenGLTexturePrivate()
   m_functions.glDeleteTextures(1, &m_textureId);
 }
 
-#define P(c) c &p = *m_private
+
 OpenGLTexture::OpenGLTexture() :
   m_private(0)
 {

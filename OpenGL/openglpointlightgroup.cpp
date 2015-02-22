@@ -32,7 +32,7 @@ OpenGLPointLightGroupPrivate::OpenGLPointLightGroupPrivate() :
   m_buffer.create();
 }
 
-#define P(c) c &p = *m_private
+
 OpenGLPointLightGroup::OpenGLPointLightGroup(QObject *parent) :
   QObject(parent), m_private(new OpenGLPointLightGroupPrivate)
 {

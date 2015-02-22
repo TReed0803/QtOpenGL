@@ -95,4 +95,7 @@
 # define PCALL_N(n,...) APPEND(PCALL_,n)(__VA_ARGS__)
 #endif
 
+// Shortuct for pImpl Implementation
+#define P(c) c &p = *m_private
+
 #endif // KMACROS_H

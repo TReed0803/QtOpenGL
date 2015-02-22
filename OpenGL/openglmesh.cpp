@@ -18,7 +18,7 @@ public:
 };
 
 ///
-#define P(c) c &p = *m_private
+
 OpenGLMesh::OpenGLMesh(QObject *parent) : QObject(parent), m_private(new OpenGLMeshPrivate)
 {
   P(OpenGLMeshPrivate);

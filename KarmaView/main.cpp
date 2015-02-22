@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
   format->setOption(QSurfaceFormat::DebugContext);
 #endif // GL_DEBUG
   format->setDepthBufferSize(8);
-  format->setSwapInterval(0);
 
   // Set the widget up
   MainWidget *widget = new MainWidget;

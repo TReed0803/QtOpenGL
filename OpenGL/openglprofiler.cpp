@@ -4,6 +4,7 @@
 #include <vector>
 #include <QOpenGLContext>
 #include <QOpenGLTimerQuery>
+#include <KMacros>
 
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
 
@@ -349,8 +350,6 @@ OpenGLProfilerPrivate::~OpenGLProfilerPrivate()
 /*******************************************************************************
  * Profiler
  ******************************************************************************/
-#define P(t) t &p = *m_private
-
 OpenGLProfiler::OpenGLProfiler(QObject *parent) :
   QObject(parent), m_private(new OpenGLProfilerPrivate)
 {

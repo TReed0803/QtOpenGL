@@ -8,7 +8,7 @@ public:
   OpenGLFunctions f;
 };
 
-#define P(c) c &p = *m_private
+
 OpenGLUniformBufferObject::OpenGLUniformBufferObject() :
   OpenGLBuffer(static_cast<QOpenGLBuffer::Type>(GL_UNIFORM_BUFFER))
  ,m_private(new OpenGLUniformBufferObjectPrivate)

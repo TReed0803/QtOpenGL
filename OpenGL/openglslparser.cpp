@@ -317,7 +317,7 @@ void OpenGLSLParserPrivate::addIncludePath(const char *path)
 
 
 /////////////
-#define P(c) c &p = *m_private
+
 OpenGLSLParser::OpenGLSLParser(KAbstractReader *reader, KAbstractWriter *writer) :
   m_private(new OpenGLSLParserPrivate(this, reader, writer))
 {

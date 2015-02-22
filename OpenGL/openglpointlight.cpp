@@ -2,6 +2,7 @@
 
 #include <KColor>
 #include <KVector3D>
+#include <KMacros>
 
 class OpenGLPointLightPrivate
 {
@@ -21,7 +22,7 @@ OpenGLPointLightPrivate::OpenGLPointLightPrivate() :
   // Intentionally Empty
 }
 
-#define P(c) c &p = *m_private
+
 OpenGLPointLight::OpenGLPointLight() :
   m_private(new OpenGLPointLightPrivate)
 {

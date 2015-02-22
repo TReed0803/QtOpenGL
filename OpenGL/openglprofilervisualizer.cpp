@@ -17,6 +17,7 @@
 #include <OpenGLDebugDraw>
 #include <KInputManager>
 #include <KRectF>
+#include <KMacros>
 
 /*******************************************************************************
  * OpenGLProfilerVisualizerPrivate
@@ -46,7 +47,7 @@ OpenGLProfilerVisualizerPrivate::OpenGLProfilerVisualizerPrivate() :
 /*******************************************************************************
  * OpenGLProfilerVisualizer
  ******************************************************************************/
-#define P(c) c &p = *m_private
+
 
 OpenGLProfilerVisualizer::OpenGLProfilerVisualizer(QObject *parent) :
   QObject(parent), m_private(new OpenGLProfilerVisualizerPrivate)

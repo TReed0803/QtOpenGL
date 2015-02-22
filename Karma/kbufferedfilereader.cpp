@@ -3,6 +3,8 @@
 #include <QString>
 #include <QTextStream>
 
+#include <KMacros>
+
 /*******************************************************************************
  * KBufferedFileReaderPrivate
  ******************************************************************************/
@@ -87,7 +89,7 @@ inline int KBufferedFileReaderPrivate::next()
 /*******************************************************************************
  * KBufferedFileReader
  ******************************************************************************/
-#define P(c) c &p = *m_private
+
 
 KBufferedFileReader::KBufferedFileReader() :
   m_private(new KBufferedFileReaderPrivate())

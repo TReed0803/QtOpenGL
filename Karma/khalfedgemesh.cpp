@@ -523,7 +523,7 @@ void KHalfEdgeMeshPrivate::connectEdges(KHalfEdgeMeshPrivate::HalfEdge *edge)
 /*******************************************************************************
  * Half Edge Mesh Public
  ******************************************************************************/
-#define P(c) c &p = *m_private
+
 
 KHalfEdgeMesh::KHalfEdgeMesh(QObject *parent) :
   KAbstractMesh(parent), m_private(new KHalfEdgeMeshPrivate)

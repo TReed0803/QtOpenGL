@@ -23,7 +23,7 @@ OpenGLFramebufferObjectPrivate::OpenGLFramebufferObjectPrivate() :
 
 ///
 
-#define P(c) c &p = *m_private
+
 OpenGLFramebufferObject::OpenGLFramebufferObject() :
   m_private(0)
 {

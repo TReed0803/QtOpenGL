@@ -35,7 +35,7 @@ OpenGLInstanceGroupPrivate::OpenGLInstanceGroupPrivate() :
 }
 
 ///
-#define P(c) c &p = *m_private
+
 OpenGLInstanceGroup::OpenGLInstanceGroup(QObject *parent) :
   QObject(parent), m_private(new OpenGLInstanceGroupPrivate)
 {

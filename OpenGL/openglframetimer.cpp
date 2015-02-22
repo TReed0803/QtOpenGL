@@ -1,5 +1,6 @@
 #include "openglframetimer.h"
 #include <QElapsedTimer>
+#include <KMacros>
 
 /*******************************************************************************
  * OpenGLFrameTimerPrivate
@@ -25,7 +26,7 @@ OpenGLFrameTimerPrivate::OpenGLFrameTimerPrivate() :
 /*******************************************************************************
  * OpenGLFrameTimer
  ******************************************************************************/
-#define P(c) c &p = *m_private
+
 
 OpenGLFrameTimer::OpenGLFrameTimer(QObject *parent) :
   QObject(parent), m_private(new OpenGLFrameTimerPrivate)
