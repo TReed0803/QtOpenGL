@@ -94,6 +94,7 @@ public:
   OpenGLShaderProgram *m_pointLightProgram;
   OpenGLPointLightGroup *m_pointLightGroup;
   std::vector<OpenGLPointLight*> m_pointLights;
+  bool m_paused;
 
   // GBuffer
   DeferredData m_buffer;
@@ -117,14 +118,14 @@ public:
 MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_openGLMesh(Q_NULLPTR), m_halfEdgeMesh(Q_NULLPTR),
   m_program(Q_NULLPTR), m_parent(parent), m_width(1), m_height(1),
-  m_buffer(LightPass)
+  m_buffer(LightPass), m_paused(false)
 {
   m_depthBuffer = 0;
   m_deferredBuffer = 0;
   for (int i = 0; i < DEFERRED_TEXTURES; ++i)
     m_deferredTextures[i] = 0;
   m_backBuffer = 0;
-  m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.0f;
+  m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.2f;
   m_ambientColor[3] = 1.0f;
 }
 
@@ -136,6 +137,8 @@ void MainWidgetPrivate::initializeGL()
 void MainWidgetPrivate::loadObj(const QString &fileName)
 {
   // Remove old mesh
+  bool oldValue = m_paused;
+  m_paused = true;
   delete m_openGLMesh;
   delete m_halfEdgeMesh;
   m_boundaries.clear();
@@ -177,6 +180,8 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
     qDebug() << "Boundary Edges :" << m_boundaries.size();
     qDebug() << "Polygons /Frame:" << m_halfEdgeMesh->faces().size() * sg_count;
   }
+
+  m_paused = oldValue;
 }
 
 void MainWidgetPrivate::openObj()
@@ -194,17 +199,11 @@ void MainWidgetPrivate::openObj()
 
 void MainWidgetPrivate::drawBoundaries()
 {
-  KMatrix4x4 modelToView = m_projection * m_camera.toMatrix() * m_transform.toMatrix();
+  KMatrix4x4 const &modelToWorld = m_transform.toMatrix();
   for (QueryResultType const &line : m_boundaries)
   {
-    QVector3D origin = modelToView * std::get<0>(line);
-    QVector3D to   = modelToView * std::get<1>(line);
-
-    // If it's outside of the visible realm, don't send it to the GPU
-    if (origin.x() > 1.0 || origin.x() < -1.0f || origin.y() > 1.0 || origin.y() < -1.0f)
-      if  (to.x() > 1.0 || to.x() < -1.0f || to.y() > 1.0 || to.y() < -1.0f)
-        continue;
-
+    QVector3D origin = modelToWorld * std::get<0>(line);
+    QVector3D to     = modelToWorld * std::get<1>(line);
     OpenGLDebugDraw::World::drawLine(origin, to, Qt::red);
   }
 }
@@ -496,6 +495,7 @@ void MainWidget::initializeGL()
         float cosine = std::cos(deg * 3.14159f / 180.0f);
         float sine = std::sin(deg * 3.14159f / 180.0f);
         OpenGLInstance * instance = p.m_instanceGroup->createInstance();
+        instance->currentTransform().setScale(10.0f);
         instance->material().setDiffuse(deg / 360.0f, 1.0f - deg / 360.0f, 0.0f);
         instance->material().setSpecular(1.0f, 1.0f, 1.0f, 16.0f);
         instance->currentTransform().setTranslation(cosine * 15, level * 5, sine * 15);
@@ -508,6 +508,8 @@ void MainWidget::initializeGL()
     // Release (unbind) all
     p.m_program->release();
   }
+
+  OpenGLDebugDraw::initialize(p.m_matrixBlock);
 }
 
 void MainWidget::resizeGL(int width, int height)
@@ -526,52 +528,54 @@ void MainWidget::paintGL()
 {
   P(MainWidgetPrivate);
 
-  OpenGLProfiler::BeginFrame();
+  if (!p.m_paused)
   {
-    OpenGLMarkerScoped _("Total Render Time");
-    p.m_program->bind();
+    OpenGLProfiler::BeginFrame();
     {
-      OpenGLMarkerScoped _("Prepare Scene");
-      p.m_matrixBlock.write(0, p.m_camera.toMatrix().constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16, p.m_projection.constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 2, (p.m_projection * p.m_camera.toMatrix()).constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 3, p.m_camera.toMatrix().inverted().constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 4, p.m_projection.inverted().constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 5, (p.m_projection * p.m_camera.toMatrix()).inverted().constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 6,  p.m_cameraPrev.toMatrix().constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 7,  (p.m_projection * p.m_cameraPrev.toMatrix()).constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 8, p.m_cameraPrev.toMatrix().inverted().constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 9, (p.m_projection * p.m_cameraPrev.toMatrix()).inverted().constData(), sizeof(float) * 16);
-      p.m_matrixBlock.write(sizeof(float) * 16 * 10, p.m_ambientColor, sizeof(float) * 4);
-      p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4), &p.m_depthFar, sizeof(float));
-      p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 5), &p.m_depthNear, sizeof(float));
-      p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 6), &p.m_depthDiff, sizeof(float));
-      p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 7), &p.m_width, sizeof(float));
-      p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 8), &p.m_height, sizeof(float));
-      p.m_instanceGroup->update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
-      p.m_floorGroup->update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
-      p.m_pointLightGroup->update(p.m_projection, p.m_camera.toMatrix());
+      OpenGLMarkerScoped _("Total Render Time");
+      p.m_program->bind();
+      {
+        OpenGLMarkerScoped _("Prepare Scene");
+        p.m_matrixBlock.write(0, p.m_camera.toMatrix().constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16, p.m_projection.constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 2, (p.m_projection * p.m_camera.toMatrix()).constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 3, p.m_camera.toMatrix().inverted().constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 4, p.m_projection.inverted().constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 5, (p.m_projection * p.m_camera.toMatrix()).inverted().constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 6,  p.m_cameraPrev.toMatrix().constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 7,  (p.m_projection * p.m_cameraPrev.toMatrix()).constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 8, p.m_cameraPrev.toMatrix().inverted().constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 9, (p.m_projection * p.m_cameraPrev.toMatrix()).inverted().constData(), sizeof(float) * 16);
+        p.m_matrixBlock.write(sizeof(float) * 16 * 10, p.m_ambientColor, sizeof(float) * 4);
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4), &p.m_depthFar, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 5), &p.m_depthNear, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 6), &p.m_depthDiff, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 7), &p.m_width, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 8), &p.m_height, sizeof(float));
+        p.m_instanceGroup->update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
+        p.m_floorGroup->update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
+        p.m_pointLightGroup->update(p.m_projection, p.m_camera.toMatrix());
+      }
+      {
+        OpenGLMarkerScoped _("Generate G Buffer");
+        p.m_deferredBuffer->bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        p.m_floorGroup->draw();
+        p.m_instanceGroup->draw();
+        glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+      }
+      p.m_program->release();
+      p.drawBackbuffer();
     }
-    {
-      OpenGLMarkerScoped _("Generate G Buffer");
-      p.m_deferredBuffer->bind();
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      p.m_floorGroup->draw();
-      p.m_instanceGroup->draw();
-      glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
-    }
-    p.m_program->release();
-    p.drawBackbuffer();
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    OpenGLProfiler::EndFrame();
+    OpenGLDebugDraw::draw();
+    OpenGLWidget::paintGL();
   }
-  OpenGLProfiler::EndFrame();
-
-  OpenGLDebugDraw::draw();
-  OpenGLWidget::paintGL();
 }
 
 void MainWidget::teardownGL()
 {
+  OpenGLDebugDraw::teardown();
   OpenGLWidget::teardownGL();
 }
 

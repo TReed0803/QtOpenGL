@@ -4,8 +4,10 @@
         <file>resources/objects/pointLight.obj</file>
         <file>resources/objects/quad.obj</file>
         <file>resources/objects/sphere.obj</file>
-        <file>resources/shaders/debug.frag</file>
-        <file>resources/shaders/debug.vert</file>
+        <file>resources/shaders/debug/screen.frag</file>
+        <file>resources/shaders/debug/screen.vert</file>
+        <file>resources/shaders/debug/world.frag</file>
+        <file>resources/shaders/debug/world.vert</file>
         <file>resources/shaders/EncodeDecode.glsl</file>
         <file>resources/shaders/gbuffer.frag</file>
         <file>resources/shaders/GBuffer.ubo</file>

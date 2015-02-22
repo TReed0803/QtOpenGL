@@ -469,12 +469,12 @@ private:
 
 KVector3D KHalfEdgeMeshPrivate::calculateVertexNormal(const Vertex *vertex, std::vector<KVector3D> &accumulator)
 {
-  KVector3D normal, cumulative;
+  // If the vertex isn't a part of any face, abandon it.
+  if (!vertex->to) return KVector3D();
+
+  KVector3D cumulative, normal;
   const HalfEdge *startEdge = halfEdge(vertex->to);
   const HalfEdge *edge = startEdge;
-
-  if (!vertex->to) return cumulative;
-
   do
   {
     if (edge->face != 0)

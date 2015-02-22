@@ -1,11 +1,10 @@
 #ifndef OPENGLDEBUGDRAW_H
 #define OPENGLDEBUGDRAW_H OpenGLDebugDraw
 
-class KCamera3D;
 class KColor;
-class KMatrix4x4;
 class KRectF;
 class KVector3D;
+class OpenGLUniformBufferObject;
 
 struct OpenGLDebugDraw
 {
@@ -23,7 +22,7 @@ struct OpenGLDebugDraw
   };
 
   // Global states
-  static void initialize();
+  static void initialize(OpenGLUniformBufferObject &ubo);
   static void draw();
   static void teardown();
 };

@@ -98,7 +98,6 @@ void OpenGLWidget::initializeGL()
 
   // Initialize
   initializeOpenGLFunctions();
-  OpenGLDebugDraw::initialize();
   if (p.m_profiler.initialize())
   {
     connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), &p.m_profilerVisualizer, SLOT(frameResultsAvailable(OpenGLFrameResults)));
@@ -142,7 +141,7 @@ void OpenGLWidget::paintGL()
 
 void OpenGLWidget::teardownGL()
 {
-  OpenGLDebugDraw::teardown();
+  // Intentionally Empty
 }
 
 /*******************************************************************************

@@ -20,7 +20,8 @@ static size_t sg_bufferSize = 0;
 static OpenGLFunctions f;
 static OpenGLBuffer *sg_debugBuffer = Q_NULLPTR;
 static OpenGLVertexArrayObject *sg_vertexArrayObject = Q_NULLPTR;
-static OpenGLShaderProgram *sg_program = Q_NULLPTR;
+static OpenGLShaderProgram *sg_programScreen = Q_NULLPTR;
+static OpenGLShaderProgram *sg_programWorld = Q_NULLPTR;
 
 static KRectF normalize(const KRectF &rect)
 {
@@ -36,19 +37,26 @@ static size_t requiredSize()
   size_t verts = sg_lines.size() + sg_rectangles.size();
   return verts * sizeof(KVertex);
 }
-#include <QOpenGLFunctions>
+
 /*******************************************************************************
  * OpenGLDebugDraw
  ******************************************************************************/
-void OpenGLDebugDraw::initialize()
+void OpenGLDebugDraw::initialize(OpenGLUniformBufferObject &ubo)
 {
   f.initializeOpenGLFunctions();
 
   // Create shaders
-  sg_program = new OpenGLShaderProgram();
-  sg_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/debug.vert");
-  sg_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/debug.frag");
-  sg_program->link();
+  sg_programScreen = new OpenGLShaderProgram();
+  sg_programScreen->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/debug/screen.vert");
+  sg_programScreen->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/debug/screen.frag");
+  sg_programScreen->link();
+  sg_programWorld = new OpenGLShaderProgram();
+  sg_programWorld->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/debug/world.vert");
+  sg_programWorld->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/debug/world.frag");
+  sg_programWorld->link();
+  sg_programWorld->bind();
+  sg_programWorld->uniformBlockBinding("GlobalMatrices", ubo);
+  sg_programWorld->release();
 
   // Create Vertex Array Object
   sg_vertexArrayObject = new OpenGLVertexArrayObject();
@@ -94,12 +102,19 @@ void OpenGLDebugDraw::draw()
   // Draw Data
   sg_vertexArrayObject->bind();
   {
-    sg_program->bind();
     glDisable(GL_DEPTH_TEST);
+
+    // Draw World Debug Information
+    sg_programWorld->bind();
     f.glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(sg_lines.size()));
+    sg_programWorld->release();
+
+    // Draw Screen Debug Information
+    sg_programScreen->bind();
     f.glDrawArrays(GL_TRIANGLES, static_cast<GLsizei>(sg_lines.size()), static_cast<int>(sg_rectangles.size()));
+    sg_programScreen->release();
+
     glEnable(GL_DEPTH_TEST);
-    sg_program->release();
   }
   sg_vertexArrayObject->release();
 
@@ -112,7 +127,8 @@ void OpenGLDebugDraw::teardown()
 {
   delete sg_debugBuffer;
   delete sg_vertexArrayObject;
-  delete sg_program;
+  delete sg_programScreen;
+  delete sg_programWorld;
 }
 
 /*******************************************************************************
