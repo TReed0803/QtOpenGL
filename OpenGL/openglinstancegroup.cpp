@@ -132,7 +132,7 @@ void OpenGLInstanceGroup::draw()
 {
   P(OpenGLInstanceGroupPrivate);
   p.m_mesh->vertexArrayObject()->bind();
-  p.m_functions.glDrawElementsInstanced(p.m_mesh->mode(), p.m_mesh->count(), GL_UNSIGNED_INT, (void*)0, p.m_instances.size());
+  p.m_functions.glDrawElementsInstanced(p.m_mesh->mode(), static_cast<GLsizei>(p.m_mesh->count()), GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(p.m_instances.size()));
   p.m_mesh->vertexArrayObject()->release();
 }
 

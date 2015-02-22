@@ -23,7 +23,7 @@ void OpenGLFrameResults::addGpuResult(const QString &name, size_t depth, quint64
 {
   OpenGLMarkerResult res;
   res.setName(name);
-  res.setDepth(depth);
+  res.setDepth(static_cast<int>(depth));
   res.setStartTime(startTime);
   res.setEndTime(endTime);
   m_gpuResults.push_back(res);

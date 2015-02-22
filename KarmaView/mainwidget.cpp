@@ -124,7 +124,7 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   for (int i = 0; i < DEFERRED_TEXTURES; ++i)
     m_deferredTextures[i] = 0;
   m_backBuffer = 0;
-  m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.25f;
+  m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.0f;
   m_ambientColor[3] = 1.0f;
 }
 

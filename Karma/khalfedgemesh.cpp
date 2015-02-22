@@ -167,7 +167,7 @@ private:
 inline KHalfEdgeMeshPrivate::VertexIndex KHalfEdgeMeshPrivate::addVertex(const KVector3D &v)
 {
   m_vertices.emplace_back(v, 0);
-  return m_vertices.size();
+  return VertexIndex(static_cast<index_type>(m_vertices.size()));
 }
 
 KHalfEdgeMeshPrivate::HalfEdgeIndex KHalfEdgeMeshPrivate::addEdge(const index_array &from, const index_array &to)
@@ -176,7 +176,7 @@ KHalfEdgeMeshPrivate::HalfEdgeIndex KHalfEdgeMeshPrivate::addEdge(const index_ar
 
   // First Half Edge
   m_halfEdges.emplace_back(idx.low);
-  HalfEdgeIndex offset = m_halfEdges.size();
+  HalfEdgeIndex offset = HalfEdgeIndex(static_cast<index_type>(m_halfEdges.size()));
   m_halfEdgeLookup.emplace(idx,offset);
 
   // Seconds Half Edge
@@ -212,7 +212,7 @@ KHalfEdgeMeshPrivate::FaceIndex KHalfEdgeMeshPrivate::addFace(index_array &v1, i
 
   // Create Face
   m_faces.emplace_back(edgeA);
-  FaceIndex faceIdx = m_faces.size();
+  FaceIndex faceIdx = FaceIndex(static_cast<index_type>(m_faces.size()));
 
   // Initialize Inner Half Edges
   initializeInnerHalfEdge(edgeA, faceIdx, edgeB);
@@ -641,64 +641,6 @@ KHalfEdgeMesh::HalfEdgeIndex KHalfEdgeMesh::twinIndex(const KHalfEdgeMesh::HalfE
 OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
 {
   P(KHalfEdgeMeshPrivate);
-  FaceContainer const &faces = p.faces();
-  size_t faceCount = faces.size();
-
-  /*
-
-  // Currently we don't support options
-  (void)options;
-
-  // Create information
-  OpenGLFunctions f;
-  f.initializeOpenGLFunctions();
-  OpenGLMesh *mesh = new OpenGLMesh(parent());
-  OpenGLVertexArrayObject *vao = mesh->vertexArrayObject();
-  OpenGLBuffer buffer = mesh->createBuffer();
-  const HalfEdge *edge = Q_NULLPTR;
-
-  // Load data into OpenGLBuffer
-  vao->bind();
-  {
-    buffer.bind();
-
-    // Send data to GPU
-    QVector3D n;
-    Vertex const *v;
-    buffer.allocate(sizeof(KVertex) * faceCount * 3);
-    KVertex *data = static_cast<KVertex*>(buffer.map(QOpenGLBuffer::WriteOnly));
-    std::vector<KVector3D> accumulator;
-    for (size_t i = 0; i < faceCount; ++i)
-    {
-      edge = p.halfEdge(faces[i].first);
-      v = vertex(edge->to);
-      n = p.calculateVertexNormal(v, accumulator);
-      data[3*i] = KVertex(v->position, n);
-      edge = p.halfEdge(edge->next);
-      v = vertex(edge->to);
-      n = p.calculateVertexNormal(v, accumulator);
-      data[3*i+1] = KVertex(v->position, n);
-      edge = p.halfEdge(edge->next);
-      v = vertex(edge->to);
-      n = p.calculateVertexNormal(v, accumulator);
-      data[3*i+2] = KVertex(v->position, n);
-    }
-    buffer.unmap();
-
-    // Bind attributes
-    f.glVertexAttribPointer(0, KVertex::PositionTupleSize, GL_FLOAT, GL_FALSE, KVertex::stride(), (void*)KVertex::positionOffset());
-    f.glVertexAttribPointer(1, KVertex::ColorTupleSize, GL_FLOAT, GL_FALSE, KVertex::stride(), (void*)KVertex::colorOffset());
-    f.glEnableVertexAttribArray(0);
-    f.glEnableVertexAttribArray(1);
-  }
-  vao->release();
-
-  // Initialize mesh
-  mesh->setMode(OpenGLMesh::Contiguous | OpenGLMesh::Interleaved);
-  mesh->setDrawArrays(GL_TRIANGLES, faceCount * 3);
-  return mesh;
-
-  */
 
   // Currently we don't support options
   (void)options;
@@ -710,7 +652,6 @@ OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
   OpenGLVertexArrayObject *vao = mesh->vertexArrayObject();
   OpenGLBuffer vertexBuffer = mesh->createBuffer(OpenGLBuffer::VertexBuffer);
   OpenGLBuffer indexBuffer = mesh->createBuffer(OpenGLBuffer::IndexBuffer);
-  const HalfEdge *edge = Q_NULLPTR;
 
   // Load data into OpenGLBuffer
   vao->bind();
@@ -722,7 +663,7 @@ OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
     int i = 0;
     std::vector<KVector3D> accumulator;
     vertexBuffer.bind();
-    vertexBuffer.allocate(sizeof(KVertex) * p.vertices().size());
+    vertexBuffer.allocate(static_cast<int>(sizeof(KVertex) * p.vertices().size()));
     KVertex *data = static_cast<KVertex*>(vertexBuffer.map(QOpenGLBuffer::WriteOnly));
     for (KHalfEdgeMesh::Vertex const&v : p.vertices())
     {
@@ -732,7 +673,7 @@ OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
 
     i = 0;
     indexBuffer.bind();
-    indexBuffer.allocate(sizeof(uint32_t) * p.faces().size() * 3);
+    indexBuffer.allocate(static_cast<int>(sizeof(uint32_t) * p.faces().size() * 3));
     uint32_t *index = static_cast<uint32_t*>(indexBuffer.map(QOpenGLBuffer::WriteOnly));
     for (KHalfEdgeMesh::Face const&f : p.faces())
     {
@@ -755,6 +696,6 @@ OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
 
   // Initialize mesh
   mesh->setMode(OpenGLMesh::Contiguous | OpenGLMesh::Interleaved | OpenGLMesh::Indexed);
-  mesh->setDrawArrays(GL_TRIANGLES, p.faces().size() * 3);
+  mesh->setDrawArrays(GL_TRIANGLES, static_cast<int>(p.faces().size() * 3));
   return mesh;
 }

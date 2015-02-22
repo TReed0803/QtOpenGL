@@ -55,43 +55,6 @@ float CalculateScalar(int segments, int rings)
   return M_SQRT2 * sqrt(1.0f / (1.0f + cos(M_2PI / segments) * cos(M_PI / rings)));
 }
 
-float TestUV(int segments, int rings)
-{
-  float longitude = M_2PI / float(segments);
-  float latitude = M_PI / float(rings);
-  float latitudeA, latitudeB;
-  if (rings % 2)
-  {
-    latitudeA = latitude / 2.0f;
-    latitudeB = -latitudeA;
-  }
-  else
-  {
-    latitudeA = latitude;
-    latitudeB = 0.0f;
-  }
-  float sideLength = sqrt(2.0f - 2.0f * (cos(latitudeA) * cos(latitudeB) * cos(longitude) + sin(latitudeA) * sin(latitudeB)));
-  float halfSideLength = sideLength / 2.0f;
-  float linearDepth = sqrt(1.0f - pow(halfSideLength, 2.0));
-  float similarScalar = 1.0f / linearDepth;
-  float similarHalfLength = halfSideLength * similarScalar;
-  float finalValue = sqrt(similarHalfLength * similarHalfLength + 1);
-  float TSideLength = sqrt(3.0f-cos(M_2PI/segments)-2.0f*pow(cos(M_PI/segments),2.0f)*cos(M_PI/rings));
-  return finalValue;
-}
-
-float TestUV1(int segments)
-{
-  float arcLength = M_2PI / float(segments);
-  float sideLength = sqrt(2.0f - 2.0f * cos(arcLength));
-  float halfSideLength = sideLength / 2.0f;
-  float linearDepth = sqrt(1.0f - pow(halfSideLength, 2.0));
-  float similarScalar = 1.0f / linearDepth;
-  float similarHalfLength = halfSideLength * similarScalar;
-  float finalValue = sqrt(similarHalfLength * similarHalfLength + 1);
-  return finalValue;
-}
-
 void OpenGLPointLightGroup::update(const KMatrix4x4 &perspective, const KMatrix4x4 &worldToCamera)
 {
   P(OpenGLPointLightGroupPrivate);
@@ -108,8 +71,7 @@ void OpenGLPointLightGroup::update(const KMatrix4x4 &perspective, const KMatrix4
   for (OpenGLPointLight *instance : p.m_instances)
   {
     KTransform3D t;
-    float test = TestUV(8, 8);
-    t.setScale(instance->radius() * test);
+    t.setScale(instance->radius() * CalculateScalar(12, 8));
     t.setTranslation(instance->translation());
     KVector3D const &translation = worldToCamera * instance->translation();
     KVector3D const &attenuation = instance->attenuation();
@@ -158,7 +120,7 @@ void OpenGLPointLightGroup::draw()
 {
   P(OpenGLPointLightGroupPrivate);
   p.m_mesh->vertexArrayObject()->bind();
-  p.m_functions.glDrawElementsInstanced(p.m_mesh->mode(), p.m_mesh->count(), GL_UNSIGNED_INT, (void*)0, p.m_instances.size());
+  p.m_functions.glDrawElementsInstanced(p.m_mesh->mode(), static_cast<GLsizei>(p.m_mesh->count()), GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(p.m_instances.size()));
   p.m_mesh->vertexArrayObject()->release();
 }
 

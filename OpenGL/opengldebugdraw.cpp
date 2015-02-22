@@ -78,7 +78,7 @@ void OpenGLDebugDraw::draw()
   if (sg_bufferSize < required)
   {
     sg_debugBuffer->bind();
-    sg_debugBuffer->allocate(required);
+    sg_debugBuffer->allocate(static_cast<int>(required));
     sg_debugBuffer->release();
     sg_bufferSize = required;
   }
@@ -86,8 +86,8 @@ void OpenGLDebugDraw::draw()
   // Send data to GPU
   {
     sg_debugBuffer->bind();
-    sg_debugBuffer->write(0, sg_lines.data(), sizeof(KVertex) * sg_lines.size());
-    sg_debugBuffer->write(sizeof(KVertex) * sg_lines.size(), sg_rectangles.data(), sizeof(KVertex) * sg_rectangles.size());
+    sg_debugBuffer->write(0, sg_lines.data(), static_cast<int>(sizeof(KVertex) * sg_lines.size()));
+    sg_debugBuffer->write(static_cast<int>(sizeof(KVertex) * sg_lines.size()), sg_rectangles.data(), static_cast<int>(sizeof(KVertex) * sg_rectangles.size()));
     sg_debugBuffer->release();
   }
 
@@ -96,8 +96,8 @@ void OpenGLDebugDraw::draw()
   {
     sg_program->bind();
     glDisable(GL_DEPTH_TEST);
-    f.glDrawArrays(GL_LINES, 0, sg_lines.size());
-    f.glDrawArrays(GL_TRIANGLES, sg_lines.size(), sg_rectangles.size());
+    f.glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(sg_lines.size()));
+    f.glDrawArrays(GL_TRIANGLES, static_cast<GLsizei>(sg_lines.size()), static_cast<int>(sg_rectangles.size()));
     glEnable(GL_DEPTH_TEST);
     sg_program->release();
   }
