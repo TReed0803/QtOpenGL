@@ -6,6 +6,7 @@
 #include <OpenGLFunctions>
 #include <OpenGLUniformBufferObject>
 #include <OpenGLSLParser>
+#include <OpenGLUniformBufferManager>
 
 #include <string>
 
@@ -19,6 +20,7 @@ class OpenGLShaderProgramWrappedPrivate
 {
 public:
   std::vector<char const*> m_includePaths;
+  std::vector<std::string> m_autoresolver;
 };
 
 /*******************************************************************************
@@ -40,8 +42,14 @@ void OpenGLShaderProgramWrapped::addIncludePath(const char *path)
   m_private->m_includePaths.push_back(path);
 }
 
+void OpenGLShaderProgramWrapped::addSharedIncludePath(const char *path)
+{
+  OpenGLSLParser::addSharedIncludePath(path);
+}
+
 bool OpenGLShaderProgramWrapped::addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString &fileName)
 {
+  P(OpenGLShaderProgramWrappedPrivate);
   std::string ppSource = getVersionComment().toUtf8().constData();
 
   // Preprocess the shader file
@@ -55,10 +63,11 @@ bool OpenGLShaderProgramWrapped::addShaderFromSourceFile(QOpenGLShader::ShaderTy
   KStringWriter writer(ppSource);
   OpenGLSLParser parser(&reader, &writer);
   parser.setFilePath(fileName.toUtf8().constData());
-  for (char const *p : m_private->m_includePaths)
+  for (char const *path : m_private->m_includePaths)
   {
-    parser.addIncludePath(p);
+    parser.addIncludePath(path);
   }
+  parser.setAutoresolver(&p.m_autoresolver);
   parser.initialize();
   if (parser.parse())
   {
@@ -147,4 +156,32 @@ QString OpenGLShaderProgramWrapped::getVersionComment()
   }
 
   return comment + "\n";
+}
+
+bool OpenGLShaderProgramWrapped::link()
+{
+  P(OpenGLShaderProgramWrappedPrivate);
+  bool ret = OpenGLShaderProgramChecked::link();
+  if (!p.m_autoresolver.empty())
+  {
+    bind();
+    for (std::string const &resolver : p.m_autoresolver)
+    {
+      unsigned loc = uniformBlockLocation(resolver.c_str());
+      if (loc == OpenGLUniformBufferObject::InvalidLocation)
+      {
+        qFatal("Failed to find the UBO `%s` to for autoresolve.", resolver.c_str());
+        return false;
+      }
+      OpenGLUniformBufferObject *ubo = OpenGLUniformBufferManager::find(resolver.c_str());
+      if (!ubo)
+      {
+        qFatal("Manager has no knowledge of the UBO `%s`.", resolver.c_str());
+        return false;
+      }
+      uniformBlockBinding(loc, *ubo);
+    }
+    release();
+  }
+  return ret;
 }

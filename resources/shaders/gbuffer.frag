@@ -1,5 +1,5 @@
 #include <EncodeDecode.glsl>
-#include <GlobalMatrices.ubo>
+#include <GlobalBuffer.ubo>
 
 vec4 atmosphericColor = vec4(0.0, 0.0, 0.0, 1.0);
 

@@ -142,7 +142,7 @@ KAbstractObjParserPrivate::token_id KAbstractObjParserPrivate::lexToken(token_ty
       return PT_EOF;
     case WHITESPACE:
       continue;
-    case NEWLINE:
+    case '\n':
       return PT_ENDSTATEMENT;
     case '#':
       nextLine();

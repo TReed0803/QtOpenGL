@@ -78,7 +78,8 @@ private:
   case '\r'
 
 #define NEWLINE \
-  '\n'
+  '\n':\
+  case KAbstractReader::EndOfFile
 
 #define _LEX_ERROR(...) qFatal(__FILE__ ":" STR(__LINE__) ": ERROR - " __VA_ARGS__)
 #define LEX_ERROR(...) _LEX_ERROR(__VA_ARGS__)

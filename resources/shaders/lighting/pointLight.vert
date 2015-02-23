@@ -1,4 +1,4 @@
-#include <GlobalMatrices.ubo>
+#include <GlobalBuffer.ubo>
 
 // Per-Vertex Attribs
 layout(location = 0) in highp vec3 position;

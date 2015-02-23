@@ -1,8 +1,8 @@
-#ifndef GLOBALMATRICES_UBO
-#define GLOBALMATRICES_UBO
+#ifndef GLOBALBUFFER_UBO
+#define GLOBALBUFFER_UBO
 
 layout(std140)
-uniform GlobalMatrices
+uniform GlobalBuffer
 {
   mat4 worldToCamera;
   mat4 cameraToView;
@@ -22,4 +22,5 @@ uniform GlobalMatrices
   float viewHeight;
 };
 
-#endif // GLOBALMATRICES_UBO
+#autoresolve GlobalBuffer
+#endif // GLOBALBUFFER_UBO

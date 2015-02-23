@@ -19,6 +19,7 @@ enum OpenGLSLToken
   // Preprocessor Tokens
   PT_PP_UNKNOWN,
   PT_PP_INCLUDE,
+  PT_PP_AUTORESOLVE,
 
   // Language Tokens
   PT_CODE
@@ -26,7 +27,8 @@ enum OpenGLSLToken
 
 static KParseMap<OpenGLSLToken> const sg_reserved =
 {
-  { "#include", PT_PP_INCLUDE }
+  { "#include", PT_PP_INCLUDE },
+  { "#autoresolve", PT_PP_AUTORESOLVE }
 };
 
 typedef KParseToken<OpenGLSLToken> ParseToken;
@@ -42,6 +44,7 @@ public:
   typedef KAbstractLexer<ParseToken>::token_id token_id;
   typedef KAbstractLexer<ParseToken>::token_type token_type;
   typedef KAbstractLexer<ParseToken>::char_type char_type;
+  typedef OpenGLSLParser::Autoresolver Autoresolver;
 
   // Constructors / Destructor
   OpenGLSLParserPrivate(OpenGLSLParser *parent, KAbstractReader *reader, KAbstractWriter *writer);
@@ -55,17 +58,22 @@ public:
   token_id lexTokenInclude(token_type &token);
   token_id lexTokenIncludeString(token_type &token, char_type endChar);
   bool lexTokenIncludeAbsolute(token_type &token);
+  bool lexTokenIncludeShared(token_type &token);
   bool lexTokenIncludeRelative(token_type &token);
-  token_id lexOpenGLSLTokenentifier(token_type &token);
+  token_id lexTokenAutoresolve(token_type &token);
+  token_id lexOpenGLSLTokenIdentifier(token_type &token);
   token_id symResolve(token_type &token, token_id t);
 
   // Parser
   bool parse();
   void parseInclude();
+  void autoresolveIdentifier();
 
   // Meta Information
   void setFilePath(char const *filePath);
+  void setAutoresolver(Autoresolver *a);
   void addIncludePath(char const *path);
+  static void addSharedIncludePath(char const *path);
 
 private:
   OpenGLSLParser *m_parent;
@@ -73,7 +81,9 @@ private:
 
   // Include Resolution
   QDir m_relativeDirectory;
-  static std::vector<std::string> m_includePaths;
+  std::vector<std::string> m_includePaths;
+  static std::vector<std::string> m_sharedIncludePaths;
+  Autoresolver *m_autoresolver;
 };
 
 OpenGLSLParserPrivate::OpenGLSLParserPrivate(OpenGLSLParser *parent, KAbstractReader *reader, KAbstractWriter *writer) :
@@ -82,7 +92,7 @@ OpenGLSLParserPrivate::OpenGLSLParserPrivate(OpenGLSLParser *parent, KAbstractRe
   // Intentionally Empty
 }
 
-std::vector<std::string> OpenGLSLParserPrivate::m_includePaths;
+std::vector<std::string> OpenGLSLParserPrivate::m_sharedIncludePaths;
 
 OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexToken(token_type &token)
 {
@@ -153,10 +163,12 @@ OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexPreprocessor(token_typ
 
 OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexPreprocessorIdentifier(token_type &token)
 {
-  switch (lexOpenGLSLTokenentifier(token))
+  switch (lexOpenGLSLTokenIdentifier(token))
   {
   case PT_PP_INCLUDE:
     return lexTokenInclude(token);
+  case PT_PP_AUTORESOLVE:
+    return lexTokenAutoresolve(token);
   case PT_PP_UNKNOWN:
     return lexLine(token);
   default:
@@ -199,21 +211,25 @@ OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexTokenIncludeString(tok
   if (token.m_lexicon.empty())
   {
     LEX_ERROR("Empty include statement found!");
+    return PT_ERROR;
   }
 
   if (endChar == '>')
   {
     if (lexTokenIncludeAbsolute(token)) return PT_PP_INCLUDE;
     if (lexTokenIncludeRelative(token)) return PT_PP_INCLUDE;
+    if (lexTokenIncludeShared(token)) return PT_PP_INCLUDE;
   }
   else if (endChar == '"')
   {
     if (lexTokenIncludeRelative(token)) return PT_PP_INCLUDE;
     if (lexTokenIncludeAbsolute(token)) return PT_PP_INCLUDE;
+    if (lexTokenIncludeShared(token)) return PT_PP_INCLUDE;
   }
   else
   {
     LEX_ERROR("Unexpected end character provided for lexTokenIncludeString!");
+    return PT_ERROR;
   }
 
   LEX_ERROR("No include file found named `%s`!", token.m_lexicon.c_str());
@@ -223,6 +239,22 @@ OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexTokenIncludeString(tok
 bool OpenGLSLParserPrivate::lexTokenIncludeAbsolute(token_type &token)
 {
   for (auto const &currPath : m_includePaths)
+  {
+    QDir path(currPath.c_str());
+    QFileInfo file(path, token.m_lexicon.c_str());
+    if (file.exists())
+    {
+      token.m_lexicon = file.absoluteFilePath().toUtf8().constData();
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool OpenGLSLParserPrivate::lexTokenIncludeShared(token_type &token)
+{
+  for (auto const &currPath : m_sharedIncludePaths)
   {
     QDir path(currPath.c_str());
     QFileInfo file(path, token.m_lexicon.c_str());
@@ -247,8 +279,31 @@ bool OpenGLSLParserPrivate::lexTokenIncludeRelative(token_type &token)
   return false;
 }
 
+OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexTokenAutoresolve(OpenGLSLParserPrivate::token_type &token)
+{
+  token.m_lexicon.clear();
+  for (;;)
+  {
+    switch (peekChar())
+    {
+    case WHITESPACE:
+      nextChar();
+      continue;
+    case NEWLINE:
+      if (token.m_lexicon.empty())
+      {
+        LEX_ERROR("Expected an identifier for #autoresolve. Read nothing.");
+        return PT_ERROR;
+      }
+      return PT_PP_AUTORESOLVE;
+    default:
+      token.m_lexicon += nextChar();
+      break;
+    }
+  }
+}
 
-OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexOpenGLSLTokenentifier(token_type &token)
+OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexOpenGLSLTokenIdentifier(token_type &token)
 {
   // Read and resolve symbol
   token.m_lexicon += static_cast<unsigned char>(currChar());
@@ -286,6 +341,9 @@ bool OpenGLSLParserPrivate::parse()
     case PT_PP_INCLUDE:
       parseInclude();
       break;
+    case PT_PP_AUTORESOLVE:
+      autoresolveIdentifier();
+      break;
     case PT_PP_UNKNOWN:
     case PT_CODE:
       m_writer->append(currToken().m_lexicon.c_str());
@@ -300,8 +358,21 @@ void OpenGLSLParserPrivate::parseInclude()
   KBufferedFileReader reader(absolutePath, 2014);
   OpenGLSLParserPrivate subParse(m_parent, &reader, m_writer);
   subParse.setFilePath(absolutePath);
+  subParse.setAutoresolver(m_autoresolver);
   subParse.initializeLexer();
   subParse.parse();
+}
+
+void OpenGLSLParserPrivate::autoresolveIdentifier()
+{
+  if (m_autoresolver)
+  {
+    std::string target = currToken().m_lexicon;
+    if (std::find(m_autoresolver->begin(), m_autoresolver->end(), target) == m_autoresolver->end())
+    {
+      m_autoresolver->push_back(target);
+    }
+  }
 }
 
 void OpenGLSLParserPrivate::setFilePath(const char *filePath)
@@ -310,11 +381,20 @@ void OpenGLSLParserPrivate::setFilePath(const char *filePath)
   m_relativeDirectory = file.absoluteDir();
 }
 
+void OpenGLSLParserPrivate::setAutoresolver(OpenGLSLParserPrivate::Autoresolver *a)
+{
+  m_autoresolver = a;
+}
+
 void OpenGLSLParserPrivate::addIncludePath(const char *path)
 {
   m_includePaths.push_back(path);
 }
 
+void OpenGLSLParserPrivate::addSharedIncludePath(const char *path)
+{
+  m_sharedIncludePaths.push_back(path);
+}
 
 /////////////
 
@@ -341,10 +421,21 @@ void OpenGLSLParser::setFilePath(const char *filePath)
   p.setFilePath(filePath);
 }
 
+void OpenGLSLParser::setAutoresolver(OpenGLSLParser::Autoresolver *a)
+{
+  P(OpenGLSLParserPrivate);
+  p.setAutoresolver(a);
+}
+
 void OpenGLSLParser::addIncludePath(const char *path)
 {
   P(OpenGLSLParserPrivate);
   p.addIncludePath(path);
+}
+
+void OpenGLSLParser::addSharedIncludePath(const char *path)
+{
+  OpenGLSLParserPrivate::addSharedIncludePath(path);
 }
 
 bool OpenGLSLParser::parse()

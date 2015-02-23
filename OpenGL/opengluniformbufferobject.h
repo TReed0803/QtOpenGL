@@ -7,6 +7,12 @@ class OpenGLUniformBufferObjectPrivate;
 class OpenGLUniformBufferObject : private OpenGLBuffer
 {
 public:
+
+  enum Indices
+  {
+    InvalidLocation = 0xFFFFFFFFu
+  };
+
   OpenGLUniformBufferObject();
   ~OpenGLUniformBufferObject();
 

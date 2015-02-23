@@ -33,6 +33,7 @@
 #include <OpenGLMesh>
 #include <KHalfEdgeMesh>
 #include <KLinq>
+#include <OpenGLUniformBufferManager>
 
 static uint64_t sg_count = 0;
 #define DEFERRED_TEXTURES 4
@@ -367,6 +368,8 @@ MainWidget::MainWidget(QWidget *parent) :
   p.m_transform.scale(50.0f);
   p.m_transform.translate(0.0f, 0.0f, -150.0f);
   p.m_dragVelocity = 0.0f;
+  OpenGLShaderProgram::addSharedIncludePath(":/resources/shaders");
+  OpenGLShaderProgram::addSharedIncludePath(":/resources/shaders/ubo");
 }
 
 MainWidget::~MainWidget()
@@ -404,19 +407,16 @@ void MainWidget::initializeGL()
     p.m_matrixBlock.bind(1);
     p.m_matrixBlock.setUsagePattern(OpenGLBuffer::DynamicDraw);
     p.m_matrixBlock.allocate(sizeof(GLfloat) * (16 * 10 + 4 + 5));
+    OpenGLUniformBufferManager::addUniformBufferObject("GlobalBuffer", &p.m_matrixBlock);
 
     // Create Shader for GBuffer Pass
     p.m_program = new OpenGLShaderProgram(this);
     p.m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/gbuffer.vert");
     p.m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/gbuffer.frag");
     p.m_program->link();
-    p.m_program->bind();
-    p.m_program->uniformBlockBinding("GlobalMatrices", p.m_matrixBlock);
-    p.m_program->release();
 
     // Create Shader for point light pass
     p.m_pointLightProgram = new OpenGLShaderProgram(this);
-    p.m_pointLightProgram->addIncludePath(":/resources/shaders");
     p.m_pointLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/pointLight.vert");
     p.m_pointLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/pointLight.frag");
     p.m_pointLightProgram->link();
@@ -426,7 +426,6 @@ void MainWidget::initializeGL()
     p.m_pointLightProgram->setUniformValue("dynamicsTexture", 2);
     p.m_pointLightProgram->setUniformValue("backbufferTexture", 3);
     p.m_pointLightProgram->setUniformValue("lightbufferTexture", 4);
-    p.m_pointLightProgram->uniformBlockBinding("GlobalMatrices", p.m_matrixBlock);
     p.m_pointLightProgram->release();
 
     char const* fragFiles[DeferredDataCount] = {
@@ -454,7 +453,6 @@ void MainWidget::initializeGL()
       p.m_deferredPrograms[i]->setUniformValue("dynamicsTexture", 2);
       p.m_deferredPrograms[i]->setUniformValue("backbufferTexture", 3);
       p.m_deferredPrograms[i]->setUniformValue("lightbufferTexture", 4);
-      p.m_deferredPrograms[i]->uniformBlockBinding("GlobalMatrices", p.m_matrixBlock);
       p.m_deferredPrograms[i]->release();
     }
 
@@ -509,7 +507,7 @@ void MainWidget::initializeGL()
     p.m_program->release();
   }
 
-  OpenGLDebugDraw::initialize(p.m_matrixBlock);
+  OpenGLDebugDraw::initialize();
 }
 
 void MainWidget::resizeGL(int width, int height)

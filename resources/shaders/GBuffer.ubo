@@ -2,7 +2,7 @@
 #define   GBUFFER_UBO
 
 #include <EncodeDecode.glsl>
-#include <GlobalMatrices.ubo>
+#include <GlobalBuffer.ubo>
 
 in highp vec2 fFragCoord;
 

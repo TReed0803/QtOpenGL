@@ -30,7 +30,8 @@ SOURCES += \
     openglinstance.cpp \
     openglpointlight.cpp \
     openglpointlightgroup.cpp \
-    opengldebugdraw.cpp
+    opengldebugdraw.cpp \
+    opengluniformbuffermanager.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -60,4 +61,5 @@ HEADERS += \
     openglpointlight.h \
     openglpointlightgroup.h \
     openglstorage.h \
-    opengldebugdraw.h
+    opengldebugdraw.h \
+    opengluniformbuffermanager.h

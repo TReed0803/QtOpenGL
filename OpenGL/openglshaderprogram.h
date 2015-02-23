@@ -29,11 +29,13 @@ public:
   explicit OpenGLShaderProgramWrapped(QObject *parent = 0);
   ~OpenGLShaderProgramWrapped();
   void addIncludePath(char const *path);
+  static void addSharedIncludePath(char const *path);
   bool addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString & fileName);
   void uniformBlockBinding(char const* location, OpenGLUniformBufferObject const &ubo);
   void uniformBlockBinding(unsigned location, OpenGLUniformBufferObject const &ubo);
   unsigned uniformBlockLocation(char const* location);
   QString getVersionComment();
+  bool link();
 private:
   OpenGLShaderProgramWrappedPrivate *m_private;
 };

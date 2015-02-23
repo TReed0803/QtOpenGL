@@ -22,7 +22,7 @@ struct OpenGLDebugDraw
   };
 
   // Global states
-  static void initialize(OpenGLUniformBufferObject &ubo);
+  static void initialize();
   static void draw();
   static void teardown();
 };

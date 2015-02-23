@@ -41,7 +41,7 @@ static size_t requiredSize()
 /*******************************************************************************
  * OpenGLDebugDraw
  ******************************************************************************/
-void OpenGLDebugDraw::initialize(OpenGLUniformBufferObject &ubo)
+void OpenGLDebugDraw::initialize()
 {
   f.initializeOpenGLFunctions();
 
@@ -54,9 +54,6 @@ void OpenGLDebugDraw::initialize(OpenGLUniformBufferObject &ubo)
   sg_programWorld->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/debug/world.vert");
   sg_programWorld->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/debug/world.frag");
   sg_programWorld->link();
-  sg_programWorld->bind();
-  sg_programWorld->uniformBlockBinding("GlobalMatrices", ubo);
-  sg_programWorld->release();
 
   // Create Vertex Array Object
   sg_vertexArrayObject = new OpenGLVertexArrayObject();
