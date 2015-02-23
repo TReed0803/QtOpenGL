@@ -6,7 +6,7 @@
 
 uniform sampler2D geometryTexture;
 uniform sampler2D materialTexture;
-uniform sampler2D dynamicsTexture;
+uniform sampler2D surfaceTexture;
 uniform sampler2D backbufferTexture;
 uniform sampler2D lightbufferTexture;
 uniform sampler2D depthTexture;
@@ -56,8 +56,8 @@ vec3 diffuse()
 
 vec4 specularCoord(vec2 uv)
 {
-  float specColor = texture2D(geometryTexture, uv).z;
-  float specExponent = texture2D(materialTexture, uv).w;
+  float specColor = texture2D(materialTexture, uv).z;
+  float specExponent = texture2D(surfaceTexture, uv).w;
   return vec4(specColor, specColor, specColor, specExponent);
 }
 
@@ -68,7 +68,7 @@ vec4 specular()
 
 vec2 velocityCoord(vec2 uv)
 {
-  return texture2D(dynamicsTexture, uv).xy;
+  return texture2D(geometryTexture, uv).zw;
 }
 
 vec2 velocity()

@@ -97,15 +97,21 @@ public:
   OpenGLPointLightGroup *m_pointLightGroup;
   std::vector<OpenGLPointLight*> m_pointLights;
   bool m_paused;
-
-  // GBuffer
   DeferredData m_buffer;
   OpenGLShaderProgram *m_deferredPrograms[DeferredDataCount];
+
+  // GBuffer
+  OpenGLTexture m_gGeometry; // normal normal vel vel
+  OpenGLTexture m_gMaterial; // diff diff diff spec
+  OpenGLTexture m_gSurface;  // exp
+  OpenGLTexture m_gLighting;
   OpenGLFramebufferObject *m_deferredBuffer;
-  OpenGLFramebufferObject *m_lightBuffer;
-  OpenGLTexture m_deferredTextures[DEFERRED_TEXTURES];
-  OpenGLTexture m_backBuffer;
+
+  // Render Stages
   OpenGLTexture m_depthTexture;
+  OpenGLTexture m_backBuffer;
+
+  OpenGLFramebufferObject *m_lightBuffer;
   std::vector<OpenGLInstance*> m_instances;
   float m_ambientColor[4];
 
@@ -212,22 +218,22 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   m_height = h;
 
   // GBuffer Texture Storage
-  for (int i = 0; i < DEFERRED_TEXTURES; ++i)
-  {
-    constructDeferredTexture(m_deferredTextures[i], OpenGLInternalFormat::Rgba32F);
-  }
+  constructDeferredTexture(m_gGeometry, OpenGLInternalFormat::Rgba16F);
+  constructDeferredTexture(m_gMaterial, OpenGLInternalFormat::Rgba8);
+  constructDeferredTexture(m_gSurface, OpenGLInternalFormat::R8);
+  constructDeferredTexture(m_gLighting, OpenGLInternalFormat::Rgb12);
 
   // Backbuffer Texture
-  constructDeferredTexture(m_backBuffer, OpenGLInternalFormat::Rgba32F);
+  constructDeferredTexture(m_backBuffer, OpenGLInternalFormat::Rgb12);
   constructDeferredTexture(m_depthTexture, OpenGLInternalFormat::Depth32F);
 
   // GBuffer Framebuffer
   m_deferredBuffer->bind();
   m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_backBuffer);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, m_deferredTextures[0]);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_deferredTextures[1]);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment3, m_deferredTextures[2]);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment4, m_deferredTextures[3]);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, m_gGeometry);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_gMaterial);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment3, m_gSurface);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment4, m_gLighting);
   m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  m_depthTexture);
   m_deferredBuffer->drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2, OpenGLFramebufferObject::ColorAttachment3, OpenGLFramebufferObject::ColorAttachment4);
 
@@ -257,7 +263,7 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
 
   // Light Buffer
   m_lightBuffer->bind();
-  m_lightBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_deferredTextures[3]);
+  m_lightBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gLighting);
   m_lightBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, m_depthTexture);
   m_lightBuffer->drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
 
@@ -292,15 +298,15 @@ void MainWidgetPrivate::drawBackbuffer()
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
   glActiveTexture(GL_TEXTURE0);
-  m_deferredTextures[0].bind();
+  m_gGeometry.bind();
   glActiveTexture(GL_TEXTURE1);
-  m_deferredTextures[1].bind();
+  m_gMaterial.bind();
   glActiveTexture(GL_TEXTURE2);
-  m_deferredTextures[2].bind();
+  m_gSurface.bind();
   glActiveTexture(GL_TEXTURE3);
   m_backBuffer.bind();
   glActiveTexture(GL_TEXTURE4);
-  m_deferredTextures[3].bind();
+  m_gLighting.bind();
   glActiveTexture(GL_TEXTURE5);
   m_depthTexture.bind();
   if (m_buffer == LightPass || m_buffer == MotionBlurPass)
@@ -376,7 +382,7 @@ void MainWidget::initializeGL()
   glEnable(GL_DEPTH_TEST);
   glClearDepth(1.0f);
   glDepthFunc(GL_LEQUAL);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
   p.m_quad = new KHalfEdgeMesh(this, ":/resources/objects/quad.obj");
   p.m_quadGL = p.m_quad->createOpenGLMesh(OpenGLMesh::Contiguous);
