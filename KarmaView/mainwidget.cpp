@@ -100,11 +100,11 @@ public:
   // GBuffer
   DeferredData m_buffer;
   OpenGLShaderProgram *m_deferredPrograms[DeferredDataCount];
-  OpenGLRenderbufferObject *m_depthBuffer;
   OpenGLFramebufferObject *m_deferredBuffer;
   OpenGLFramebufferObject *m_lightBuffer;
-  OpenGLTexture *m_deferredTextures[DEFERRED_TEXTURES];
-  OpenGLTexture *m_backBuffer;
+  OpenGLTexture m_deferredTextures[DEFERRED_TEXTURES];
+  OpenGLTexture m_backBuffer;
+  OpenGLTexture m_depthTexture;
   std::vector<OpenGLInstance*> m_instances;
   float m_ambientColor[4];
 
@@ -121,11 +121,7 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_program(Q_NULLPTR), m_parent(parent), m_width(1), m_height(1),
   m_buffer(LightPass), m_paused(false)
 {
-  m_depthBuffer = 0;
   m_deferredBuffer = 0;
-  for (int i = 0; i < DEFERRED_TEXTURES; ++i)
-    m_deferredTextures[i] = 0;
-  m_backBuffer = 0;
   m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.2f;
   m_ambientColor[3] = 1.0f;
 }
@@ -217,52 +213,49 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   // GBuffer Texture Storage
   for (int i = 0; i < DEFERRED_TEXTURES; ++i)
   {
-    OpenGLTexture *&currTexture = m_deferredTextures[i];
-    delete currTexture;
-    currTexture = new OpenGLTexture();
-    currTexture->create(OpenGLTexture::Texture2D);
-    currTexture->bind();
-    currTexture->setInternalFormat(OpenGLInternalFormat::Rgba32F);
-    currTexture->setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
-    currTexture->setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
-    currTexture->setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
-    currTexture->setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-    currTexture->setSize(m_width, m_height);
-    currTexture->allocate();
-    currTexture->release();
+    OpenGLTexture &currTexture = m_deferredTextures[i];
+    currTexture.create(OpenGLTexture::Texture2D);
+    currTexture.bind();
+    currTexture.setInternalFormat(OpenGLInternalFormat::Rgba32F);
+    currTexture.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
+    currTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
+    currTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
+    currTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
+    currTexture.setSize(m_width, m_height);
+    currTexture.allocate();
+    currTexture.release();
   }
 
   // Backbuffer Texture
-  delete m_backBuffer;
-  m_backBuffer = new OpenGLTexture();
-  m_backBuffer->create(OpenGLTexture::Texture2D);
-  m_backBuffer->bind();
-  m_backBuffer->setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
-  m_backBuffer->setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
-  m_backBuffer->setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
-  m_backBuffer->setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  m_backBuffer->setSize(m_width, m_height);
-  m_backBuffer->allocate();
-  m_backBuffer->release();
+  m_backBuffer.create(OpenGLTexture::Texture2D);
+  m_backBuffer.bind();
+  m_backBuffer.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
+  m_backBuffer.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
+  m_backBuffer.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
+  m_backBuffer.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
+  m_backBuffer.setSize(m_width, m_height);
+  m_backBuffer.allocate();
+  m_backBuffer.release();
 
-  // Depth Renderbuffer
-  delete m_depthBuffer;
-  m_depthBuffer = new OpenGLRenderbufferObject();
-  m_depthBuffer->create();
-  m_depthBuffer->bind();
-  m_depthBuffer->setInternalFormat(OpenGLInternalFormat::Depth16);
-  m_depthBuffer->setSize(m_width, m_height);
-  m_depthBuffer->allocate();
-  m_depthBuffer->release();
+  m_depthTexture.create(OpenGLTexture::Texture2D);
+  m_depthTexture.bind();
+  m_depthTexture.setInternalFormat(OpenGLInternalFormat::Depth32F);
+  m_depthTexture.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
+  m_depthTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
+  m_depthTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
+  m_depthTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
+  m_depthTexture.setSize(m_width, m_height);
+  m_depthTexture.allocate();
+  m_depthTexture.release();
 
   // GBuffer Framebuffer
   m_deferredBuffer->bind();
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, *m_backBuffer);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, *m_deferredTextures[0]);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, *m_deferredTextures[1]);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment3, *m_deferredTextures[2]);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment4, *m_deferredTextures[3]);
-  m_deferredBuffer->attachRenderbuffer(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, *m_depthBuffer);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_backBuffer);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, m_deferredTextures[0]);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_deferredTextures[1]);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment3, m_deferredTextures[2]);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment4, m_deferredTextures[3]);
+  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  m_depthTexture);
   m_deferredBuffer->drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2, OpenGLFramebufferObject::ColorAttachment3, OpenGLFramebufferObject::ColorAttachment4);
 
   // Check Framebuffer validity
@@ -291,8 +284,8 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
 
   // Light Buffer
   m_lightBuffer->bind();
-  m_lightBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, *m_deferredTextures[3]);
-  m_lightBuffer->attachRenderbuffer(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, *m_depthBuffer);
+  m_lightBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_deferredTextures[3]);
+  m_lightBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, m_depthTexture);
   m_lightBuffer->drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
 
   // Check Framebuffer validity
@@ -326,15 +319,15 @@ void MainWidgetPrivate::drawBackbuffer()
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
   glActiveTexture(GL_TEXTURE0);
-  m_deferredTextures[0]->bind();
+  m_deferredTextures[0].bind();
   glActiveTexture(GL_TEXTURE1);
-  m_deferredTextures[1]->bind();
+  m_deferredTextures[1].bind();
   glActiveTexture(GL_TEXTURE2);
-  m_deferredTextures[2]->bind();
+  m_deferredTextures[2].bind();
   glActiveTexture(GL_TEXTURE3);
-  m_backBuffer->bind();
+  m_backBuffer.bind();
   glActiveTexture(GL_TEXTURE4);
-  m_deferredTextures[3]->bind();
+  m_deferredTextures[3].bind();
   if (m_buffer == LightPass || m_buffer == MotionBlurPass)
   {
     OpenGLMarkerScoped _("Light Pass");
@@ -352,7 +345,7 @@ void MainWidgetPrivate::drawBackbuffer()
   m_deferredPrograms[m_buffer]->bind();
   m_quadGL->draw();
   m_deferredPrograms[m_buffer]->release();
-  m_backBuffer->release();
+  m_backBuffer.release();
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
 }
