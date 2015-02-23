@@ -66,6 +66,7 @@ public:
   void drawBoundaries();
   void updateBackbuffer(int w, int h);
   void drawBackbuffer();
+  void constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f);
 
   // Transformations
   KCamera3D m_camera;
@@ -213,40 +214,12 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   // GBuffer Texture Storage
   for (int i = 0; i < DEFERRED_TEXTURES; ++i)
   {
-    OpenGLTexture &currTexture = m_deferredTextures[i];
-    currTexture.create(OpenGLTexture::Texture2D);
-    currTexture.bind();
-    currTexture.setInternalFormat(OpenGLInternalFormat::Rgba32F);
-    currTexture.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
-    currTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
-    currTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
-    currTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-    currTexture.setSize(m_width, m_height);
-    currTexture.allocate();
-    currTexture.release();
+    constructDeferredTexture(m_deferredTextures[i], OpenGLInternalFormat::Rgba32F);
   }
 
   // Backbuffer Texture
-  m_backBuffer.create(OpenGLTexture::Texture2D);
-  m_backBuffer.bind();
-  m_backBuffer.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
-  m_backBuffer.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
-  m_backBuffer.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
-  m_backBuffer.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  m_backBuffer.setSize(m_width, m_height);
-  m_backBuffer.allocate();
-  m_backBuffer.release();
-
-  m_depthTexture.create(OpenGLTexture::Texture2D);
-  m_depthTexture.bind();
-  m_depthTexture.setInternalFormat(OpenGLInternalFormat::Depth32F);
-  m_depthTexture.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
-  m_depthTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
-  m_depthTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
-  m_depthTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  m_depthTexture.setSize(m_width, m_height);
-  m_depthTexture.allocate();
-  m_depthTexture.release();
+  constructDeferredTexture(m_backBuffer, OpenGLInternalFormat::Rgba32F);
+  constructDeferredTexture(m_depthTexture, OpenGLInternalFormat::Depth32F);
 
   // GBuffer Framebuffer
   m_deferredBuffer->bind();
@@ -352,6 +325,19 @@ void MainWidgetPrivate::drawBackbuffer()
   glEnable(GL_DEPTH_TEST);
 }
 
+void MainWidgetPrivate::constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f)
+{
+  t.create(OpenGLTexture::Texture2D);
+  t.bind();
+  t.setInternalFormat(f);
+  t.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
+  t.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
+  t.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
+  t.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
+  t.setSize(m_width, m_height);
+  t.allocate();
+  t.release();
+}
 
 /*******************************************************************************
  * MainWidget
