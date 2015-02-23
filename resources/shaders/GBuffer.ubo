@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * GBuffer.ubo
+ *------------------------------------------------------------------------------
+ * Not technically a ubo - but there is no clean way to bind the GBuffer.
+ ******************************************************************************/
+
 #ifndef   GBUFFER_UBO
 #define   GBUFFER_UBO
 
@@ -21,17 +27,48 @@ float depth()
   return depthCoord(uvCoord());
 }
 
-vec3 positionCoord(vec2 uv)
+float linearDepthCoord(vec2 uv)
 {
-  float z = depthCoord(uv);
-  vec4 sPos = vec4(uv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
-  vec4 wPos = clipToWorld * sPos;
-  return (wPos.xyz / wPos.w);
+  return linearizeDepth(depthCoord(uv));
 }
 
-vec3 position()
+float linearDepth()
 {
-  return positionCoord(uvCoord());
+  return linearDepthCoord(uvCoord());
+}
+
+vec3 clipPositionCoord(vec2 uv)
+{
+  return vec3(uv * 2.0 - 1.0, depthCoord(uv) * 2.0 - 1.0);
+}
+
+vec3 clipPosition()
+{
+  return clipPositionCoord(uvCoord());
+}
+
+vec3 viewPositionCoord(vec2 uv)
+{
+  vec4 clipPos = vec4(clipPositionCoord(uv), 1.0);
+  vec4 viewPos = clipToView * clipPos;
+  return (viewPos.xyz / viewPos.w);
+}
+
+vec3 viewPosition()
+{
+  return viewPositionCoord(uvCoord());
+}
+
+vec3 worldPositionCoord(vec2 uv)
+{
+  vec4 clipPos = vec4(clipPositionCoord(uv), 1.0);
+  vec4 worldPos = clipToWorld * clipPos;
+  return (worldPos.xyz / worldPos.w);
+}
+
+vec3 worldPosition()
+{
+  return worldPositionCoord(uvCoord());
 }
 
 vec3 normalCoord(vec2 uv)

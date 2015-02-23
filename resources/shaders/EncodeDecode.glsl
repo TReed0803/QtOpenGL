@@ -7,16 +7,6 @@
 #ifndef   ENCODEDECODE_GLSL
 #define   ENCODEDECODE_GLSL
 
-float encodeDepth(float depth)
-{
-  return depth * 2.0 - 1.0;
-}
-
-float decodeDepth(float depth)
-{
-  return depth * 0.5 + 0.5;
-}
-
 vec2 encodeNormal(vec3 n)
 {
   vec2 encN = normalize(n.xy) * sqrt(-n.z * 0.5 + 0.5);

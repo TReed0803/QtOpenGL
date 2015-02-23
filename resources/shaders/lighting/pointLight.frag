@@ -19,7 +19,7 @@ void main()
   // GBuffer Access
   vec2 uv = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
   // Note: Currently storing position in world space. Will change to camera space.
-  vec3 viewPos = (worldToView * vec4(positionCoord(uv),1.0)).xyz;
+  vec3 viewPos = viewPositionCoord(uv);
 
   vec3  lightVec   = vLightViewPosition - viewPos;
   float lightDist  = length(lightVec);
