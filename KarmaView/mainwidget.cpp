@@ -116,6 +116,7 @@ public:
 
   std::vector<OpenGLInstance*> m_instances;
   float m_ambientColor[4];
+  float m_atmosphericColor[4];
 
   // Touch Information
   float m_dragVelocity;
@@ -132,6 +133,8 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
 {
   m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.2f;
   m_ambientColor[3] = 1.0f;
+  m_atmosphericColor[0] = m_atmosphericColor[1] = m_atmosphericColor[2] = 0.0f;
+  m_atmosphericColor[3] = 1.0f;
 }
 
 void MainWidgetPrivate::initializeGL()
@@ -376,7 +379,7 @@ void MainWidget::initializeGL()
     p.m_matrixBlock.create();
     p.m_matrixBlock.bind(1);
     p.m_matrixBlock.setUsagePattern(OpenGLBuffer::DynamicDraw);
-    p.m_matrixBlock.allocate(sizeof(GLfloat) * (16 * 10 + 4 + 5));
+    p.m_matrixBlock.allocate(sizeof(GLfloat) * (16 * 10 + 4 + 5 + 4));
     OpenGLUniformBufferManager::addUniformBufferObject("GlobalBuffer", &p.m_matrixBlock);
 
     // Create Shader for GBuffer Pass
@@ -529,11 +532,12 @@ void MainWidget::paintGL()
         p.m_matrixBlock.write(sizeof(float) * 16 * 8, p.m_cameraPrev.toMatrix().inverted().constData(), sizeof(float) * 16);
         p.m_matrixBlock.write(sizeof(float) * 16 * 9, (p.m_projection * p.m_cameraPrev.toMatrix()).inverted().constData(), sizeof(float) * 16);
         p.m_matrixBlock.write(sizeof(float) * 16 * 10, p.m_ambientColor, sizeof(float) * 4);
-        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4), &p.m_depthFar, sizeof(float));
-        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 5), &p.m_depthNear, sizeof(float));
-        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 6), &p.m_depthDiff, sizeof(float));
-        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 7), &p.m_width, sizeof(float));
-        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 8), &p.m_height, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4), p.m_atmosphericColor, sizeof(float) * 4);
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2), &p.m_depthFar, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2 + 1), &p.m_depthNear, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2 + 2), &p.m_depthDiff, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2 + 3), &p.m_width, sizeof(float));
+        p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2 + 4), &p.m_height, sizeof(float));
         p.m_instanceGroup->update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
         p.m_floorGroup->update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
         p.m_pointLightGroup->update(p.m_projection, p.m_camera.toMatrix());
@@ -541,7 +545,6 @@ void MainWidget::paintGL()
       {
         OpenGLMarkerScoped _("Generate G Buffer");
         p.m_deferredBuffer.bind();
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         p.m_floorGroup->draw();
         p.m_instanceGroup->draw();

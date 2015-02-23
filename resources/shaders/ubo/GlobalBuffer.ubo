@@ -15,6 +15,7 @@ uniform GlobalBuffer
   mat4 prevCameraToWorld;
   mat4 prevViewToWorld;
   vec4 ambientColor;
+  vec4 atmosphericColor;
   float depthFar;
   float depthNear;
   float depthDiff;
