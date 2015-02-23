@@ -19,7 +19,7 @@ enum OpenGLSLToken
   // Preprocessor Tokens
   PT_PP_UNKNOWN,
   PT_PP_INCLUDE,
-  PT_PP_AUTORESOLVE,
+  PT_PP_AUTOBIND,
 
   // Language Tokens
   PT_CODE
@@ -28,7 +28,7 @@ enum OpenGLSLToken
 static KParseMap<OpenGLSLToken> const sg_reserved =
 {
   { "#include", PT_PP_INCLUDE },
-  { "#autoresolve", PT_PP_AUTORESOLVE }
+  { "#autobind", PT_PP_AUTOBIND }
 };
 
 typedef KParseToken<OpenGLSLToken> ParseToken;
@@ -67,7 +67,7 @@ public:
   // Parser
   bool parse();
   void parseInclude();
-  void autoresolveIdentifier();
+  void autobindIdentifier();
 
   // Meta Information
   void setFilePath(char const *filePath);
@@ -83,7 +83,7 @@ private:
   QDir m_relativeDirectory;
   std::vector<std::string> m_includePaths;
   static std::vector<std::string> m_sharedIncludePaths;
-  Autoresolver *m_autoresolver;
+  Autoresolver *m_autobinder;
 };
 
 OpenGLSLParserPrivate::OpenGLSLParserPrivate(OpenGLSLParser *parent, KAbstractReader *reader, KAbstractWriter *writer) :
@@ -167,7 +167,7 @@ OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexPreprocessorIdentifier
   {
   case PT_PP_INCLUDE:
     return lexTokenInclude(token);
-  case PT_PP_AUTORESOLVE:
+  case PT_PP_AUTOBIND:
     return lexTokenAutoresolve(token);
   case PT_PP_UNKNOWN:
     return lexLine(token);
@@ -292,10 +292,10 @@ OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexTokenAutoresolve(OpenG
     case NEWLINE:
       if (token.m_lexicon.empty())
       {
-        LEX_ERROR("Expected an identifier for #autoresolve. Read nothing.");
+        LEX_ERROR("Expected an identifier for #autobind. Read nothing.");
         return PT_ERROR;
       }
-      return PT_PP_AUTORESOLVE;
+      return PT_PP_AUTOBIND;
     default:
       token.m_lexicon += nextChar();
       break;
@@ -341,8 +341,8 @@ bool OpenGLSLParserPrivate::parse()
     case PT_PP_INCLUDE:
       parseInclude();
       break;
-    case PT_PP_AUTORESOLVE:
-      autoresolveIdentifier();
+    case PT_PP_AUTOBIND:
+      autobindIdentifier();
       break;
     case PT_PP_UNKNOWN:
     case PT_CODE:
@@ -358,19 +358,19 @@ void OpenGLSLParserPrivate::parseInclude()
   KBufferedFileReader reader(absolutePath, 2014);
   OpenGLSLParserPrivate subParse(m_parent, &reader, m_writer);
   subParse.setFilePath(absolutePath);
-  subParse.setAutoresolver(m_autoresolver);
+  subParse.setAutoresolver(m_autobinder);
   subParse.initializeLexer();
   subParse.parse();
 }
 
-void OpenGLSLParserPrivate::autoresolveIdentifier()
+void OpenGLSLParserPrivate::autobindIdentifier()
 {
-  if (m_autoresolver)
+  if (m_autobinder)
   {
     std::string target = currToken().m_lexicon;
-    if (std::find(m_autoresolver->begin(), m_autoresolver->end(), target) == m_autoresolver->end())
+    if (std::find(m_autobinder->begin(), m_autobinder->end(), target) == m_autobinder->end())
     {
-      m_autoresolver->push_back(target);
+      m_autobinder->push_back(target);
     }
   }
 }
@@ -383,7 +383,7 @@ void OpenGLSLParserPrivate::setFilePath(const char *filePath)
 
 void OpenGLSLParserPrivate::setAutoresolver(OpenGLSLParserPrivate::Autoresolver *a)
 {
-  m_autoresolver = a;
+  m_autobinder = a;
 }
 
 void OpenGLSLParserPrivate::addIncludePath(const char *path)

@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 TEMPLATE = lib
-CONFIG += staticlib
+CONFIG += staticlib c++11
 TARGET = OpenGL
 QT += widgets
 include(../config.pri)

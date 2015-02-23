@@ -20,7 +20,7 @@ class OpenGLShaderProgramWrappedPrivate
 {
 public:
   std::vector<char const*> m_includePaths;
-  std::vector<std::string> m_autoresolver;
+  std::vector<std::string> m_autobinder;
 };
 
 /*******************************************************************************
@@ -67,7 +67,7 @@ bool OpenGLShaderProgramWrapped::addShaderFromSourceFile(QOpenGLShader::ShaderTy
   {
     parser.addIncludePath(path);
   }
-  parser.setAutoresolver(&p.m_autoresolver);
+  parser.setAutoresolver(&p.m_autobinder);
   parser.initialize();
   if (parser.parse())
   {
@@ -162,15 +162,15 @@ bool OpenGLShaderProgramWrapped::link()
 {
   P(OpenGLShaderProgramWrappedPrivate);
   bool ret = OpenGLShaderProgramChecked::link();
-  if (!p.m_autoresolver.empty())
+  if (!p.m_autobinder.empty())
   {
     bind();
-    for (std::string const &resolver : p.m_autoresolver)
+    for (std::string const &resolver : p.m_autobinder)
     {
       unsigned loc = uniformBlockLocation(resolver.c_str());
       if (loc == OpenGLUniformBufferObject::InvalidLocation)
       {
-        qFatal("Failed to find the UBO `%s` to for autoresolve.", resolver.c_str());
+        qFatal("Failed to find the UBO `%s` to for autobind.", resolver.c_str());
         return false;
       }
       OpenGLUniformBufferObject *ubo = OpenGLUniformBufferManager::find(resolver.c_str());

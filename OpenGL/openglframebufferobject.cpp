@@ -53,28 +53,10 @@ void OpenGLFramebufferObject::release()
   p.m_functions.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void OpenGLFramebufferObject::attachTexture(OpenGLFramebufferObject::Target target, OpenGLFramebufferObject::Attachment attachment, OpenGLTexture &texture, int level)
-{
-  P(OpenGLFramebufferObjectPrivate);
-  p.m_functions.glFramebufferTexture(target, attachment, texture.textureId(), level);
-}
-
-void OpenGLFramebufferObject::attachTexture1D(OpenGLFramebufferObject::Target target, OpenGLFramebufferObject::Attachment attachment, OpenGLTexture &texture, int level)
-{
-  P(OpenGLFramebufferObjectPrivate);
-  p.m_functions.glFramebufferTexture1D(target, attachment, texture.target(), texture.textureId(), level);
-}
-
 void OpenGLFramebufferObject::attachTexture2D(OpenGLFramebufferObject::Target target, OpenGLFramebufferObject::Attachment attachment, OpenGLTexture &texture, int level)
 {
   P(OpenGLFramebufferObjectPrivate);
   p.m_functions.glFramebufferTexture2D(target, attachment, texture.target(), texture.textureId(), level);
-}
-
-void OpenGLFramebufferObject::attachTexture3D(OpenGLFramebufferObject::Target target, OpenGLFramebufferObject::Attachment attachment, OpenGLTexture &texture, int level, int layer)
-{
-  P(OpenGLFramebufferObjectPrivate);
-  p.m_functions.glFramebufferTexture3D(target, attachment, texture.target(), texture.textureId(), level, layer);
 }
 
 void OpenGLFramebufferObject::attachRenderbuffer(OpenGLFramebufferObject::Target target, OpenGLFramebufferObject::Attachment attachment, OpenGLRenderbufferObject &rBuffer)

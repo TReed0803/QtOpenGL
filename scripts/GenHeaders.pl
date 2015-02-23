@@ -9,13 +9,15 @@ use warnings;
 use strict;
 use Cwd;
 use File::Find;
+use File::Path qw( make_path );
 
 my $cwd = getcwd;
+my $outDir = $cwd . "/include/";
 
 sub make_link
 {
-  my ($directory, $basename, $name) = @_;
-  my $filepath = $directory . "/" . $name;
+  my ($basename, $name) = @_;
+  my $filepath = $outDir . $name;
   unless (-e $filepath)
   {
     print "Creating $filepath...\n";
@@ -27,14 +29,14 @@ sub make_link
 
 sub parse_header
 {
-  my ( $directory, $basename, $filename ) = @_;
+  my ( $basename, $filename ) = @_;
 
   open my $file, "<", $filename or die $!;
   while (<$file>)
   {
     if (/^[\s]*#[\s]*define[\s]+[a-zA-Z_0-9]*_H[\s]+(.*)/)
     {
-      make_link($directory, $basename, $1);
+      make_link( $basename, $1);
     }
   }
   close $file;
@@ -45,8 +47,13 @@ sub parse_all_headers
   my $filename = $File::Find::name;
   if ($filename =~ /\.h$/)
   {
-    parse_header($File::Find::dir, $_, $filename);
+    parse_header($_, $filename);
   }
 }
 
+unless ( -d $outDir )
+{
+  print "Creating `$outDir`...";
+  make_path $outDir or die "Failed to create path: $outDir";
+}
 find(\&parse_all_headers, $cwd);

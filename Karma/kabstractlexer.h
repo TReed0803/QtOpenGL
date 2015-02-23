@@ -112,13 +112,13 @@ inline typename KAbstractLexer<TokenType>::token_type &KAbstractLexer<TokenType>
 }
 
 template <typename TokenType>
-inline typename const KAbstractLexer<TokenType>::token_type &KAbstractLexer<TokenType>::currToken() const
+inline const typename KAbstractLexer<TokenType>::token_type &KAbstractLexer<TokenType>::currToken() const
 {
   return *m_currToken;
 }
 
 template <typename TokenType>
-inline typename const KAbstractLexer<TokenType>::token_type &KAbstractLexer<TokenType>::peekToken() const
+inline const typename KAbstractLexer<TokenType>::token_type &KAbstractLexer<TokenType>::peekToken() const
 {
   return *m_peekToken;
 }

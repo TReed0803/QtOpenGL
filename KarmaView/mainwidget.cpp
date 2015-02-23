@@ -68,7 +68,7 @@ public:
   void updateBackbuffer(int w, int h);
   void drawBackbuffer();
   void constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f);
-  void checkFramebuffer(OpenGLFramebufferObject &fbo);
+  void checkFramebuffer(char const *name, OpenGLFramebufferObject &fbo);
 
   // Transformations
   KCamera3D m_camera;
@@ -135,6 +135,8 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_ambientColor[3] = 1.0f;
   m_atmosphericColor[0] = m_atmosphericColor[1] = m_atmosphericColor[2] = 0.0f;
   m_atmosphericColor[3] = 1.0f;
+  m_camera.setTranslation(0.0f, 10.0f, 30.0f);
+  m_camera.setRotation(-30.0f, 1.0f, 0.0f, 0.0f);
 }
 
 void MainWidgetPrivate::initializeGL()
@@ -223,12 +225,12 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
 
   // GBuffer Texture Storage
   constructDeferredTexture(m_gDepth, OpenGLInternalFormat::Depth32F);
-  constructDeferredTexture(m_gGeometry, OpenGLInternalFormat::Rgba16F);
+  constructDeferredTexture(m_gGeometry, OpenGLInternalFormat::Rgba32F);
   constructDeferredTexture(m_gMaterial, OpenGLInternalFormat::Rgba8);
   constructDeferredTexture(m_gSurface, OpenGLInternalFormat::R8);
 
   // Other Texture Storage
-  constructDeferredTexture(m_gLighting, OpenGLInternalFormat::Rgb12);
+  constructDeferredTexture(m_gLighting, OpenGLInternalFormat::Rgba8);
 
   // GBuffer Framebuffer
   m_deferredBuffer.bind();
@@ -237,7 +239,7 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_gSurface);
   m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  m_gDepth);
   m_deferredBuffer.drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2);
-  checkFramebuffer(m_deferredBuffer);
+  checkFramebuffer("Deferred Buffer", m_deferredBuffer);
   m_deferredBuffer.release();
 
   // Light Buffer
@@ -245,7 +247,7 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   m_lightBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gLighting);
   m_lightBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, m_gDepth);
   m_lightBuffer.drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
-  checkFramebuffer(m_lightBuffer);
+  checkFramebuffer("Light Buffer", m_lightBuffer);
   m_lightBuffer.release();
 
   // Activate Backbuffers
@@ -307,26 +309,26 @@ void MainWidgetPrivate::constructDeferredTexture(OpenGLTexture &t, OpenGLInterna
   t.release();
 }
 
-void MainWidgetPrivate::checkFramebuffer(OpenGLFramebufferObject &fbo)
+void MainWidgetPrivate::checkFramebuffer(char const *name, OpenGLFramebufferObject &fbo)
 {
   switch(fbo.status())
   {
   case OpenGLFramebufferObject::Complete:
     break;
   case OpenGLFramebufferObject::IncompleteAttachment:
-    qFatal("Incomplete Attachment");
+    qFatal("%s: Incomplete Attachment", name);
     break;
   case OpenGLFramebufferObject::IncompleteMissingAttachment:
-    qFatal("Incomplete Missing Attachment");
+    qFatal("%s: Incomplete Missing Attachment", name);
     break;
   case OpenGLFramebufferObject::IncompleteDrawBuffer:
-    qFatal("Incomplete Draw Buffer");
+    qFatal("%s: Incomplete Draw Buffer", name);
     break;
   case OpenGLFramebufferObject::IncompleteReadBuffer:
-    qFatal("Incomplete Read Buffer");
+    qFatal("%s: Incomplete Read Buffer", name);
     break;
   case OpenGLFramebufferObject::Unsupported:
-    qFatal("Unsupported");
+    qFatal("%s: Unsupported", name);
     break;
   }
 }
@@ -402,7 +404,7 @@ void MainWidget::initializeGL()
     p.m_pointLightProgram->setUniformValue("depthTexture", 5);
     p.m_pointLightProgram->release();
 
-    // Create Shader for point light pass
+    // Create Shader for ambient light pass
     p.m_ambientProgram = new OpenGLShaderProgram(this);
     p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/ambient.vert");
     p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/ambient.frag");

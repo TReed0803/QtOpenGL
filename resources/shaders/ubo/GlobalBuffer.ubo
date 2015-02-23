@@ -10,24 +10,24 @@
 layout(std140)
 uniform GlobalBuffer
 {
-  mat4 worldToView;
-  mat4 viewToClip;
-  mat4 worldToClip;
-  mat4 viewToWorld;
-  mat4 clipToView;
-  mat4 clipToWorld;
-  mat4 prevWorldToView;
-  mat4 prevWorldToClip;
-  mat4 prevViewToWorld;
-  mat4 prevClipToWorld;
-  vec4 ambientColor;
-  vec4 atmosphericColor;
-  float depthFar;
-  float depthNear;
-  float depthDiff;
-  float viewWidth;
-  float viewHeight;
+  highp mat4 worldToView;
+  highp mat4 viewToClip;
+  highp mat4 worldToClip;
+  highp mat4 viewToWorld;
+  highp mat4 clipToView;
+  highp mat4 clipToWorld;
+  highp mat4 prevWorldToView;
+  highp mat4 prevWorldToClip;
+  highp mat4 prevViewToWorld;
+  highp mat4 prevClipToWorld;
+  highp vec4 ambientColor;
+  highp vec4 atmosphericColor;
+  highp float depthFar;
+  highp float depthNear;
+  highp float depthDiff;
+  highp float viewWidth;
+  highp float viewHeight;
 };
 
-#autoresolve GlobalBuffer
+#autobind GlobalBuffer
 #endif // GLOBALBUFFER_UBO
