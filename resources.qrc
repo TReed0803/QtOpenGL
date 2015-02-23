@@ -14,8 +14,6 @@
         <file>resources/shaders/GBuffer.ubo</file>
         <file>resources/shaders/gbuffer.vert</file>
         <file>resources/shaders/ubo/GlobalBuffer.ubo</file>
-        <file>resources/shaders/texture.frag</file>
-        <file>resources/shaders/texture.vert</file>
         <file>resources/shaders/gbuffer/ambient.frag</file>
         <file>resources/shaders/gbuffer/backbuffer.frag</file>
         <file>resources/shaders/gbuffer/depth.frag</file>

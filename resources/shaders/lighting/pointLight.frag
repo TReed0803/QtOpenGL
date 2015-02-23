@@ -1,18 +1,21 @@
+/*******************************************************************************
+ * lighting/pointLight.frag
+ *------------------------------------------------------------------------------
+ * Apply the lighting calculation to a given fragment of incident light.
+ * Uses GBuffer information to access statistics about the scene itself.
+ ******************************************************************************/
+
 #include <GBuffer.ubo>
+#include <Math.glsl> // saturate
 
-const vec2 middle = vec2(0.5, 0.5);
-
+// Light Properties
 flat in highp vec4 vLightAttenuation;
 flat in highp vec3 vLightViewPosition;
 flat in highp vec3 vLightDiffuse;
 flat in highp vec3 vLightSpecular;
 
+// Light Output
 layout(location = 0) out highp vec4 fFragColor;
-
-float saturate(float f)
-{
-  return clamp(f, 0.0, 1.0);
-}
 
 void main()
 {

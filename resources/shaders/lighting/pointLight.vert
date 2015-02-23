@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * lighting/pointLight.vert
+ *------------------------------------------------------------------------------
+ * Pass-through shader that simply deferrs information to fragment shader.
+ ******************************************************************************/
+
 #include <GlobalBuffer.ubo>
 
 // Per-Vertex Attribs
