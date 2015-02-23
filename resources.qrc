@@ -27,6 +27,8 @@
         <file>resources/shaders/gbuffer/position.frag</file>
         <file>resources/shaders/gbuffer/specular.frag</file>
         <file>resources/shaders/gbuffer/velocity.frag</file>
+        <file>resources/shaders/lighting/ambient.frag</file>
+        <file>resources/shaders/lighting/ambient.vert</file>
         <file>resources/shaders/lighting/pointLight.frag</file>
         <file>resources/shaders/lighting/pointLight.vert</file>
     </qresource>

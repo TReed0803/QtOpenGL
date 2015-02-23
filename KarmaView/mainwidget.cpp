@@ -30,6 +30,7 @@
 #include <Qt>
 #include <QElapsedTimer>
 #include <QFileDialog>
+#include <QOpenGLFramebufferObject>
 #include <OpenGLMesh>
 #include <KHalfEdgeMesh>
 #include <KLinq>
@@ -67,6 +68,7 @@ public:
   void updateBackbuffer(int w, int h);
   void drawBackbuffer();
   void constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f);
+  void checkFramebuffer(OpenGLFramebufferObject &fbo);
 
   // Transformations
   KCamera3D m_camera;
@@ -98,20 +100,20 @@ public:
   std::vector<OpenGLPointLight*> m_pointLights;
   bool m_paused;
   DeferredData m_buffer;
+  OpenGLShaderProgram *m_ambientProgram;
   OpenGLShaderProgram *m_deferredPrograms[DeferredDataCount];
 
   // GBuffer
+  OpenGLTexture m_gDepth;    // depth
   OpenGLTexture m_gGeometry; // normal normal vel vel
   OpenGLTexture m_gMaterial; // diff diff diff spec
   OpenGLTexture m_gSurface;  // exp
+  OpenGLFramebufferObject m_deferredBuffer;
+
+  // Light Accumulation
   OpenGLTexture m_gLighting;
-  OpenGLFramebufferObject *m_deferredBuffer;
+  OpenGLFramebufferObject m_lightBuffer;
 
-  // Render Stages
-  OpenGLTexture m_depthTexture;
-  OpenGLTexture m_backBuffer;
-
-  OpenGLFramebufferObject *m_lightBuffer;
   std::vector<OpenGLInstance*> m_instances;
   float m_ambientColor[4];
 
@@ -128,7 +130,6 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_program(Q_NULLPTR), m_parent(parent), m_width(1), m_height(1),
   m_buffer(LightPass), m_paused(false)
 {
-  m_deferredBuffer = 0;
   m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.2f;
   m_ambientColor[3] = 1.0f;
 }
@@ -218,78 +219,43 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   m_height = h;
 
   // GBuffer Texture Storage
+  constructDeferredTexture(m_gDepth, OpenGLInternalFormat::Depth32F);
   constructDeferredTexture(m_gGeometry, OpenGLInternalFormat::Rgba16F);
   constructDeferredTexture(m_gMaterial, OpenGLInternalFormat::Rgba8);
   constructDeferredTexture(m_gSurface, OpenGLInternalFormat::R8);
+
+  // Other Texture Storage
   constructDeferredTexture(m_gLighting, OpenGLInternalFormat::Rgb12);
 
-  // Backbuffer Texture
-  constructDeferredTexture(m_backBuffer, OpenGLInternalFormat::Rgb12);
-  constructDeferredTexture(m_depthTexture, OpenGLInternalFormat::Depth32F);
-
   // GBuffer Framebuffer
-  m_deferredBuffer->bind();
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_backBuffer);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, m_gGeometry);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_gMaterial);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment3, m_gSurface);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment4, m_gLighting);
-  m_deferredBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  m_depthTexture);
-  m_deferredBuffer->drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2, OpenGLFramebufferObject::ColorAttachment3, OpenGLFramebufferObject::ColorAttachment4);
-
-  // Check Framebuffer validity
-  switch(m_deferredBuffer->status())
-  {
-  case OpenGLFramebufferObject::Complete:
-    break;
-  case OpenGLFramebufferObject::IncompleteAttachment:
-    qFatal("Incomplete Attachment");
-    break;
-  case OpenGLFramebufferObject::IncompleteMissingAttachment:
-    qFatal("Incomplete Missing Attachment");
-    break;
-  case OpenGLFramebufferObject::IncompleteDrawBuffer:
-    qFatal("Incomplete Draw Buffer");
-    break;
-  case OpenGLFramebufferObject::IncompleteReadBuffer:
-    qFatal("Incomplete Read Buffer");
-    break;
-  case OpenGLFramebufferObject::Unsupported:
-    qFatal("Unsupported");
-    break;
-  }
-
-  m_deferredBuffer->release();
+  m_deferredBuffer.bind();
+  m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gGeometry);
+  m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, m_gMaterial);
+  m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_gSurface);
+  m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  m_gDepth);
+  m_deferredBuffer.drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2);
+  checkFramebuffer(m_deferredBuffer);
+  m_deferredBuffer.release();
 
   // Light Buffer
-  m_lightBuffer->bind();
-  m_lightBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gLighting);
-  m_lightBuffer->attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, m_depthTexture);
-  m_lightBuffer->drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
+  m_lightBuffer.bind();
+  m_lightBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gLighting);
+  m_lightBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, m_gDepth);
+  m_lightBuffer.drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
+  checkFramebuffer(m_lightBuffer);
+  m_lightBuffer.release();
 
-  // Check Framebuffer validity
-  switch(m_lightBuffer->status())
-  {
-  case OpenGLFramebufferObject::Complete:
-    break;
-  case OpenGLFramebufferObject::IncompleteAttachment:
-    qFatal("Incomplete Attachment");
-    break;
-  case OpenGLFramebufferObject::IncompleteMissingAttachment:
-    qFatal("Incomplete Missing Attachment");
-    break;
-  case OpenGLFramebufferObject::IncompleteDrawBuffer:
-    qFatal("Incomplete Draw Buffer");
-    break;
-  case OpenGLFramebufferObject::IncompleteReadBuffer:
-    qFatal("Incomplete Read Buffer");
-    break;
-  case OpenGLFramebufferObject::Unsupported:
-    qFatal("Unsupported");
-    break;
-  }
-
-  m_lightBuffer->release();
+  // Activate Backbuffers
+  glActiveTexture(GL_TEXTURE0);
+  m_gGeometry.bind();
+  glActiveTexture(GL_TEXTURE1);
+  m_gMaterial.bind();
+  glActiveTexture(GL_TEXTURE2);
+  m_gSurface.bind();
+  glActiveTexture(GL_TEXTURE4);
+  m_gLighting.bind();
+  glActiveTexture(GL_TEXTURE5);
+  m_gDepth.bind();
 }
 
 void MainWidgetPrivate::drawBackbuffer()
@@ -297,36 +263,29 @@ void MainWidgetPrivate::drawBackbuffer()
   OpenGLMarkerScoped _("Present G Buffer");
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
-  glActiveTexture(GL_TEXTURE0);
-  m_gGeometry.bind();
-  glActiveTexture(GL_TEXTURE1);
-  m_gMaterial.bind();
-  glActiveTexture(GL_TEXTURE2);
-  m_gSurface.bind();
-  glActiveTexture(GL_TEXTURE3);
-  m_backBuffer.bind();
-  glActiveTexture(GL_TEXTURE4);
-  m_gLighting.bind();
-  glActiveTexture(GL_TEXTURE5);
-  m_depthTexture.bind();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_ONE, GL_ONE);
   if (m_buffer == LightPass || m_buffer == MotionBlurPass)
   {
     OpenGLMarkerScoped _("Light Pass");
-    m_lightBuffer->bind();
+    m_lightBuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
     glDepthFunc(GL_GREATER);
     m_pointLightProgram->bind();
     m_pointLightGroup->draw();
+    m_ambientProgram->bind();
+    m_quadGL->draw();
     glDepthFunc(GL_LESS);
-    glDisable(GL_BLEND);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_parent->defaultFramebufferObject());
   }
-  m_deferredPrograms[m_buffer]->bind();
-  m_quadGL->draw();
-  m_deferredPrograms[m_buffer]->release();
-  m_backBuffer.release();
+  {
+    OpenGLMarkerScoped _("Composition Pass");
+    glBindFramebuffer(GL_FRAMEBUFFER, m_parent->defaultFramebufferObject());
+    glClear(GL_COLOR_BUFFER_BIT);
+    m_deferredPrograms[m_buffer]->bind();
+    m_quadGL->draw();
+    m_deferredPrograms[m_buffer]->release();
+  }
+  glDisable(GL_BLEND);
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
 }
@@ -343,6 +302,30 @@ void MainWidgetPrivate::constructDeferredTexture(OpenGLTexture &t, OpenGLInterna
   t.setSize(m_width, m_height);
   t.allocate();
   t.release();
+}
+
+void MainWidgetPrivate::checkFramebuffer(OpenGLFramebufferObject &fbo)
+{
+  switch(fbo.status())
+  {
+  case OpenGLFramebufferObject::Complete:
+    break;
+  case OpenGLFramebufferObject::IncompleteAttachment:
+    qFatal("Incomplete Attachment");
+    break;
+  case OpenGLFramebufferObject::IncompleteMissingAttachment:
+    qFatal("Incomplete Missing Attachment");
+    break;
+  case OpenGLFramebufferObject::IncompleteDrawBuffer:
+    qFatal("Incomplete Draw Buffer");
+    break;
+  case OpenGLFramebufferObject::IncompleteReadBuffer:
+    qFatal("Incomplete Read Buffer");
+    break;
+  case OpenGLFramebufferObject::Unsupported:
+    qFatal("Unsupported");
+    break;
+  }
 }
 
 /*******************************************************************************
@@ -416,6 +399,20 @@ void MainWidget::initializeGL()
     p.m_pointLightProgram->setUniformValue("depthTexture", 5);
     p.m_pointLightProgram->release();
 
+    // Create Shader for point light pass
+    p.m_ambientProgram = new OpenGLShaderProgram(this);
+    p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/ambient.vert");
+    p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/ambient.frag");
+    p.m_ambientProgram->link();
+    p.m_ambientProgram->bind();
+    p.m_ambientProgram->setUniformValue("geometryTexture", 0);
+    p.m_ambientProgram->setUniformValue("materialTexture", 1);
+    p.m_ambientProgram->setUniformValue("dynamicsTexture", 2);
+    p.m_ambientProgram->setUniformValue("backbufferTexture", 3);
+    p.m_ambientProgram->setUniformValue("lightbufferTexture", 4);
+    p.m_ambientProgram->setUniformValue("depthTexture", 5);
+    p.m_ambientProgram->release();
+
     char const* fragFiles[DeferredDataCount] = {
       ":/resources/shaders/gbuffer/depth.frag",
       ":/resources/shaders/gbuffer/linearDepth.frag",
@@ -446,10 +443,8 @@ void MainWidget::initializeGL()
     }
 
     // Framebuffer Object
-    p.m_deferredBuffer = new OpenGLFramebufferObject;
-    p.m_deferredBuffer->create();
-    p.m_lightBuffer = new OpenGLFramebufferObject;
-    p.m_lightBuffer->create();
+    p.m_deferredBuffer.create();
+    p.m_lightBuffer.create();
 
     p.m_pointLightGroup = new OpenGLPointLightGroup(this);
     KHalfEdgeMesh *mesh1 = new KHalfEdgeMesh(this, ":/resources/objects/pointLight.obj");
@@ -545,7 +540,8 @@ void MainWidget::paintGL()
       }
       {
         OpenGLMarkerScoped _("Generate G Buffer");
-        p.m_deferredBuffer->bind();
+        p.m_deferredBuffer.bind();
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         p.m_floorGroup->draw();
         p.m_instanceGroup->draw();
