@@ -328,6 +328,8 @@ void MainWidgetPrivate::drawBackbuffer()
   m_backBuffer.bind();
   glActiveTexture(GL_TEXTURE4);
   m_deferredTextures[3].bind();
+  glActiveTexture(GL_TEXTURE5);
+  m_depthTexture.bind();
   if (m_buffer == LightPass || m_buffer == MotionBlurPass)
   {
     OpenGLMarkerScoped _("Light Pass");
@@ -419,6 +421,7 @@ void MainWidget::initializeGL()
     p.m_pointLightProgram->setUniformValue("dynamicsTexture", 2);
     p.m_pointLightProgram->setUniformValue("backbufferTexture", 3);
     p.m_pointLightProgram->setUniformValue("lightbufferTexture", 4);
+    p.m_pointLightProgram->setUniformValue("depthTexture", 5);
     p.m_pointLightProgram->release();
 
     char const* fragFiles[DeferredDataCount] = {
@@ -446,6 +449,7 @@ void MainWidget::initializeGL()
       p.m_deferredPrograms[i]->setUniformValue("dynamicsTexture", 2);
       p.m_deferredPrograms[i]->setUniformValue("backbufferTexture", 3);
       p.m_deferredPrograms[i]->setUniformValue("lightbufferTexture", 4);
+      p.m_deferredPrograms[i]->setUniformValue("depthTexture", 5);
       p.m_deferredPrograms[i]->release();
     }
 
@@ -506,12 +510,12 @@ void MainWidget::initializeGL()
 void MainWidget::resizeGL(int width, int height)
 {
   P(MainWidgetPrivate);
-  p.m_projection.setToIdentity();
-  p.m_projection.perspective(45.0f, width / float(height), 0.1f, 1000.0f);
-  p.updateBackbuffer(width, height);
   p.m_depthFar = 1000.0f;
   p.m_depthNear = 0.1f;
-  p.m_depthDiff = 1000.0f - 0.1f;
+  p.m_projection.setToIdentity();
+  p.m_projection.perspective(45.0f, width / float(height), p.m_depthNear, p.m_depthFar);
+  p.updateBackbuffer(width, height);
+  p.m_depthDiff = p.m_depthFar - p.m_depthNear;
   OpenGLWidget::resizeGL(width, height);
 }
 

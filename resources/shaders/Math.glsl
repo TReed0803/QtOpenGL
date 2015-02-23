@@ -2,6 +2,12 @@
 #define MATH_GLSL
 
 #include <GlobalBuffer.ubo>
+
+float linearizeDepth(float z)
+{
+  return (2.0 * depthNear) / (depthFar + depthNear - z * depthDiff);
+}
+
 /*
 float saturate(float v)
 {
