@@ -1,10 +1,8 @@
 #ifndef   GBUFFER_UBO
 #define   GBUFFER_UBO
 
+#include <Math.glsl>
 #include <EncodeDecode.glsl>
-#include <GlobalBuffer.ubo>
-
-in highp vec2 fFragCoord;
 
 uniform sampler2D geometryTexture;
 uniform sampler2D materialTexture;
@@ -19,7 +17,7 @@ float depthCoord(vec2 uv)
 
 float depth()
 {
-  return depthCoord(fFragCoord);
+  return depthCoord(uvCoord());
 }
 
 vec3 positionCoord(vec2 uv)
@@ -32,22 +30,8 @@ vec3 positionCoord(vec2 uv)
 
 vec3 position()
 {
-  return positionCoord(fFragCoord);
+  return positionCoord(uvCoord());
 }
-
-vec3 cameraPositionCoord(vec2 uv)
-{
-  float z = depthCoord(uv);
-  vec4 sPos = vec4(uv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
-  vec4 wPos = viewToCamera * sPos;
-  return (wPos.xyz / wPos.w);
-}
-
-vec3 cameraPosition()
-{
-  return positionCoord(fFragCoord);
-}
-
 
 vec3 normalCoord(vec2 uv)
 {
@@ -56,7 +40,7 @@ vec3 normalCoord(vec2 uv)
 
 vec3 normal()
 {
-  return normalCoord(fFragCoord);
+  return normalCoord(uvCoord());
 }
 
 vec3 diffuseCoord(vec2 uv)
@@ -66,7 +50,7 @@ vec3 diffuseCoord(vec2 uv)
 
 vec3 diffuse()
 {
-  return diffuseCoord(fFragCoord);
+  return diffuseCoord(uvCoord());
 }
 
 vec4 specularCoord(vec2 uv)
@@ -78,7 +62,7 @@ vec4 specularCoord(vec2 uv)
 
 vec4 specular()
 {
-  return specularCoord(fFragCoord);
+  return specularCoord(uvCoord());
 }
 
 vec2 velocityCoord(vec2 uv)
@@ -88,7 +72,7 @@ vec2 velocityCoord(vec2 uv)
 
 vec2 velocity()
 {
-  return velocityCoord(fFragCoord);
+  return velocityCoord(uvCoord());
 }
 
 vec4 backbufferCoord(vec2 uv)
@@ -98,7 +82,7 @@ vec4 backbufferCoord(vec2 uv)
 
 vec4 backbuffer()
 {
-  return backbufferCoord(fFragCoord);
+  return backbufferCoord(uvCoord());
 }
 
 vec4 lightbufferCoord(vec2 uv)
@@ -108,7 +92,7 @@ vec4 lightbufferCoord(vec2 uv)
 
 vec4 lightbuffer()
 {
-  return lightbufferCoord(fFragCoord);
+  return lightbufferCoord(uvCoord());
 }
 
 #endif // GBUFFER_UBO

@@ -10,6 +10,7 @@
         <file>resources/shaders/debug/world.vert</file>
         <file>resources/shaders/EncodeDecode.glsl</file>
         <file>resources/shaders/gbuffer.frag</file>
+        <file>resources/shaders/Math.glsl</file>
         <file>resources/shaders/GBuffer.ubo</file>
         <file>resources/shaders/gbuffer.vert</file>
         <file>resources/shaders/ubo/GlobalBuffer.ubo</file>

@@ -482,7 +482,7 @@ void MainWidget::initializeGL()
     p.m_floorInstance->material().setDiffuse(0.0f, 0.0f, 1.0f);
     p.m_floorInstance->material().setSpecular(0.5f, 0.5f, 0.5f, 1.0f);
     p.m_floorInstance->transform().setScale(100.0f);
-    p.m_floorInstance->transform().setTranslation(0.0f, -5.0f, 0.0f);
+    p.m_floorInstance->transform().setTranslation(0.0f, -2.0f, 0.0f);
     p.loadObj(":/resources/objects/sphere.obj");
 
     // Initialize instances
@@ -493,7 +493,7 @@ void MainWidget::initializeGL()
         float cosine = std::cos(deg * 3.14159f / 180.0f);
         float sine = std::sin(deg * 3.14159f / 180.0f);
         OpenGLInstance * instance = p.m_instanceGroup->createInstance();
-        instance->currentTransform().setScale(10.0f);
+        instance->currentTransform().setScale(1.0f);
         instance->material().setDiffuse(deg / 360.0f, 1.0f - deg / 360.0f, 0.0f);
         instance->material().setSpecular(1.0f, 1.0f, 1.0f, 16.0f);
         instance->currentTransform().setTranslation(cosine * 15, level * 5, sine * 15);
