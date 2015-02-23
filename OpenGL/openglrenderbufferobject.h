@@ -15,8 +15,10 @@ public:
   void create();
   void bind();
   void release();
-  void setStorage(OpenGLStorage storage);
-  OpenGLStorage storage() const;
+  void setInternalFormat(OpenGLInternalFormat storage);
+  OpenGLInternalFormat internalFormat() const;
+  OpenGLFormat format() const;
+  OpenGLType texelType() const;
   void setSize(int width, int height);
   void setSize(KSize const &size);
   KSize const& size() const;

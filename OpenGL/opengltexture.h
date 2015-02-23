@@ -56,7 +56,7 @@ public:
   void setFilter(FilterType filter, FilterOperation op);
   void setSize(int width, int height);
   void setSize(KSize const &size);
-  void setStorage(OpenGLStorage s);
+  void setInternalFormat(OpenGLInternalFormat f);
   void allocate();
   int textureId();
   Target target() const;

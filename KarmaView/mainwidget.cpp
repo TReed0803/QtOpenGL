@@ -222,7 +222,7 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
     currTexture = new OpenGLTexture();
     currTexture->create(OpenGLTexture::Texture2D);
     currTexture->bind();
-    currTexture->setStorage((OpenGLStorage)GL_RGBA32F);
+    currTexture->setInternalFormat(OpenGLInternalFormat::Rgba32F);
     currTexture->setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
     currTexture->setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
     currTexture->setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
@@ -250,7 +250,7 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   m_depthBuffer = new OpenGLRenderbufferObject();
   m_depthBuffer->create();
   m_depthBuffer->bind();
-  m_depthBuffer->setStorage(OpenGLStorage::Depth16);
+  m_depthBuffer->setInternalFormat(OpenGLInternalFormat::Depth16);
   m_depthBuffer->setSize(m_width, m_height);
   m_depthBuffer->allocate();
   m_depthBuffer->release();

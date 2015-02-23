@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * EncodeDecode.glsl
+ *------------------------------------------------------------------------------
+ * Provides all of the capabilities to encode and decode data from the GBuffer.
+ ******************************************************************************/
+
 #ifndef   ENCODEDECODE_GLSL
 #define   ENCODEDECODE_GLSL
 

@@ -12,12 +12,12 @@ public:
   int m_references;
   GLuint m_objectId;
   OpenGLFunctions m_functions;
-  OpenGLStorage m_storage;
+  OpenGLInternalFormat m_format;
   KSize m_size;
 };
 
 OpenGLRenderbufferObjectPrivate::OpenGLRenderbufferObjectPrivate() :
-  m_references(1), m_objectId(0), m_storage(OpenGLStorage::Rgba8)
+  m_references(1), m_objectId(0), m_format(OpenGLInternalFormat::Rgba8)
 {
   m_functions.initializeOpenGLFunctions();
   m_functions.glGenRenderbuffers(1, &m_objectId);
@@ -58,16 +58,28 @@ void OpenGLRenderbufferObject::release()
   p.m_functions.glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
-void OpenGLRenderbufferObject::setStorage(OpenGLStorage storage)
+void OpenGLRenderbufferObject::setInternalFormat(OpenGLInternalFormat storage)
 {
   P(OpenGLRenderbufferObjectPrivate);
-  p.m_storage = storage;
+  p.m_format = storage;
 }
 
-OpenGLStorage OpenGLRenderbufferObject::storage() const
+OpenGLInternalFormat OpenGLRenderbufferObject::internalFormat() const
 {
   P(OpenGLRenderbufferObjectPrivate);
-  return p.m_storage;
+  return p.m_format;
+}
+
+OpenGLFormat OpenGLRenderbufferObject::format() const
+{
+  P(OpenGLRenderbufferObjectPrivate);
+  return GetFormat(p.m_format);
+}
+
+OpenGLType OpenGLRenderbufferObject::texelType() const
+{
+  P(OpenGLRenderbufferObjectPrivate);
+  return GetType(p.m_format);
 }
 
 void OpenGLRenderbufferObject::setSize(int width, int height)
@@ -97,7 +109,7 @@ int OpenGLRenderbufferObject::objectId()
 void OpenGLRenderbufferObject::allocate()
 {
   P(OpenGLRenderbufferObjectPrivate);
-  p.m_functions.glRenderbufferStorage(GL_RENDERBUFFER, (GLenum)p.m_storage, p.m_size.width(), p.m_size.height());
+  p.m_functions.glRenderbufferStorage(GL_RENDERBUFFER, (GLenum)p.m_format, p.m_size.width(), p.m_size.height());
 }
 
 void OpenGLRenderbufferObject::removeReference()

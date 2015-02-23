@@ -11,13 +11,13 @@ public:
   OpenGLTexture::Target m_target;
   GLuint m_textureId;
   KSize m_size;
-  OpenGLStorage m_storage;
+  OpenGLInternalFormat m_format;
   OpenGLTexturePrivate(OpenGLTexture::Target t);
   ~OpenGLTexturePrivate();
 };
 
 OpenGLTexturePrivate::OpenGLTexturePrivate(OpenGLTexture::Target t) :
-  m_references(1), m_target(t), m_textureId(0), m_size(1, 1), m_storage(OpenGLStorage::Rgba)
+  m_references(1), m_target(t), m_textureId(0), m_size(1, 1), m_format(OpenGLInternalFormat::Rgba8)
 {
   m_functions.initializeOpenGLFunctions();
   m_functions.glGenTextures(1, &m_textureId);
@@ -82,10 +82,10 @@ void OpenGLTexture::setSize(const KSize &size)
   setSize(size.width(), size.height());
 }
 
-void OpenGLTexture::setStorage(OpenGLStorage s)
+void OpenGLTexture::setInternalFormat(OpenGLInternalFormat f)
 {
   P(OpenGLTexturePrivate);
-  p.m_storage = s;
+  p.m_format = f;
 }
 
 void OpenGLTexture::allocate()
@@ -94,7 +94,7 @@ void OpenGLTexture::allocate()
   switch (p.m_target)
   {
   case Texture2D:
-    p.m_functions.glTexImage2D(p.m_target, 0, GL_RGBA32F, p.m_size.width(), p.m_size.height(), 0, GL_RGBA, GL_FLOAT, (GLvoid*)0);
+    p.m_functions.glTexImage2D(p.m_target, 0, static_cast<GLint>(p.m_format), p.m_size.width(), p.m_size.height(), 0, static_cast<GLenum>(GetFormat(p.m_format)), static_cast<GLenum>(GetType(p.m_format)), (GLvoid*)0);
     break;
   case Texture1D:
   case TextureRectangle:
