@@ -17,17 +17,15 @@ float saturate(float f)
 void main()
 {
   // GBuffer Access
-  vec2 uv = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
-  // Note: Currently storing position in world space. Will change to camera space.
-  vec3 viewPos = viewPositionCoord(uv);
+  vec3 viewPos = viewPosition();
 
   vec3  lightVec   = vLightViewPosition - viewPos;
   float lightDist  = length(lightVec);
   if (lightDist < vLightAttenuation.w)
   {
-    vec3 normal   = normalCoord(uv);
-    vec3 diffuse  = diffuseCoord(uv);
-    vec4 specular = specularCoord(uv);
+    vec3 normal   = normal();
+    vec3 diffuse  = diffuse();
+    vec4 specular = specular();
 
     vec3  lightDir   = lightVec / lightDist;
     vec3  viewDir    = normalize(-viewPos);
