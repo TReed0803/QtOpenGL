@@ -25,7 +25,7 @@ vec3 positionCoord(vec2 uv)
 {
   float z = depthCoord(uv);
   vec4 sPos = vec4(uv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
-  vec4 wPos = viewToWorld * sPos;
+  vec4 wPos = clipToWorld * sPos;
   return (wPos.xyz / wPos.w);
 }
 

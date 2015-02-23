@@ -2,10 +2,10 @@
 #include <GlobalBuffer.ubo>
 
 // Vertex Inputs
-in vec3 vCameraNormal;
-in vec4 vCurrCameraPosition;
+in vec3 vViewNormal;
 in vec4 vCurrViewPosition;
-in vec4 vPrevViewPosition;
+in vec4 vCurrClipPosition;
+in vec4 vPrevClipPosition;
 flat in vec3 vDiffuse;
 flat in vec4 vSpecular;
 
@@ -19,10 +19,10 @@ void main()
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 1: Geometry Buffer
   // Encode Geometry information (Normal, Normal, , Depth)
-  vec2 currClipPos = (vCurrViewPosition.xy / vCurrViewPosition.w) * 0.5 + 0.5;
-  vec2 prevClipPos = (vPrevViewPosition.xy / vPrevViewPosition.w) * 0.5 + 0.5;
-  fGeometry.xy  = encodeNormal(normalize(vCameraNormal));
-  fGeometry.zw  = currClipPos - prevClipPos;
+  vec2 currHomogeneousPos = (vCurrClipPosition.xy / vCurrClipPosition.w) * 0.5 + 0.5;
+  vec2 prevHomogeneousPos = (vPrevClipPosition.xy / vPrevClipPosition.w) * 0.5 + 0.5;
+  fGeometry.xy  = encodeNormal(normalize(vViewNormal));
+  fGeometry.zw  = currHomogeneousPos - prevHomogeneousPos;
 
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 2: Material Buffer

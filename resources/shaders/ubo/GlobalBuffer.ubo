@@ -4,16 +4,16 @@
 layout(std140)
 uniform GlobalBuffer
 {
-  mat4 worldToCamera;
-  mat4 cameraToView;
   mat4 worldToView;
-  mat4 cameraToWorld;
-  mat4 viewToCamera;
+  mat4 viewToClip;
+  mat4 worldToClip;
   mat4 viewToWorld;
-  mat4 prevWorldToCamera;
+  mat4 clipToView;
+  mat4 clipToWorld;
   mat4 prevWorldToView;
-  mat4 prevCameraToWorld;
+  mat4 prevWorldToClip;
   mat4 prevViewToWorld;
+  mat4 prevClipToWorld;
   vec4 ambientColor;
   vec4 atmosphericColor;
   float depthFar;

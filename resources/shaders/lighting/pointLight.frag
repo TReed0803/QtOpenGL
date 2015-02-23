@@ -3,7 +3,7 @@
 const vec2 middle = vec2(0.5, 0.5);
 
 flat in highp vec4 vLightAttenuation;
-flat in highp vec3 vLightCameraPosition;
+flat in highp vec3 vLightViewPosition;
 flat in highp vec3 vLightDiffuse;
 flat in highp vec3 vLightSpecular;
 
@@ -19,9 +19,9 @@ void main()
   // GBuffer Access
   vec2 uv = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
   // Note: Currently storing position in world space. Will change to camera space.
-  vec3 cPosition= (worldToCamera * vec4(positionCoord(uv),1.0)).xyz;
+  vec3 viewPos = (worldToView * vec4(positionCoord(uv),1.0)).xyz;
 
-  vec3  lightVec   = vLightCameraPosition - cPosition;
+  vec3  lightVec   = vLightViewPosition - viewPos;
   float lightDist  = length(lightVec);
   if (lightDist < vLightAttenuation.w)
   {
@@ -30,7 +30,7 @@ void main()
     vec4 specular = specularCoord(uv);
 
     vec3  lightDir   = lightVec / lightDist;
-    vec3  viewDir    = normalize(-cPosition);
+    vec3  viewDir    = normalize(-viewPos);
     vec3  polynomial = vec3(1.0f, lightDist, lightDist * lightDist);
     float attenuation = 1.0 / dot(polynomial,vLightAttenuation.xyz);
     attenuation *= saturate(1.0 - (lightDist / vLightAttenuation.w));
