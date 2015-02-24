@@ -4,6 +4,7 @@
 #include <KAbstractBoundingVolume>
 class KHalfEdgeMesh;
 
+class KEllipsoidBoundingVolumePrivate;
 class KEllipsoidBoundingVolume : public KAbstractBoundingVolume
 {
 public:
@@ -12,9 +13,11 @@ public:
     PcaMethod
   };
 
-  KEllipsoidBoundingVolume(KHalfEdgeMesh const &hem, Method method);
+  KEllipsoidBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   ~KEllipsoidBoundingVolume();
-  void draw(KTransform3D &t);
+  void draw(KTransform3D &t, KColor const &color);
+private:
+  KEllipsoidBoundingVolumePrivate *m_private;
 };
 
 #endif // KELLIPSOIDBOUNDINGVOLUME_H

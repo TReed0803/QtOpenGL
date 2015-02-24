@@ -519,6 +519,7 @@ void MainWidget::initializeGL()
     instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
     instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
     instance->currentTransform().setTranslation(0.0f, 0.0f, 0.0f);
+    p.m_instances.push_back(instance);
     ++sg_count;
     qDebug() << "Instances: " << sg_count;
 
@@ -590,13 +591,13 @@ void MainWidget::paintGL()
     // Draw BV
     for (OpenGLInstance *i : p.m_instances)
     {
-      p.m_aabbBV->draw(i->currentTransform());
-      p.m_sphereCentroidBV->draw(i->currentTransform());
-      p.m_sphereRittersBV->draw(i->currentTransform());
-      p.m_sphereLarssonsBV->draw(i->currentTransform());
-      p.m_spherePcaBV->draw(i->currentTransform());
-      p.m_ellipsoidPcaBV->draw(i->currentTransform());
-      p.m_orientedPcaBV->draw(i->currentTransform());
+      p.m_aabbBV->draw(i->currentTransform(), Qt::red);
+      p.m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
+      p.m_sphereRittersBV->draw(i->currentTransform(), Qt::red);
+      p.m_sphereLarssonsBV->draw(i->currentTransform(), Qt::red);
+      p.m_spherePcaBV->draw(i->currentTransform(), Qt::red);
+      p.m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
+      p.m_orientedPcaBV->draw(i->currentTransform(), Qt::red);
     }
 
     OpenGLDebugDraw::draw();

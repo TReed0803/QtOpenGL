@@ -4,6 +4,7 @@
 #include <KAbstractBoundingVolume>
 class KHalfEdgeMesh;
 
+class KAabbBoundingVolumePrivate;
 class KAabbBoundingVolume : public KAbstractBoundingVolume
 {
 public:
@@ -13,9 +14,11 @@ public:
     MinMaxMethod
   };
 
-  KAabbBoundingVolume(KHalfEdgeMesh const &hem, Method method);
+  KAabbBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   ~KAabbBoundingVolume();
-  void draw(KTransform3D &t);
+  void draw(KTransform3D &t, const KColor &color);
+private:
+  KAabbBoundingVolumePrivate *m_private;
 };
 
 #endif // KAABBBOUNDINGVOLUME_H

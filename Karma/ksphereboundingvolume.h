@@ -4,6 +4,7 @@
 #include <KAbstractBoundingVolume>
 class KHalfEdgeMesh;
 
+class KSphereBoundingVolumePrivate;
 class KSphereBoundingVolume : public KAbstractBoundingVolume
 {
 public:
@@ -15,9 +16,11 @@ public:
     PcaMethod
   };
 
-  KSphereBoundingVolume(KHalfEdgeMesh const &hem, Method method);
+  KSphereBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   ~KSphereBoundingVolume();
-  void draw(KTransform3D &t);
+  void draw(KTransform3D &t, KColor const &color);
+private:
+  KSphereBoundingVolumePrivate *m_private;
 };
 
 #endif // KSPHEREBOUNDINGVOLUME_H

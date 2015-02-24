@@ -18,6 +18,7 @@ struct OpenGLDebugDraw
   // Drawing points within the world. (Unmanipulated)
   struct World
   {
+    static void drawAabb(const KVector3D &min, const KVector3D &max, const KColor &color);
     static void drawLine(const KVector3D &from, const KVector3D &to, const KColor &color);
   };
 

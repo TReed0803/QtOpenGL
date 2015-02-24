@@ -154,6 +154,28 @@ void OpenGLDebugDraw::Screen::drawRect(const KRectF &rect, const KColor &color)
 /*******************************************************************************
  * OpenGLDebugDraw::World
  ******************************************************************************/
+void OpenGLDebugDraw::World::drawAabb(const KVector3D &frontA, const KVector3D &backC, const KColor &color)
+{
+  KVector3D frontB  = KVector3D( backC.x(), frontA.y(), frontA.z());
+  KVector3D frontC  = KVector3D( backC.x(),  backC.y(), frontA.z());
+  KVector3D frontD  = KVector3D(frontA.x(),  backC.y(), frontA.z());
+  KVector3D backD   = KVector3D(frontA.x(),  backC.y(),  backC.z());
+  KVector3D backA   = KVector3D(frontA.x(), frontA.y(),  backC.z());
+  KVector3D backB   = KVector3D( backC.x(), frontA.y(),  backC.z());
+  drawLine(frontA, frontB, color);
+  drawLine(frontB, frontC, color);
+  drawLine(frontC, frontD, color);
+  drawLine(frontD, frontA, color);
+  drawLine(backA, backB, color);
+  drawLine(backB, backC, color);
+  drawLine(backC, backD, color);
+  drawLine(backD, backA, color);
+  drawLine(frontA, backA, color);
+  drawLine(frontB, backB, color);
+  drawLine(frontC, backC, color);
+  drawLine(frontD, backD, color);
+}
+
 void OpenGLDebugDraw::World::drawLine(const KVector3D &from, const KVector3D &to, const KColor &color)
 {
   // Create vertices
