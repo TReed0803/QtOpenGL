@@ -22,4 +22,24 @@ highp vec3 decodeNormal(highp vec2 n)
   return decN.xyz * 2.0 + vec3(0.0, 0.0, -1.0);
 }
 
+highp float encodeSpecularColor(highp vec3 s)
+{
+  return (s.x + s.y + s.z) / 3.0;
+}
+
+highp vec3 decodeSpecularColor(highp float s)
+{
+  return vec3(s, s, s);
+}
+
+highp float encodeSpecularExponent(highp float s)
+{
+  return s / 255.0;
+}
+
+highp float decodeSpecularExponent(highp float s)
+{
+  return s * 255.0;
+}
+
 #endif // ENCODEDECODE_GLSL

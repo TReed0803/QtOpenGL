@@ -37,10 +37,10 @@ void main()
   // Deferred Buffer 2: Material Buffer
   // Encode Material information (Diffuse, Diffuse, Diffuse, Specular Color)
   fMaterial.xyz = vDiffuse;
-  fMaterial.w   = vSpecular.z;
+  fMaterial.w   = encodeSpecularColor(vSpecular.xyz);
 
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 3: Surface Buffer
   // Encode Dynamics information (Specular Exp.)
-  fSurface.x = vSpecular.w;
+  fSurface.x = encodeSpecularExponent(vSpecular.w);
 }

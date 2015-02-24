@@ -30,23 +30,26 @@ void main()
     highp vec3 diffuse  = diffuse();
     highp vec4 specular = specular();
 
+    // Construct a finite attenuation
     highp vec3  lightDir   = lightVec / lightDist;
-    highp vec3  viewDir    = normalize(-viewPos);
     highp vec3  polynomial = vec3(1.0, lightDist, lightDist * lightDist);
     highp float attenuation = 1.0 / dot(polynomial,vLightAttenuation.xyz);
     attenuation *= saturate(1.0 - (lightDist / vLightAttenuation.w));
 
     // Blinn Phong
     highp float lambertian = max(dot(lightDir, normal), 0.0);
-    highp vec3  halfDir    = normalize(lightDir + viewDir);
-    highp float specAngle  = max(dot(halfDir, normal), 0.0);
-    highp float specFactor = pow(saturate(specAngle), specular.w);
+    highp float specFactor = 0.0;
+    if (lambertian > 0.0)
+    {
+      highp vec3  viewDir    = normalize(-viewPos);
+      highp vec3  halfDir    = normalize(lightDir + viewDir);
+      highp float specAngle  = max(dot(halfDir, normal), 0.0);
+      specFactor = pow(specAngle, specular.w);
+    }
 
-    // Apply Lighting Terms
+    // Construct Lighting Terms
     highp vec3 diffuseTerm  = vLightDiffuse  * diffuse      * lambertian;
     highp vec3 specularTerm = vLightSpecular * specular.xyz * specFactor;
-
-    // Final fragment color
     fFragColor = vec4(attenuation * (diffuseTerm + specularTerm), 1.0);
   }
   else

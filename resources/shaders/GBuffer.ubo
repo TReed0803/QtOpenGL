@@ -93,9 +93,9 @@ highp vec3 diffuse()
 
 highp vec4 specularCoord(highp vec2 uv)
 {
-  highp float specColor = texture(materialTexture, uv).z;
-  highp float specExponent = texture(surfaceTexture, uv).w;
-  return vec4(specColor, specColor, specColor, specExponent);
+  highp vec3 specColor = decodeSpecularColor(texture(materialTexture, uv).w);
+  highp float specExponent = decodeSpecularExponent(texture(surfaceTexture, uv).x);
+  return vec4(specColor, specExponent);
 }
 
 highp vec4 specular()

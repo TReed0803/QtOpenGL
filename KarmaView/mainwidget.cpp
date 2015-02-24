@@ -224,13 +224,13 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   m_height = h;
 
   // GBuffer Texture Storage
-  constructDeferredTexture(m_gDepth, OpenGLInternalFormat::Depth32F);
-  constructDeferredTexture(m_gGeometry, OpenGLInternalFormat::Rgba32F);
-  constructDeferredTexture(m_gMaterial, OpenGLInternalFormat::Rgba8);
-  constructDeferredTexture(m_gSurface, OpenGLInternalFormat::R8);
+  constructDeferredTexture(m_gDepth, OpenGLInternalFormat::Depth32F);   // Depth
+  constructDeferredTexture(m_gGeometry, OpenGLInternalFormat::Rgba32F); // Normal Normal Velocity Velocity
+  constructDeferredTexture(m_gMaterial, OpenGLInternalFormat::Rgba8);   // Diffuse Diffuse Diffuse SpecularColor
+  constructDeferredTexture(m_gSurface, OpenGLInternalFormat::R8);       // SpecularExp
 
   // Other Texture Storage
-  constructDeferredTexture(m_gLighting, OpenGLInternalFormat::Rgba8);
+  constructDeferredTexture(m_gLighting, OpenGLInternalFormat::Rgba16);
 
   // GBuffer Framebuffer
   m_deferredBuffer.bind();
@@ -458,7 +458,7 @@ void MainWidget::initializeGL()
     for (int i = 0; i < 10; ++i)
     {
       OpenGLPointLight *l = p.m_pointLightGroup->createLight();
-      l->setRadius(10.0f);
+      l->setRadius(50.0f);
       p.m_pointLights.push_back(l);
     }
     // Open OBJ
@@ -469,22 +469,22 @@ void MainWidget::initializeGL()
     p.m_floorGroup->setMesh(oglMesh);
     p.m_floorInstance = p.m_floorGroup->createInstance();
     p.m_floorInstance->material().setDiffuse(0.0f, 0.0f, 1.0f);
-    p.m_floorInstance->material().setSpecular(0.5f, 0.5f, 0.5f, 1.0f);
+    p.m_floorInstance->material().setSpecular(0.25f, 0.25f, 0.25f, 1.0f);
     p.m_floorInstance->transform().setScale(100.0f);
-    p.m_floorInstance->transform().setTranslation(0.0f, -2.0f, 0.0f);
+    p.m_floorInstance->transform().setTranslation(0.0f, -1.0f, 0.0f);
     p.loadObj(":/resources/objects/sphere.obj");
 
     // Initialize instances
     for (int level = 0; level < 1; ++level)
     {
-      for (int deg = 0; deg < 360; deg += 30)
+      for (int count = 0; count < 4; ++count)
       {
-        float cosine = std::cos(deg * 3.14159f / 180.0f);
-        float sine = std::sin(deg * 3.14159f / 180.0f);
+        float cosine = std::cos(count * 3.14159f / 2.0f);
+        float sine = std::sin(count * 3.14159f / 2.0f);
         OpenGLInstance * instance = p.m_instanceGroup->createInstance();
-        instance->currentTransform().setScale(1.0f);
-        instance->material().setDiffuse(deg / 360.0f, 1.0f - deg / 360.0f, 0.0f);
-        instance->material().setSpecular(1.0f, 1.0f, 1.0f, 16.0f);
+        instance->currentTransform().setScale(50.0f);
+        instance->material().setDiffuse(count / 4.0f, 1.0f - count / 4.0f, 0.0f);
+        instance->material().setSpecular(1.0f, 1.0f, 1.0f, 255.0f);
         instance->currentTransform().setTranslation(cosine * 15, level * 5, sine * 15);
         p.m_instances.push_back(instance);
         ++sg_count;
@@ -577,20 +577,13 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   p.m_cameraPrev = p.m_camera;
 
   // Update instances
-  float angle = 0.0f;
-  KVector3D translation;
-  for (OpenGLInstance *instance : p.m_instances)
-  {
-    instance->currentTransform().rotate(angle, 0.0f, 0.0, 3.0f);
-    angle += 1.0f;
-  }
 
   static float f = 0.0f;
   f += 0.0016f;
-  angle = f;
+  float angle = f;
   for (OpenGLPointLight *instance : p.m_pointLights)
   {
-    instance->setTranslation(cos(angle) * 17.0f, 0.0f, sin(angle) * 17.0f);
+    instance->setTranslation(cos(angle) * 25.0f, 0.0f, sin(angle) * 25.0f);
     angle += 2 * 3.1415926 / p.m_pointLights.size();
   }
 
