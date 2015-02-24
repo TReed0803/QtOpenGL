@@ -27,6 +27,12 @@
 #include <KVector2D>
 #include <KVertex>
 
+// Bounding Volumes
+#include <KAabbBoundingVolume>
+#include <KSphereBoundingVolume>
+#include <KEllipsoidBoundingVolume>
+#include <KOrientedBoundingVolume>
+
 #include <Qt>
 #include <QElapsedTimer>
 #include <QFileDialog>
@@ -103,6 +109,15 @@ public:
   OpenGLShaderProgram *m_ambientProgram;
   OpenGLShaderProgram *m_deferredPrograms[DeferredDataCount];
 
+  // Bounding Volumes
+  KAabbBoundingVolume *m_aabbBV;
+  KSphereBoundingVolume *m_sphereCentroidBV;
+  KSphereBoundingVolume *m_sphereRittersBV;
+  KSphereBoundingVolume *m_sphereLarssonsBV;
+  KSphereBoundingVolume *m_spherePcaBV;
+  KEllipsoidBoundingVolume *m_ellipsoidPcaBV;
+  KOrientedBoundingVolume *m_orientedPcaBV;
+
   // GBuffer
   OpenGLTexture m_gDepth;    // depth
   OpenGLTexture m_gGeometry; // normal normal vel vel
@@ -135,8 +150,8 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_ambientColor[3] = 1.0f;
   m_atmosphericColor[0] = m_atmosphericColor[1] = m_atmosphericColor[2] = 0.0f;
   m_atmosphericColor[3] = 1.0f;
-  m_camera.setTranslation(0.0f, 10.0f, 30.0f);
-  m_camera.setRotation(-30.0f, 1.0f, 0.0f, 0.0f);
+  m_camera.setTranslation(0.0f, 3.0f, 10.0f);
+  m_camera.setRotation(-20.0f, 1.0f, 0.0f, 0.0f);
 }
 
 void MainWidgetPrivate::initializeGL()
@@ -160,6 +175,13 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
     {
       timer.start();
       m_halfEdgeMesh = new KHalfEdgeMesh(m_parent, fileName);
+      m_aabbBV = new KAabbBoundingVolume(*m_halfEdgeMesh, KAabbBoundingVolume::MinMaxMethod);
+      m_sphereCentroidBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::CentroidMethod);
+      m_sphereRittersBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::RittersMethod);
+      m_sphereLarssonsBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::LarssonsMethod);
+      m_spherePcaBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::PcaMethod);
+      m_ellipsoidPcaBV = new KEllipsoidBoundingVolume(*m_halfEdgeMesh, KEllipsoidBoundingVolume::PcaMethod);
+      m_orientedPcaBV = new KOrientedBoundingVolume(*m_halfEdgeMesh, KOrientedBoundingVolume::PcaMethod);
       ms = timer.elapsed();
       qDebug() << "Create HalfEdgeMesh (sec):" << float(ms) / 1e3f;
     }
@@ -455,7 +477,7 @@ void MainWidget::initializeGL()
     KHalfEdgeMesh *mesh1 = new KHalfEdgeMesh(this, ":/resources/objects/pointLight.obj");
     OpenGLMesh * oglMesh1 = mesh1->createOpenGLMesh(OpenGLMesh::Contiguous);
     p.m_pointLightGroup->setMesh(oglMesh1);
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 5; ++i)
     {
       OpenGLPointLight *l = p.m_pointLightGroup->createLight();
       l->setRadius(50.0f);
@@ -475,6 +497,7 @@ void MainWidget::initializeGL()
     p.loadObj(":/resources/objects/sphere.obj");
 
     // Initialize instances
+    /*
     for (int level = 0; level < 1; ++level)
     {
       for (int count = 0; count < 4; ++count)
@@ -482,7 +505,7 @@ void MainWidget::initializeGL()
         float cosine = std::cos(count * 3.14159f / 2.0f);
         float sine = std::sin(count * 3.14159f / 2.0f);
         OpenGLInstance * instance = p.m_instanceGroup->createInstance();
-        instance->currentTransform().setScale(50.0f);
+        instance->currentTransform().setScale(1.0f);
         instance->material().setDiffuse(count / 4.0f, 1.0f - count / 4.0f, 0.0f);
         instance->material().setSpecular(1.0f, 1.0f, 1.0f, 255.0f);
         instance->currentTransform().setTranslation(cosine * 15, level * 5, sine * 15);
@@ -490,6 +513,13 @@ void MainWidget::initializeGL()
         ++sg_count;
       }
     }
+    //*/
+    OpenGLInstance * instance = p.m_instanceGroup->createInstance();
+    instance->currentTransform().setScale(1.0f);
+    instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
+    instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
+    instance->currentTransform().setTranslation(0.0f, 0.0f, 0.0f);
+    ++sg_count;
     qDebug() << "Instances: " << sg_count;
 
     // Release (unbind) all
@@ -556,6 +586,19 @@ void MainWidget::paintGL()
       p.drawBackbuffer();
     }
     OpenGLProfiler::EndFrame();
+
+    // Draw BV
+    for (OpenGLInstance *i : p.m_instances)
+    {
+      p.m_aabbBV->draw(i->currentTransform());
+      p.m_sphereCentroidBV->draw(i->currentTransform());
+      p.m_sphereRittersBV->draw(i->currentTransform());
+      p.m_sphereLarssonsBV->draw(i->currentTransform());
+      p.m_spherePcaBV->draw(i->currentTransform());
+      p.m_ellipsoidPcaBV->draw(i->currentTransform());
+      p.m_orientedPcaBV->draw(i->currentTransform());
+    }
+
     OpenGLDebugDraw::draw();
     OpenGLWidget::paintGL();
   }
@@ -583,7 +626,8 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   float angle = f;
   for (OpenGLPointLight *instance : p.m_pointLights)
   {
-    instance->setTranslation(cos(angle) * 25.0f, 0.0f, sin(angle) * 25.0f);
+    static const float radius = 5.0f;
+    instance->setTranslation(cos(angle) * radius, 0.0f, sin(angle) * radius);
     angle += 2 * 3.1415926 / p.m_pointLights.size();
   }
 

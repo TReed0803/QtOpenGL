@@ -20,7 +20,12 @@ SOURCES += \
     kbufferedfilereader.cpp \
     khalfedgemesh.cpp \
     khalfedgeobjparser.cpp \
-    kabstractlexer.cpp
+    kabstractlexer.cpp \
+    kabstractboundingvolume.cpp \
+    kaabbboundingvolume.cpp \
+    ksphereboundingvolume.cpp \
+    kellipsoidboundingvolume.cpp \
+    korientedboundingvolume.cpp
 
 HEADERS += \
     kcolor.h \
@@ -55,4 +60,9 @@ HEADERS += \
     klinq.h \
     kparsetoken.h \
     kabstractlexer.h \
-    kabstractwriter.h
+    kabstractwriter.h \
+    kabstractboundingvolume.h \
+    kaabbboundingvolume.h \
+    ksphereboundingvolume.h \
+    kellipsoidboundingvolume.h \
+    korientedboundingvolume.h
