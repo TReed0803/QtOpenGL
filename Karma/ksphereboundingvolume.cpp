@@ -316,5 +316,9 @@ void KSphereBoundingVolume::draw(KTransform3D &t, const KColor &color)
 {
   P(KSphereBoundingVolumePrivate);
   KVector3D position = p.centroid * t.toMatrix();
-  OpenGLDebugDraw::World::drawSphere(position, p.radius, color);
+  KVector3D const &scale = t.scale();
+  float scalar = scale.x();
+  if (scale.y() > scalar) scalar = scale.y();
+  if (scale.z() > scalar) scalar = scale.z();
+  OpenGLDebugDraw::World::drawSphere(position, p.radius * scalar, color);
 }
