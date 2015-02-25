@@ -593,7 +593,7 @@ void MainWidget::paintGL()
     {
       p.m_aabbBV->draw(i->currentTransform(), Qt::red);
       p.m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
-      p.m_sphereRittersBV->draw(i->currentTransform(), Qt::red);
+      p.m_sphereRittersBV->draw(i->currentTransform(), Qt::green);
       p.m_sphereLarssonsBV->draw(i->currentTransform(), Qt::red);
       p.m_spherePcaBV->draw(i->currentTransform(), Qt::red);
       p.m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
