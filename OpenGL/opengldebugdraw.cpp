@@ -154,6 +154,85 @@ void OpenGLDebugDraw::Screen::drawRect(const KRectF &rect, const KColor &color)
 /*******************************************************************************
  * OpenGLDebugDraw::World
  ******************************************************************************/
+void OpenGLDebugDraw::World::drawCircle(const KVector3D &center, const KVector3D &normal, float radius, const KColor &color)
+{
+  OpenGLDebugDraw::World::drawCircle(center, normal, radius, 25, color);
+}
+
+void OpenGLDebugDraw::World::drawCircle(const KVector3D &center, const KVector3D &normal, float radius, int segments, const KColor &color)
+{
+  if (segments < 4) segments = 4;
+
+  // Find orientation of circle based on normal
+  KVector3D binormal;
+  if (normal.y() > 0.0f)
+    binormal = KVector3D(1.0f, 0.0f, 0.0f);
+  else
+    binormal = KVector3D(0.0f, 1.0f, 0.0f);
+  KVector3D x_axis = KVector3D::crossProduct(normal, binormal).normalized();
+  KVector3D z_axis = KVector3D::crossProduct(normal, x_axis).normalized();
+
+  // Precompute delta values for rotation.
+  float theta = 2.0f * 3.1415926f / float(segments);
+  float cosine = std::cos(theta);
+  float sine = std::sin(theta);
+
+  // Step values
+  float t;
+  float x = radius;
+  float z = 0.0f;
+
+  // Create circle
+  KVector3D point = x_axis * x;
+  for (int i = 0; i < segments; ++i)
+  {
+    sg_lines.push_back(KVertex(center + point, color));
+    t = x;
+    x = cosine * x - sine * z;
+    z = sine * t + cosine * z;
+    point = z_axis * z + x_axis * x;
+    sg_lines.push_back(KVertex(center + point, color));
+  }
+}
+
+void OpenGLDebugDraw::World::drawSphere(const KVector3D &center, float radius, const KColor &color)
+{
+  drawSphere(center, radius, 12, 8, color);
+}
+
+void OpenGLDebugDraw::World::drawSphere(const KVector3D &center, float radius, int segments, int rings, const KColor &color)
+{
+  drawSphere(center, radius, segments, rings, int(std::min(2.0f * radius * rings, 128.0f)), color);
+}
+
+void OpenGLDebugDraw::World::drawSphere(const KVector3D &center, float radius, int segments, int rings, int subdivisions, const KColor &color)
+{
+  static const KVector3D upAxis(0.0f, 1.0f, 0.0f);
+  float angle;
+
+  // Bounds checking
+  if (segments <= 1) segments = 1;
+  if (rings <= 1) rings = 1;
+  float segmentAngle = 3.1415926f / float(segments);
+  float ringAngle = 3.1415926f / float(rings + 1);
+
+  // Longitude (segments)
+  angle = 0.0f;
+  for (int i = 0; i < segments; ++i)
+  {
+    OpenGLDebugDraw::World::drawCircle(center, KVector3D(std::cos(angle), 0.0f, std::sin(angle)), radius, subdivisions, color);
+    angle += segmentAngle;
+  }
+
+  // Latitude (rings)
+  angle = ringAngle;
+  for (int i = 0; i < rings; ++i)
+  {
+    drawCircle(center + radius * std::cos(angle) * upAxis, upAxis, radius * std::sin(angle), subdivisions, color);
+    angle += ringAngle;
+  }
+}
+
 void OpenGLDebugDraw::World::drawAabb(const KVector3D &frontA, const KVector3D &backC, const KColor &color)
 {
   KVector3D frontB  = KVector3D( backC.x(), frontA.y(), frontA.z());

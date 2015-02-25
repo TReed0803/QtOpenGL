@@ -1,6 +1,7 @@
 #ifndef OPENGLDEBUGDRAW_H
 #define OPENGLDEBUGDRAW_H OpenGLDebugDraw
 
+class KQuaternion;
 class KColor;
 class KRectF;
 class KVector3D;
@@ -18,6 +19,11 @@ struct OpenGLDebugDraw
   // Drawing points within the world. (Unmanipulated)
   struct World
   {
+    static void drawCircle(const KVector3D &center, const KVector3D &normal, float radius, const KColor &color);
+    static void drawCircle(const KVector3D &center, const KVector3D &normal, float radius, int segments, const KColor &color);
+    static void drawSphere(const KVector3D &center, float radius, const KColor &color);
+    static void drawSphere(const KVector3D &center, float radius, int segments, int rings, const KColor &color);
+    static void drawSphere(const KVector3D &center, float radius, int segments, int rings, int subdivisions, const KColor &color);
     static void drawAabb(const KVector3D &min, const KVector3D &max, const KColor &color);
     static void drawLine(const KVector3D &from, const KVector3D &to, const KColor &color);
   };
