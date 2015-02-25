@@ -1,7 +1,9 @@
 #ifndef KMATH_H
 #define KMATH_H KMath
 
+#include <KVector3D>
 #include <KMatrix3x3>
+#include <limits>
 
 namespace Karma
 {
@@ -11,6 +13,11 @@ namespace Karma
 
   template <typename It, typename Func>
   KMatrix3x3 covarianceMatrix(It begin, It end, Func f);
+  void symSchur2(KMatrix3x3 const &symMtx, int p, int q, float *cosine, float *sine);
+  KMatrix3x3 jacobi(KMatrix3x3 covar, int iterations);
+  KVector3D maxEigenExtents(KMatrix3x3 const &eigenVecs);
+  template <typename It, typename Func>
+  void maxSeperatedAlongAxis(It begin, It end, Func f, KVector3D axis, KVector3D *min, KVector3D *max);
 }
 
 template <typename It, typename Func>
@@ -57,6 +64,29 @@ KMatrix3x3 Karma::covarianceMatrix(It begin, It end, Func f)
   covariance[1][2] = covariance[2][1] = k * e12;
 
   return covariance;
+}
+
+template <typename It, typename Func>
+void Karma::maxSeperatedAlongAxis(It begin, It end, Func f, KVector3D axis, KVector3D *min, KVector3D *max)
+{
+  float sDist;
+  float maxProjDist = -std::numeric_limits<float>::infinity();
+  float minProjDist =  std::numeric_limits<float>::infinity();
+  while (begin != end)
+  {
+    sDist = KVector3D::dotProduct(f(*begin), axis);
+    if (sDist > maxProjDist)
+    {
+      maxProjDist = sDist;
+      (*max) = f(*begin);
+    }
+    if (sDist < minProjDist)
+    {
+      minProjDist = sDist;
+      (*min) = f(*begin);
+    }
+    ++begin;
+  }
 }
 
 #endif // KMATH_H
