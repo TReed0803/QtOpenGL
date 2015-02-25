@@ -9,12 +9,14 @@
 #include <KRectF>
 #include <KTransform3D>
 #include <KVertex>
+#include <KMath>
 
 /*******************************************************************************
  * OpenGLDebugDrawPrivate
  ******************************************************************************/
 static std::vector<KVertex> sg_lines;
 static std::vector<KVertex> sg_rectangles;
+static std::vector<KVertex> sg_points;
 
 static size_t sg_bufferSize = 0;
 static OpenGLFunctions f;
@@ -34,7 +36,7 @@ static KRectF normalize(const KRectF &rect)
 
 static size_t requiredSize()
 {
-  size_t verts = sg_lines.size() + sg_rectangles.size();
+  size_t verts = sg_lines.size() + sg_rectangles.size() + sg_points.size();
   return verts * sizeof(KVertex);
 }
 
@@ -93,6 +95,7 @@ void OpenGLDebugDraw::draw()
     sg_debugBuffer->bind();
     sg_debugBuffer->write(0, sg_lines.data(), static_cast<int>(sizeof(KVertex) * sg_lines.size()));
     sg_debugBuffer->write(static_cast<int>(sizeof(KVertex) * sg_lines.size()), sg_rectangles.data(), static_cast<int>(sizeof(KVertex) * sg_rectangles.size()));
+    sg_debugBuffer->write(static_cast<int>(sizeof(KVertex) * (sg_lines.size() + sg_rectangles.size())), sg_points.data(), static_cast<int>(sizeof(KVertex) * sg_points.size()));
     sg_debugBuffer->release();
   }
 
@@ -104,6 +107,7 @@ void OpenGLDebugDraw::draw()
     // Draw World Debug Information
     sg_programWorld->bind();
     f.glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(sg_lines.size()));
+    f.glDrawArrays(GL_POINTS, static_cast<GLsizei>(sg_lines.size() + sg_rectangles.size()), static_cast<GLsizei>(sg_points.size()));
     sg_programWorld->release();
 
     // Draw Screen Debug Information
@@ -118,6 +122,7 @@ void OpenGLDebugDraw::draw()
   // Clear data
   sg_lines.clear();
   sg_rectangles.clear();
+  sg_points.clear();
 }
 
 void OpenGLDebugDraw::teardown()
@@ -154,6 +159,40 @@ void OpenGLDebugDraw::Screen::drawRect(const KRectF &rect, const KColor &color)
 /*******************************************************************************
  * OpenGLDebugDraw::World
  ******************************************************************************/
+void OpenGLDebugDraw::World::drawPoint(const KVector3D &point, const KColor &color)
+{
+  sg_points.push_back(KVertex(point, color));
+}
+
+void OpenGLDebugDraw::World::drawObb(const KVector3D &center, const KMatrix3x3 &eigen, const KVector3D &halfLengths, const KColor &color)
+{
+  KVector3D axes[3];
+  Karma::extractEigenVectors(eigen, axes);
+  axes[0] *= halfLengths.x();
+  axes[1] *= halfLengths.y();
+  axes[2] *= halfLengths.z();
+  KVector3D frontA  = center + axes[0] + axes[1] + axes[2];
+  KVector3D frontB  = center + axes[0] + axes[1] - axes[2];
+  KVector3D frontC  = center + axes[0] - axes[1] - axes[2];
+  KVector3D frontD  = center + axes[0] - axes[1] + axes[2];
+  KVector3D backA   = center - axes[0] + axes[1] + axes[2];
+  KVector3D backD   = center - axes[0] - axes[1] + axes[2];
+  KVector3D backB   = center - axes[0] + axes[1] - axes[2];
+  KVector3D backC   = center - axes[0] - axes[1] - axes[2];
+  drawLine(frontA, frontB, color);
+  drawLine(frontB, frontC, color);
+  drawLine(frontC, frontD, color);
+  drawLine(frontD, frontA, color);
+  drawLine(backA, backB, color);
+  drawLine(backB, backC, color);
+  drawLine(backC, backD, color);
+  drawLine(backD, backA, color);
+  drawLine(frontA, backA, color);
+  drawLine(frontB, backB, color);
+  drawLine(frontC, backC, color);
+  drawLine(frontD, backD, color);
+}
+
 void OpenGLDebugDraw::World::drawCircle(const KVector3D &center, const KVector3D &normal, float radius, const KColor &color)
 {
   OpenGLDebugDraw::World::drawCircle(center, normal, radius, 25, color);

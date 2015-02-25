@@ -90,3 +90,11 @@ KVector3D Karma::maxEigenExtents(const KMatrix3x3 &eigenVecs)
   if (maxf > maxe) maxc = 2, maxe = maxf;
   return KVector3D(eigenVecs[0][maxc], eigenVecs[1][maxc], eigenVecs[2][maxc]);
 }
+
+
+void Karma::extractEigenVectors(const KMatrix3x3 &eigenVecs, KVector3D axes[])
+{
+  axes[0] = KVector3D(eigenVecs[0][0], eigenVecs[1][0], eigenVecs[2][0]);
+  axes[1] = KVector3D(eigenVecs[0][1], eigenVecs[1][1], eigenVecs[2][1]);
+  axes[2] = KVector3D(eigenVecs[0][2], eigenVecs[1][2], eigenVecs[2][2]);
+}

@@ -18,6 +18,48 @@ namespace Karma
   KVector3D maxEigenExtents(KMatrix3x3 const &eigenVecs);
   template <typename It, typename Func>
   void maxSeperatedAlongAxis(It begin, It end, Func f, KVector3D axis, KVector3D *min, KVector3D *max);
+  template <typename It, typename Func>
+  void lengthsAlongAxes(It begin, It end, Func f, KVector3D axes[3], float dist[3], KVector3D *centroid);
+  void extractEigenVectors(KMatrix3x3 const &eigenVecs, KVector3D axes[3]);
+  template <typename It, typename Func, size_t N>
+  void lengthsAlongAxes(It begin, It end, Func f, KVector3D axes[N], float dist[N], KVector3D minimum[N], KVector3D maximum[N], KVector3D *centroid)
+  {
+    int i;
+    float sDist;
+    float maxProjDist[N];
+    float minProjDist[N];
+    for (size_t i = 0; i < N; ++i)
+    {
+      maxProjDist[i] = -std::numeric_limits<float>::infinity();
+      minProjDist[i] =  std::numeric_limits<float>::infinity();
+    }
+
+    while (begin != end)
+    {
+      for (i = 0; i < N; ++i)
+      {
+        sDist = KVector3D::dotProduct(f(*begin), axes[i]);
+        if (sDist > maxProjDist[i])
+        {
+          maxProjDist[i] = sDist;
+          maximum[i] = sDist * axes[i];
+        }
+        if (sDist < minProjDist[i])
+        {
+          minProjDist[i] = sDist;
+          minimum[i] = sDist * axes[i];
+        }
+      }
+      ++begin;
+    }
+
+    (*centroid) = KVector3D(0.0f, 0.0f, 0.0f);
+    for (i = 0; i < 3; ++i)
+    {
+      dist[i] = (maximum[i] - minimum[i]).length();
+      (*centroid) += (maximum[i] + minimum[i]) / 2.0f;
+    }
+  }
 }
 
 template <typename It, typename Func>
@@ -47,10 +89,9 @@ KMatrix3x3 Karma::covarianceMatrix(It begin, It end, Func f)
     e00 += vCentered.x() * vCentered.x();
     e11 += vCentered.y() * vCentered.y();
     e22 += vCentered.z() * vCentered.z();
-    e00 += vCentered.x() * vCentered.x();
-    e00 += vCentered.x() * vCentered.y();
-    e00 += vCentered.x() * vCentered.z();
-    e00 += vCentered.y() * vCentered.z();
+    e01 += vCentered.x() * vCentered.y();
+    e02 += vCentered.x() * vCentered.z();
+    e12 += vCentered.y() * vCentered.z();
     ++begin;
   }
 
@@ -87,6 +128,55 @@ void Karma::maxSeperatedAlongAxis(It begin, It end, Func f, KVector3D axis, KVec
     }
     ++begin;
   }
+}
+
+template <typename It, typename Func>
+void Karma::lengthsAlongAxes(It begin, It end, Func f, KVector3D axes[3], float dist[3], KVector3D *centroid)
+{
+  int i;
+  KVector3D max[3];
+  KVector3D min[3];
+  float sDist;
+
+  float maxProjDist[3] =
+  {
+    -std::numeric_limits<float>::infinity(),
+    -std::numeric_limits<float>::infinity(),
+    -std::numeric_limits<float>::infinity()
+  };
+  float minProjDist[3] =
+  {
+    std::numeric_limits<float>::infinity(),
+    std::numeric_limits<float>::infinity(),
+    std::numeric_limits<float>::infinity()
+  };
+
+  while (begin != end)
+  {
+    for (i = 0; i < 3; ++i)
+    {
+      sDist = KVector3D::dotProduct(f(*begin), axes[i]);
+      if (sDist > maxProjDist[i])
+      {
+        maxProjDist[i] = sDist;
+        max[i] = f(*begin);
+      }
+      if (sDist < minProjDist[i])
+      {
+        minProjDist[i] = sDist;
+        min[i] = f(*begin);
+      }
+    }
+    ++begin;
+  }
+
+  (*centroid) = KVector3D(0.0f, 0.0f, 0.0f);
+  for (i = 0; i < 3; ++i)
+  {
+    dist[i] = (max[i] - min[i]).length();
+    (*centroid) += max[i] + min[i];
+  }
+  (*centroid) /= 6.0f;
 }
 
 #endif // KMATH_H

@@ -4,6 +4,7 @@
 class KQuaternion;
 class KColor;
 class KRectF;
+class KMatrix3x3;
 class KVector3D;
 class OpenGLUniformBufferObject;
 
@@ -19,6 +20,8 @@ struct OpenGLDebugDraw
   // Drawing points within the world. (Unmanipulated)
   struct World
   {
+    static void drawPoint(const KVector3D &point, const KColor &color);
+    static void drawObb(const KVector3D &center, const KMatrix3x3 &axes, const KVector3D &halfLengths, const KColor &color);
     static void drawCircle(const KVector3D &center, const KVector3D &normal, float radius, const KColor &color);
     static void drawCircle(const KVector3D &center, const KVector3D &normal, float radius, int segments, const KColor &color);
     static void drawSphere(const KVector3D &center, float radius, const KColor &color);

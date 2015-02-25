@@ -20,7 +20,6 @@ private:
   void calculateFromDistantPoints(const KHalfEdgeMesh &mesh, size_t sample);
   void expandToContainPoint(const KVector3D &v);
   void calculateFromCovarianceMatrix(const KHalfEdgeMesh &mesh, int iterations);
-  void jacobiDecomposition(KMatrix3x3 &covar, KMatrix3x3 *eigen, int iterations);
 };
 
 void KSphereBoundingVolumePrivate::calculateCentroidMethod(const KHalfEdgeMesh &mesh)

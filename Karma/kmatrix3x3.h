@@ -9,6 +9,7 @@ public:
   inline KMatrix3x3() : QMatrix3x3() {}
   inline KMatrix3x3(QMatrix3x3 const &rhs) : QMatrix3x3(rhs) {}
   explicit KMatrix3x3(const float *values) : QMatrix3x3(values) {}
+  explicit KMatrix3x3(QMatrix4x4 const &rhs);
 
   template <int N, int M>
   explicit KMatrix3x3(const QGenericMatrix<N, M, float>& matrix) : QMatrix3x3(matrix) {}
