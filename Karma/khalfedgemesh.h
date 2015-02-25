@@ -76,6 +76,16 @@ public:
 
 public:
 
+  struct VertexPositionPred : public std::unary_function<KVector3D const&, Vertex const&>
+  {
+    KVector3D const& operator()(Vertex const& v) const
+    {
+      return v.position;
+    }
+  };
+
+public:
+
   // Constructors / Destructor
   explicit KHalfEdgeMesh(QObject *parent = 0);
   KHalfEdgeMesh(QObject *parent, const QString &fileName);

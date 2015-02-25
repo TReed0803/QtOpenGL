@@ -4,6 +4,7 @@
 #include <KTransform3D>
 #include <OpenGLDebugDraw>
 #include <KMatrix3x3>
+#include <KMath>
 
 class KSphereBoundingVolumePrivate
 {
@@ -19,7 +20,6 @@ private:
   void mostSeparatedPointsAlongVector(KVector3D *min, KVector3D *max, const KHalfEdgeMesh &mesh, KVector3D const &axis);
   void calculateFromDistantPoints(const KHalfEdgeMesh &mesh, size_t sample);
   void expandToContainPoint(const KVector3D &v);
-  void covarianceMatrix(const KHalfEdgeMesh &mesh, KMatrix3x3 *mtx);
   void calculateFromCovarianceMatrix(const KHalfEdgeMesh &mesh, int iterations);
   void jacobiDecomposition(KMatrix3x3 &covar, KMatrix3x3 *eigen, int iterations);
   void SymSchur2(KMatrix3x3 const &covar, int p, int q, float *c, float *s);
@@ -146,48 +146,11 @@ void KSphereBoundingVolumePrivate::expandToContainPoint(const KVector3D &v)
   }
 }
 
-void KSphereBoundingVolumePrivate::covarianceMatrix(const KHalfEdgeMesh &mesh, KMatrix3x3 *mtx)
-{
-  float k = 1.0f / float(mesh.vertices().size());
-  KVector3D covarianceTerm;
-  float e00, e11, e22, e01, e02, e12;
-
-  // Calculate average center
-  KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
-  for (KHalfEdgeMesh::Vertex const &v : vertices)
-  {
-    centroid += (v.position - centroid);
-  }
-  centroid /= vertices.size();
-
-  // Calculate covariance matrix
-  KVector3D vCentered;
-  e00 = e11 = e22 = e01 = e02 = e12 = 0.0f;
-  for (KHalfEdgeMesh::Vertex const &v : vertices)
-  {
-    vCentered = v.position - centroid;
-    e00 += v.position.x() * v.position.x();
-    e11 += v.position.y() * v.position.y();
-    e22 += v.position.z() * v.position.z();
-    e00 += v.position.x() * v.position.x();
-    e00 += v.position.x() * v.position.y();
-    e00 += v.position.x() * v.position.z();
-    e00 += v.position.y() * v.position.z();
-  }
-
-  (*mtx)[0][0] = k * e00;
-  (*mtx)[1][1] = k * e11;
-  (*mtx)[2][2] = k * e22;
-  (*mtx)[0][1] = (*mtx)[1][0] = k * e01;
-  (*mtx)[0][2] = (*mtx)[2][0] = k * e02;
-  (*mtx)[1][2] = (*mtx)[2][1] = k * e12;
-}
-
 void KSphereBoundingVolumePrivate::calculateFromCovarianceMatrix(const KHalfEdgeMesh &mesh, int iterations)
 {
   KMatrix3x3 covariance, eigenVectors;
 
-  covarianceMatrix(mesh, &covariance);
+  covariance = Karma::covarianceMatrix(mesh.vertices().begin(), mesh.vertices().end(), KHalfEdgeMesh::VertexPositionPred());
   jacobiDecomposition(covariance, &eigenVectors, iterations);
 
   // Find longest magnitude eigenvalues
