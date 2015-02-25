@@ -594,8 +594,8 @@ void MainWidget::paintGL()
       p.m_aabbBV->draw(i->currentTransform(), Qt::red);
       p.m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
       p.m_sphereRittersBV->draw(i->currentTransform(), Qt::green);
-      p.m_sphereLarssonsBV->draw(i->currentTransform(), Qt::red);
-      p.m_spherePcaBV->draw(i->currentTransform(), Qt::red);
+      p.m_sphereLarssonsBV->draw(i->currentTransform(), Qt::blue);
+      p.m_spherePcaBV->draw(i->currentTransform(), Qt::yellow);
       p.m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
       p.m_orientedPcaBV->draw(i->currentTransform(), Qt::red);
     }
@@ -630,6 +630,22 @@ void MainWidget::updateEvent(KUpdateEvent *event)
     static const float radius = 5.0f;
     instance->setTranslation(cos(angle) * radius, 0.0f, sin(angle) * radius);
     angle += 2 * 3.1415926 / p.m_pointLights.size();
+  }
+
+  if (KInputManager::keyTriggered(Qt::Key_Plus))
+  {
+    for (OpenGLInstance *instance : p.m_instances)
+    {
+      instance->currentTransform().grow(1.0f);
+    }
+  }
+
+  if (KInputManager::keyTriggered(Qt::Key_Minus))
+  {
+    for (OpenGLInstance *instance : p.m_instances)
+    {
+      instance->currentTransform().grow(-1.0f);
+    }
   }
 
   // Camera Transformation

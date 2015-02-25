@@ -65,4 +65,5 @@ HEADERS += \
     kaabbboundingvolume.h \
     ksphereboundingvolume.h \
     kellipsoidboundingvolume.h \
-    korientedboundingvolume.h
+    korientedboundingvolume.h \
+    kmatrix3x3.h
