@@ -167,7 +167,7 @@ void OpenGLDebugDraw::World::drawPoint(const KVector3D &point, const KColor &col
 void OpenGLDebugDraw::World::drawObb(const KVector3D &center, const KMatrix3x3 &eigen, const KVector3D &halfLengths, const KColor &color)
 {
   KVector3D axes[3];
-  Karma::extractColumnVectors(eigen, axes);
+  Karma::decomposeMatrixeByColumnVectors(eigen, axes);
   axes[0] *= halfLengths.x();
   axes[1] *= halfLengths.y();
   axes[2] *= halfLengths.z();

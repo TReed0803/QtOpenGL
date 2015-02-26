@@ -17,13 +17,43 @@ public:
 
 void KEllipsoidBoundingVolumePrivate::calculatePcaMethod(const KHalfEdgeMesh &mesh)
 {
-  KVector3D tempAxes[3];
   KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
-  KMatrix3x3 covariance = Karma::covarianceMatrix(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred());
+
+  // Solve for the covariance matrix
+  KMatrix3x3 covariance =
+    Karma::covarianceMatrix(
+      vertices.begin(),
+      vertices.end(),
+      KHalfEdgeMesh::VertexPositionPred()
+    );
   axes = Karma::jacobi(covariance, 50);
-  Karma::extractColumnVectors(axes, tempAxes);
-  centroid = Karma::calculateCentroid<3>(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred(), tempAxes, reinterpret_cast<float*>(&extents));
-  extents /= 2.0f; // Convert to half-extents.
+
+  // Find the extremal projected points along each axis
+  std::vector<KVector3D> extractedAxes = Karma::decomposeMatrixeByColumnVectors(axes);
+  std::vector<Karma::MinMaxKVector3D> extremal =
+    Karma::findExtremalProjectedPointsAlongAxes(
+      vertices.begin(),
+      vertices.end(),
+      extractedAxes.begin(),
+      extractedAxes.end(),
+      KHalfEdgeMesh::VertexPositionPred()
+    );
+
+  // Store information for the centroid and extent
+  KVector3D axisA = extremal[0].max - extremal[0].min;
+  KVector3D axisB = extremal[1].max - extremal[1].min;
+  KVector3D axisC = extremal[2].max - extremal[2].min;
+  extents.setX(axisA.length());
+  extents.setY(axisB.length());
+  extents.setZ(axisC.length());
+  axisA /= extents.x();
+  axisB /= extents.y();
+  axisC /= extents.z();
+  extents /= 2.0f;
+  centroid  = (extremal[0].max + extremal[0].min) / 2.0f;
+  centroid += (extremal[1].max + extremal[1].min) / 2.0f;
+  centroid += (extremal[2].max + extremal[2].min) / 2.0f;
+  Karma::reconstructMatrixByColumnVectors(&axes, axisA, axisB, axisC);
 }
 
 KEllipsoidBoundingVolume::KEllipsoidBoundingVolume(KHalfEdgeMesh const &mesh, Method method) :
@@ -47,18 +77,6 @@ void KEllipsoidBoundingVolume::draw(KTransform3D &t, const KColor &color)
 {
   P(KEllipsoidBoundingVolumePrivate);
 
-  KVector3D extractedAxes[3];
-  KVector3D center = t.toMatrix() * p.centroid;
-  KMatrix3x3 scaledAxes = KMatrix3x3(t.toMatrix()) * p.axes;
-  Karma::extractColumnVectors(scaledAxes, extractedAxes);
-  extractedAxes[0] *= p.extents.x();
-  extractedAxes[1] *= p.extents.y();
-  extractedAxes[2] *= p.extents.z();
-  KVector3D scaledExtents(extractedAxes[0].length(), extractedAxes[1].length(), extractedAxes[2].length());
-  extractedAxes[0] /= scaledExtents.x();
-  extractedAxes[1] /= scaledExtents.y();
-  extractedAxes[2] /= scaledExtents.z();
-
   // x^2   y^2   z^2     //
   // --- + --- + --- = 1 //
   //  a     b     c      //
@@ -69,6 +87,11 @@ void KEllipsoidBoundingVolume::draw(KTransform3D &t, const KColor &color)
   // y = --------------------------- //
   //              sqrt(a)            //
 
+  KVector3D extractedAxes[3];
+  Karma::decomposeMatrixeByColumnVectors(p.axes, extractedAxes);
+  KVector3D scaledExtents = p.extents;
+  KVector3D center = p.centroid;
+
   float sqrtA = std::sqrt(scaledExtents.x());
   float sqrtB = std::sqrt(scaledExtents.y());
   float denom = sqrtB / sqrtA;
@@ -76,7 +99,7 @@ void KEllipsoidBoundingVolume::draw(KTransform3D &t, const KColor &color)
   float y;
 
   // 5 is just some subvision value
-  OpenGLDebugDraw::World::drawCircle(p.centroid, extractedAxes[0], sqrtB, color);
+  OpenGLDebugDraw::World::drawCircle(center, extractedAxes[0], sqrtB, color);
   for (float x = deltaX; x < scaledExtents.x(); x += deltaX)
   {
     y = std::sqrt(scaledExtents.x() - x * x) * denom;
@@ -84,5 +107,5 @@ void KEllipsoidBoundingVolume::draw(KTransform3D &t, const KColor &color)
     OpenGLDebugDraw::World::drawCircle(center - extractedAxes[0] * x, extractedAxes[0], y, color);
   }
 
-  OpenGLDebugDraw::World::drawObb(center, scaledAxes, p.extents, color);
+  OpenGLDebugDraw::World::drawObb(center, p.axes, p.extents, color);
 }

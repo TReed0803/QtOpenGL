@@ -8,6 +8,8 @@ class KSphereBoundingVolumePrivate;
 class KSphereBoundingVolume : public KAbstractBoundingVolume
 {
 public:
+
+  // Construction Methods
   enum Method
   {
     CentroidMethod,
@@ -16,9 +18,13 @@ public:
     PcaMethod
   };
 
+  // Constuctors / Destructor
   KSphereBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   ~KSphereBoundingVolume();
+
+  // Virtual Implementation
   void draw(KTransform3D &t, KColor const &color);
+
 private:
   KSphereBoundingVolumePrivate *m_private;
 };

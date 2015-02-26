@@ -55,8 +55,9 @@ namespace Karma
   // Matrix Decomposition
   KVector3D minEigenExtents(KMatrix3x3 const &eigenVecs);
   KVector3D maxEigenExtents(KMatrix3x3 const &eigenVecs);
-  void extractColumnVectors(KMatrix3x3 const &eigenVecs, KVector3D axes[3]);
-  std::vector<KVector3D> extractColumnVectors(KMatrix3x3 const &mtx);
+  void decomposeMatrixeByColumnVectors(KMatrix3x3 const &eigenVecs, KVector3D axes[3]);
+  std::vector<KVector3D> decomposeMatrixeByColumnVectors(KMatrix3x3 const &mtx);
+  void reconstructMatrixByColumnVectors(KMatrix3x3 *mtx, KVector3D const &a, KVector3D const &b, KVector3D const &c);
 
   // Covariance Matrix Calculations
   template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>>
@@ -95,13 +96,13 @@ namespace Karma
 template <typename It, typename Accessor>
 Karma::MinMaxKVector3D Karma::findExtremalPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor)
 {
-  return findExtremalPointsAlongAxis(begin, end, axis, accessor, DefaultMutator<KVector3D>());
+  return findExtremalAlongAxis(begin, end, axis, accessor, DefaultMutator<KVector3D>());
 }
 
 template <typename It, typename Accessor>
 Karma::MinMaxKVector3D Karma::findExtremalProjectedPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor)
 {
-  return findExtremalPointsAlongAxis(begin, end, axis, accessor, AxisMutator<KVector3D>());
+  return findExtremalAlongAxis(begin, end, axis, accessor, AxisMutator<KVector3D>());
 }
 
 template <typename It, typename Accessor, typename Mutator>
@@ -166,7 +167,7 @@ KVector3D Karma::findAverageCentroid(It begin, It end, Accessor accessor)
   KVector3D centroid;
   while (begin != end)
   {
-    centroid += accessor(begin);
+    centroid += accessor(*begin);
     ++begin;
   }
   return centroid / float(count);

@@ -27,7 +27,8 @@ SOURCES += \
     kellipsoidboundingvolume.cpp \
     korientedboundingvolume.cpp \
     kmath.cpp \
-    kmatrix3x3.cpp
+    kmatrix3x3.cpp \
+    epossphere.cpp
 
 HEADERS += \
     kcolor.h \
@@ -69,4 +70,5 @@ HEADERS += \
     kellipsoidboundingvolume.h \
     korientedboundingvolume.h \
     kmatrix3x3.h \
-    kmath.h
+    kmath.h \
+    epossphere.h

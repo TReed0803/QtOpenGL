@@ -24,18 +24,16 @@ private:
 
 void KSphereBoundingVolumePrivate::calculateCentroidMethod(const KHalfEdgeMesh &mesh)
 {
-  float tempRadius;
-  radius = 0.0f;
-  centroid = KVector3D(0.0f, 0.0f, 0.0f);
+  // Calculate centroid
   KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
+  centroid = Karma::findAverageCentroid(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred());
+
+  // Calculate Radius
+  radius = 0.0f;
+  float tempRadius;
   for (KHalfEdgeMesh::Vertex const &v : vertices)
   {
-    centroid += v.position;
-  }
-  centroid /= vertices.size();
-  for (int i = 0; i < vertices.size(); ++i)
-  {
-    tempRadius = (centroid - vertices[i].position).lengthSquared();
+    tempRadius = (centroid - v.position).lengthSquared();
     if (tempRadius > radius) radius = tempRadius;
   }
   radius = std::sqrt(radius);
@@ -52,7 +50,7 @@ void KSphereBoundingVolumePrivate::calculateRittersMethod(const KHalfEdgeMesh &m
 
 void KSphereBoundingVolumePrivate::calculateLarssonsMethod(const KHalfEdgeMesh &mesh)
 {
-  calculateExtremalPointsOptimalSphere(mesh, 0);
+  // Not implemented yet
 }
 
 void KSphereBoundingVolumePrivate::calculatePcaMethod(const KHalfEdgeMesh &mesh)
@@ -123,15 +121,31 @@ void KSphereBoundingVolumePrivate::expandToContainPoint(const KVector3D &v)
 
 void KSphereBoundingVolumePrivate::calculateFromCovarianceMatrix(const KHalfEdgeMesh &mesh, int iterations)
 {
-  KVector3D minimum, maximum;
   KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
-  KMatrix3x3 covariance = Karma::covarianceMatrix(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred());
+
+  // Calculate the covariance matrix
+  KMatrix3x3 covariance =
+    Karma::covarianceMatrix(
+      vertices.begin(),
+      vertices.end(),
+      KHalfEdgeMesh::VertexPositionPred()
+    );
   KMatrix3x3 eigenVectors = Karma::jacobi(covariance, iterations);
+
+  // Find extremal points along axis
   KVector3D axis = Karma::maxEigenExtents(eigenVectors);
-  Karma::maxSeperatedAlongAxis(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred(), axis, &minimum, &maximum);
-  float dist = (maximum - minimum).length();
+  Karma::MinMaxKVector3D minMax =
+    Karma::findExtremalPointsAlongAxis(
+      vertices.begin(),
+      vertices.end(),
+      axis,
+      KHalfEdgeMesh::VertexPositionPred()
+    );
+
+  // Store Information
+  float dist = (minMax.max - minMax.min).length();
   radius = dist / 2.0f;
-  centroid = (maximum + minimum) / 2.0f;
+  centroid = (minMax.max + minMax.min) / 2.0f;
 }
 
 KSphereBoundingVolume::KSphereBoundingVolume(const KHalfEdgeMesh &mesh, Method method) :

@@ -29,7 +29,7 @@ void KOrientedBoundingVolumePrivate::calculatePcaMethod(const KHalfEdgeMesh &mes
   axes = Karma::jacobi(covariance, 50);
 
   // Find the extremal projected points along each axis
-  std::vector<KVector3D> extractedAxes = Karma::extractColumnVectors(axes);
+  std::vector<KVector3D> extractedAxes = Karma::decomposeMatrixeByColumnVectors(axes);
   std::vector<Karma::MinMaxKVector3D> extremal =
     Karma::findExtremalProjectedPointsAlongAxes(
       vertices.begin(),

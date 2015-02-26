@@ -85,7 +85,7 @@ KMatrix3x3 Karma::jacobi(KMatrix3x3 covar, int iterations)
 
 
 
-void Karma::extractColumnVectors(const KMatrix3x3 &eigenVecs, KVector3D axes[])
+void Karma::decomposeMatrixeByColumnVectors(const KMatrix3x3 &eigenVecs, KVector3D axes[])
 {
   axes[0] = KVector3D(eigenVecs[0][0], eigenVecs[1][0], eigenVecs[2][0]);
   axes[1] = KVector3D(eigenVecs[0][1], eigenVecs[1][1], eigenVecs[2][1]);
@@ -115,11 +115,19 @@ KVector3D Karma::maxEigenExtents(const KMatrix3x3 &eigenVecs)
   return KVector3D(eigenVecs[0][maxc], eigenVecs[1][maxc], eigenVecs[2][maxc]);
 }
 
-std::vector<KVector3D> Karma::extractColumnVectors(const KMatrix3x3 &mtx)
+std::vector<KVector3D> Karma::decomposeMatrixeByColumnVectors(const KMatrix3x3 &mtx)
 {
   std::vector<KVector3D> columns;
   columns.push_back(KVector3D(mtx[0][0], mtx[1][0], mtx[2][0]));
   columns.push_back(KVector3D(mtx[0][1], mtx[1][1], mtx[2][1]));
   columns.push_back(KVector3D(mtx[0][2], mtx[1][2], mtx[2][2]));
   return std::move(columns);
+}
+
+
+void Karma::reconstructMatrixByColumnVectors(KMatrix3x3 *mtx, const KVector3D &a, const KVector3D &b, const KVector3D &c)
+{
+  (*mtx)[0][0] = a.x(); (*mtx)[1][0] = a.y(); (*mtx)[2][0] = a.z();
+  (*mtx)[0][1] = b.x(); (*mtx)[1][1] = b.y(); (*mtx)[2][1] = b.z();
+  (*mtx)[0][2] = c.x(); (*mtx)[1][2] = c.y(); (*mtx)[2][2] = c.z();
 }
