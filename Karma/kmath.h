@@ -7,10 +7,12 @@
 
 namespace Karma
 {
-  static const float Pi;
-  static const float PiHalf;
-  static const float TwoPi;
+  // Constants
+  extern const float Pi;
+  extern const float PiHalf;
+  extern const float TwoPi;
 
+  // Covariance Matrix Calculations
   template <typename It, typename Func>
   KMatrix3x3 covarianceMatrix(It begin, It end, Func f);
   void symSchur2(KMatrix3x3 const &symMtx, int p, int q, float *cosine, float *sine);
@@ -20,46 +22,9 @@ namespace Karma
   void maxSeperatedAlongAxis(It begin, It end, Func f, KVector3D axis, KVector3D *min, KVector3D *max);
   template <typename It, typename Func>
   void lengthsAlongAxes(It begin, It end, Func f, KVector3D axes[3], float dist[3], KVector3D *centroid);
-  void extractEigenVectors(KMatrix3x3 const &eigenVecs, KVector3D axes[3]);
-  template <typename It, typename Func, size_t N>
-  void lengthsAlongAxes(It begin, It end, Func f, KVector3D axes[N], float dist[N], KVector3D minimum[N], KVector3D maximum[N], KVector3D *centroid)
-  {
-    int i;
-    float sDist;
-    float maxProjDist[N];
-    float minProjDist[N];
-    for (size_t i = 0; i < N; ++i)
-    {
-      maxProjDist[i] = -std::numeric_limits<float>::infinity();
-      minProjDist[i] =  std::numeric_limits<float>::infinity();
-    }
-
-    while (begin != end)
-    {
-      for (i = 0; i < N; ++i)
-      {
-        sDist = KVector3D::dotProduct(f(*begin), axes[i]);
-        if (sDist > maxProjDist[i])
-        {
-          maxProjDist[i] = sDist;
-          maximum[i] = sDist * axes[i];
-        }
-        if (sDist < minProjDist[i])
-        {
-          minProjDist[i] = sDist;
-          minimum[i] = sDist * axes[i];
-        }
-      }
-      ++begin;
-    }
-
-    (*centroid) = KVector3D(0.0f, 0.0f, 0.0f);
-    for (i = 0; i < 3; ++i)
-    {
-      dist[i] = (maximum[i] - minimum[i]).length();
-      (*centroid) += (maximum[i] + minimum[i]) / 2.0f;
-    }
-  }
+  void extractColumnVectors(KMatrix3x3 const &eigenVecs, KVector3D axes[3]);
+  template <size_t N, typename It, typename Func>
+  KVector3D calculateCentroid(It begin, It end, Func f, KVector3D axes[N], float extents[N]);
 }
 
 template <typename It, typename Func>
@@ -130,53 +95,52 @@ void Karma::maxSeperatedAlongAxis(It begin, It end, Func f, KVector3D axis, KVec
   }
 }
 
-template <typename It, typename Func>
-void Karma::lengthsAlongAxes(It begin, It end, Func f, KVector3D axes[3], float dist[3], KVector3D *centroid)
+template <size_t N, typename It, typename Func>
+KVector3D Karma::calculateCentroid(It begin, It end, Func f, KVector3D axes[N], float extents[N])
 {
   int i;
-  KVector3D max[3];
-  KVector3D min[3];
   float sDist;
+  KVector3D maximum[N];
+  KVector3D minimum[N];
+  float maxProjDist[N];
+  float minProjDist[N];
 
-  float maxProjDist[3] =
+  // Set base cases for iterative computation
+  for (size_t i = 0; i < N; ++i)
   {
-    -std::numeric_limits<float>::infinity(),
-    -std::numeric_limits<float>::infinity(),
-    -std::numeric_limits<float>::infinity()
-  };
-  float minProjDist[3] =
-  {
-    std::numeric_limits<float>::infinity(),
-    std::numeric_limits<float>::infinity(),
-    std::numeric_limits<float>::infinity()
-  };
+    maxProjDist[i] = -std::numeric_limits<float>::infinity();
+    minProjDist[i] =  std::numeric_limits<float>::infinity();
+  }
 
+  // Project all points onto each axis, store min/max projections.
   while (begin != end)
   {
-    for (i = 0; i < 3; ++i)
+    for (i = 0; i < N; ++i)
     {
       sDist = KVector3D::dotProduct(f(*begin), axes[i]);
       if (sDist > maxProjDist[i])
       {
         maxProjDist[i] = sDist;
-        max[i] = f(*begin);
+        maximum[i] = sDist * axes[i];
       }
       if (sDist < minProjDist[i])
       {
         minProjDist[i] = sDist;
-        min[i] = f(*begin);
+        minimum[i] = sDist * axes[i];
       }
     }
     ++begin;
   }
 
-  (*centroid) = KVector3D(0.0f, 0.0f, 0.0f);
+  // Calculate the centroid via the min/max of axes
+  KVector3D centroid(0.0f, 0.0f, 0.0f);
   for (i = 0; i < 3; ++i)
   {
-    dist[i] = (max[i] - min[i]).length();
-    (*centroid) += max[i] + min[i];
+    extents[i] = (maximum[i] - minimum[i]).length();
+    centroid += (maximum[i] + minimum[i]) / 2.0f;
   }
-  (*centroid) /= 6.0f;
+
+  return centroid;
 }
 
 #endif // KMATH_H

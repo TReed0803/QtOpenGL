@@ -30,7 +30,7 @@ void KSphereBoundingVolumePrivate::calculateCentroidMethod(const KHalfEdgeMesh &
   KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
   for (KHalfEdgeMesh::Vertex const &v : vertices)
   {
-    centroid += (v.position - centroid);
+    centroid += v.position;
   }
   centroid /= vertices.size();
   for (int i = 0; i < vertices.size(); ++i)
@@ -163,7 +163,7 @@ KSphereBoundingVolume::~KSphereBoundingVolume()
 void KSphereBoundingVolume::draw(KTransform3D &t, const KColor &color)
 {
   P(KSphereBoundingVolumePrivate);
-  KVector3D position = p.centroid * t.toMatrix();
+  KVector3D position = t.toMatrix() * p.centroid;
   KVector3D const &scale = t.scale();
   float scalar = scale.x();
   if (scale.y() > scalar) scalar = scale.y();

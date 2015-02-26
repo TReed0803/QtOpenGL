@@ -1,5 +1,9 @@
 #include "kmath.h"
 
+const float Karma::Pi       = 3.1415926535897932384626433832795028841971693993751058f;
+const float Karma::PiHalf   = 1.5707963267948966192313216916397514420985846996875529f;
+const float Karma::TwoPi    = 6.2831853071795864769252867665590057683943387987502116f;
+
 void Karma::symSchur2(const KMatrix3x3 &symMtx, int p, int q, float *cosine, float *sine)
 {
   if (std::abs(symMtx[p][q] > 0.0001f))
@@ -92,7 +96,7 @@ KVector3D Karma::maxEigenExtents(const KMatrix3x3 &eigenVecs)
 }
 
 
-void Karma::extractEigenVectors(const KMatrix3x3 &eigenVecs, KVector3D axes[])
+void Karma::extractColumnVectors(const KMatrix3x3 &eigenVecs, KVector3D axes[])
 {
   axes[0] = KVector3D(eigenVecs[0][0], eigenVecs[1][0], eigenVecs[2][0]);
   axes[1] = KVector3D(eigenVecs[0][1], eigenVecs[1][1], eigenVecs[2][1]);

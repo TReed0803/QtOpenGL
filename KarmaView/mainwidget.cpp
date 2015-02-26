@@ -647,6 +647,12 @@ void MainWidget::updateEvent(KUpdateEvent *event)
       instance->currentTransform().grow(-1.0f);
     }
   }
+  for (OpenGLInstance *instance : p.m_instances)
+  {
+    instance->currentTransform().rotate(0.5f, 0.0f, 0.0f, 1.0f);
+    instance->currentTransform().rotate(0.25f, 0.0f, 1.0f, 0.0f);
+    instance->currentTransform().rotate(-1.25f, 1.0f, 0.0f, 0.0f);
+  }
 
   // Camera Transformation
   if (KInputManager::buttonPressed(Qt::RightButton))
