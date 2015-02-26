@@ -10,28 +10,13 @@ class KAabbBoundingVolumePrivate
 {
 public:
   void calculateMinMaxMethod(KHalfEdgeMesh const &mesh);
-  KVector3D minimum;
-  KVector3D maximum;
-  KVector3D centroid;
-  KVector3D halfLengths;
+  Karma::MinMaxKVector3D maxMin;
 };
 
 void KAabbBoundingVolumePrivate::calculateMinMaxMethod(const KHalfEdgeMesh &mesh)
 {
-  minimum = KVector3D( std::numeric_limits<float>::infinity(),  std::numeric_limits<float>::infinity(),  std::numeric_limits<float>::infinity());
-  maximum = KVector3D(-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
-  for (KHalfEdgeMesh::Vertex const &v : mesh.vertices())
-  {
-    if (minimum.x() > v.position.x()) minimum.setX(v.position.x());
-    if (minimum.y() > v.position.y()) minimum.setY(v.position.y());
-    if (minimum.z() > v.position.z()) minimum.setZ(v.position.z());
-    if (maximum.x() < v.position.x()) maximum.setX(v.position.x());
-    if (maximum.y() < v.position.y()) maximum.setY(v.position.y());
-    if (maximum.z() < v.position.z()) maximum.setZ(v.position.z());
-  }
-
-  centroid = (maximum + minimum) / 2.0f;
-  halfLengths = (maximum - minimum) / 2.0f;
+  KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
+  maxMin = Karma::findMinMaxBounds(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred());
 }
 
 KAabbBoundingVolume::KAabbBoundingVolume(KHalfEdgeMesh const &mesh, Method method) :
@@ -54,32 +39,22 @@ KAabbBoundingVolume::~KAabbBoundingVolume()
 void KAabbBoundingVolume::draw(KTransform3D &t, KColor const &color)
 {
   P(KAabbBoundingVolumePrivate);
+  KMatrix4x4 const &mtx = t.toMatrix();
 
-  // Find the Aabb formed by the rotated Aabb
-  KVector3D minimum( std::numeric_limits<float>::infinity(),  std::numeric_limits<float>::infinity(),  std::numeric_limits<float>::infinity());
-  KVector3D maximum(-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
-
-  KVector3D verts[] =
+  // Construct translated pointset
+  std::vector<KVector3D> tVec =
   {
-    p.minimum, p.maximum,
-    KVector3D( p.minimum.x(), p.maximum.y(), p.maximum.z()),
-    KVector3D( p.minimum.x(), p.minimum.y(), p.maximum.z()),
-    KVector3D( p.maximum.x(), p.minimum.y(), p.maximum.z()),
-    KVector3D( p.maximum.x(), p.minimum.y(), p.minimum.z()),
-    KVector3D( p.maximum.x(), p.maximum.y(), p.minimum.z()),
-    KVector3D( p.minimum.x(), p.maximum.y(), p.minimum.z())
+    mtx * p.maxMin.min,
+    mtx * p.maxMin.max,
+    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.max.y(), p.maxMin.max.z()),
+    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.min.y(), p.maxMin.max.z()),
+    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.min.y(), p.maxMin.max.z()),
+    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.min.y(), p.maxMin.min.z()),
+    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.max.y(), p.maxMin.min.z()),
+    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.max.y(), p.maxMin.min.z())
   };
 
-  for (int i = 0; i < sizeof(verts) / sizeof(verts[0]); ++i)
-  {
-    KVector3D vertex = t.toMatrix() * verts[i];
-    if (minimum.x() > vertex.x()) minimum.setX(vertex.x());
-    if (minimum.y() > vertex.y()) minimum.setY(vertex.y());
-    if (minimum.z() > vertex.z()) minimum.setZ(vertex.z());
-    if (maximum.x() < vertex.x()) maximum.setX(vertex.x());
-    if (maximum.y() < vertex.y()) maximum.setY(vertex.y());
-    if (maximum.z() < vertex.z()) maximum.setZ(vertex.z());
-  }
-
-  OpenGLDebugDraw::World::drawAabb(minimum, maximum, color);
+  // Find and draw the Aabb of the translated pointset
+  Karma::MinMaxKVector3D mm = Karma::findMinMaxBounds(tVec.begin(), tVec.end());
+  OpenGLDebugDraw::World::drawAabb(mm.min, mm.max, color);
 }

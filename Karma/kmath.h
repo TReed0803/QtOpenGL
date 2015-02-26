@@ -7,24 +7,184 @@
 
 namespace Karma
 {
+
+  template <typename T>
+  struct MinMax
+  {
+    T max;
+    T min;
+  };
+  typedef MinMax<KVector3D> MinMaxKVector3D;
+  typedef std::vector<MinMaxKVector3D> MinMaxKVector3DContainer;
+
+  template <typename Val1, typename Val2>
+  struct DefaultAccessor : public std::unary_function<Val1, Val2>
+  {
+    Val1 &operator()(Val2 &v) const
+    {
+      return v;
+    }
+  };
+
+  template <typename Val, typename It>
+  struct DefaultMutator
+  {
+    Val operator()(It it, float dotProd, KVector3D const &axis) const
+    {
+      return *it;
+    }
+  };
+
+  template <typename Val, typename It>
+  struct AxisMutator
+  {
+    Val operator()(It it, float dotProd, KVector3D const &axis) const
+    {
+      return dotProd * axis;
+    }
+  };
+
   // Constants
   extern const float Pi;
   extern const float PiHalf;
   extern const float TwoPi;
+
+  // Matrix Decomposition
+  KVector3D minEigenExtents(KMatrix3x3 const &eigenVecs);
+  KVector3D maxEigenExtents(KMatrix3x3 const &eigenVecs);
+  void extractColumnVectors(KMatrix3x3 const &eigenVecs, KVector3D axes[3]);
 
   // Covariance Matrix Calculations
   template <typename It, typename Func>
   KMatrix3x3 covarianceMatrix(It begin, It end, Func f);
   void symSchur2(KMatrix3x3 const &symMtx, int p, int q, float *cosine, float *sine);
   KMatrix3x3 jacobi(KMatrix3x3 covar, int iterations);
-  KVector3D maxEigenExtents(KMatrix3x3 const &eigenVecs);
+
+  // Covariance Axes information
+  template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>>
+  MinMaxKVector3D findExtremalPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor = DefaultAccessor<KVector3D, KVector3D>());
+  template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>>
+  MinMaxKVector3D findExtremalProjectedPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor = DefaultAccessor<KVector3D, KVector3D>());
+  template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>, typename Mutator = DefaultMutator<KVector3D, KVector3D>>
+  MinMaxKVector3D findExtremalAlongAxis(It begin, It end, KVector3D axis, Accessor accessor = DefaultAccessor<KVector3D, It>(), Mutator mutator = DefaultMutator<KVector3D, KVector3D>());
+  template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor>
+  MinMaxKVector3DContainer findExtremalPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, It1>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, It2>());
+  template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor>
+  MinMaxKVector3DContainer findExtremalProjectedPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, It1>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, It2>());
+  template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor, typename Mutator>
+  MinMaxKVector3DContainer findExtremalAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, It1>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, It2>(), Mutator mutator = DefaultMutator<KVector3D, It1>());
+  template <typename It, typename Accessor>
+  KVector3D findAverageCentroid(It begin, It end, Accessor accessor = DefaultAccessor<KVector3D, It>());
+  template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>>
+  MinMaxKVector3D findMinMaxBounds(It begin, It end, Accessor accessor = DefaultAccessor<KVector3D, KVector3D>());
+
   template <typename It, typename Func>
   void maxSeperatedAlongAxis(It begin, It end, Func f, KVector3D axis, KVector3D *min, KVector3D *max);
   template <typename It, typename Func>
   void lengthsAlongAxes(It begin, It end, Func f, KVector3D axes[3], float dist[3], KVector3D *centroid);
-  void extractColumnVectors(KMatrix3x3 const &eigenVecs, KVector3D axes[3]);
   template <size_t N, typename It, typename Func>
   KVector3D calculateCentroid(It begin, It end, Func f, KVector3D axes[N], float extents[N]);
+  template <typename It1, typename It2, typename Func1>
+  std::vector<KVector3D> findExtremalPoints(It1 beginPoints, It1 endPoints, It2 beginNorms, It2 endNorms, Func1 pointAccessor);
+}
+
+template <typename It, typename Accessor>
+Karma::MinMaxKVector3D Karma::findExtremalPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor)
+{
+  return findExtremalPointsAlongAxis(begin, end, axis, accessor, DefaultMutator<KVector3D, It>());
+}
+
+template <typename It, typename Accessor>
+Karma::MinMaxKVector3D Karma::findExtremalProjectedPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor)
+{
+  return findExtremalPointsAlongAxis(begin, end, axis, accessor, AxisMutator<KVector3D, It>());
+}
+
+template <typename It, typename Accessor, typename Mutator>
+Karma::MinMaxKVector3D Karma::findExtremalAlongAxis(It begin, It end, KVector3D axis, Accessor accessor, Mutator mutator)
+{
+  typedef std::numeric_limits<float> FloatLimits;
+
+  float signedDist;
+  float minProjDist = -FloatLimits::infinity();
+  float maxProjDist =  FloatLimits::infinity();
+
+  KVector3D vector;
+  MinMaxKVector3D maxMin;
+  while (begin != end)
+  {
+    vector = accessor(begin);
+    signedDist = KVector3D::dotProduct(vector, axis);
+    if (signedDist > maxProjDist)
+    {
+      maxProjDist = sDist;
+      maxMin.max = mutator(begin, sDist, axis);
+    }
+    if (signedDist < minProjDist)
+    {
+      minProjDist = sDist;
+      maxMin.min = mutator(begin, sDist, axis);
+    }
+    ++begin;
+  }
+}
+
+template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor>
+Karma::MinMaxKVector3DContainer Karma::findExtremalPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor, AxisAccessor aAccessor)
+{
+  return std::move(findExtremalAlongAxes(bVec, eVec, bAxis, eAxis, vAccessor, aAccessor, DefaultMutator<KVector3D, It1>()));
+}
+
+template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor>
+Karma::MinMaxKVector3DContainer Karma::findExtremalProjectedPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor, AxisAccessor aAccessor)
+{
+  return std::move(findExtremalAlongAxes(bVec, eVec, bAxis, eAxis, vAccessor, aAccessor, AxisMutator<KVector3D, It1>()));
+}
+
+template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor, typename Mutator>
+Karma::MinMaxKVector3DContainer Karma::findExtremalAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor, AxisAccessor aAccessor, Mutator mutator)
+{
+  MinMaxKVector3DContainer results;
+  while (bAxis != eAxis)
+  {
+    results.push_back(findExtremalAlongAxis(bVec, eVec, vAccessor, mutator));
+    ++bAxis;
+  }
+  return std::move(results);
+}
+
+template <typename It, typename Accessor>
+KVector3D Karma::findAverageCentroid(It begin, It end, Accessor accessor)
+{
+  size_t count = std::distance(begin, end);
+  KVector3D centroid;
+  while (begin != end)
+  {
+    centroid += accessor(begin);
+    ++begin;
+  }
+  return centroid / float(count);
+}
+
+template <typename It, typename Accessor>
+Karma::MinMaxKVector3D Karma::findMinMaxBounds(It begin, It end, Accessor accessor)
+{
+  KVector3D vector;
+  MinMaxKVector3D m;
+  m.min = KVector3D( std::numeric_limits<float>::infinity(),  std::numeric_limits<float>::infinity(),  std::numeric_limits<float>::infinity());
+  m.max = KVector3D(-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
+  while (begin != end)
+  {
+    vector = accessor(*begin);
+    if (m.min.x() > vector.x()) m.min.setX(vector.x());
+    if (m.min.y() > vector.y()) m.min.setY(vector.y());
+    if (m.min.z() > vector.z()) m.min.setZ(vector.z());
+    if (m.max.x() < vector.x()) m.max.setX(vector.x());
+    if (m.max.y() < vector.y()) m.max.setY(vector.y());
+    if (m.max.z() < vector.z()) m.max.setZ(vector.z());
+    ++begin;
+  }
+  return m;
 }
 
 template <typename It, typename Func>
@@ -141,6 +301,22 @@ KVector3D Karma::calculateCentroid(It begin, It end, Func f, KVector3D axes[N], 
   }
 
   return centroid;
+}
+
+template <typename It1, typename It2, typename Func1, typename Func2>
+std::vector<KVector3D> findExtremalPoints(It1 origBeginPoints, It1 endPoints, It2 beginNorms, It2 endNorms, Func1 pointAccessor)
+{
+  It1 beginPoints;
+  KVector3D minimum, maximum;
+  std::vector<KVector3D> points;
+  while (beginNorms != endNorms)
+  {
+    beginPoints = origBeginPoints;
+    Karma::maxSeperatedAlongAxis(beginPoints, endPoints, pointsAccessor, normAccessor(*beginNorms), &minimum, &maximum);
+    points.push_back(minimum);
+    points.push_back(maximum);
+    ++beginNorms;
+  }
 }
 
 #endif // KMATH_H

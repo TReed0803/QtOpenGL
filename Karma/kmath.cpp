@@ -84,6 +84,26 @@ KMatrix3x3 Karma::jacobi(KMatrix3x3 covar, int iterations)
 }
 
 
+
+void Karma::extractColumnVectors(const KMatrix3x3 &eigenVecs, KVector3D axes[])
+{
+  axes[0] = KVector3D(eigenVecs[0][0], eigenVecs[1][0], eigenVecs[2][0]);
+  axes[1] = KVector3D(eigenVecs[0][1], eigenVecs[1][1], eigenVecs[2][1]);
+  axes[2] = KVector3D(eigenVecs[0][2], eigenVecs[1][2], eigenVecs[2][2]);
+}
+
+
+KVector3D Karma::minEigenExtents(const KMatrix3x3 &eigenVecs)
+{
+  int maxc = 0;
+  float maxf, maxe = std::abs(eigenVecs[0][0]);
+  maxf = std::abs(eigenVecs[1][1]);
+  if (maxf < maxe) maxc = 1, maxe = maxf;
+  maxf = std::abs(eigenVecs[2][2]);
+  if (maxf < maxe) maxc = 2, maxe = maxf;
+  return KVector3D(eigenVecs[0][maxc], eigenVecs[1][maxc], eigenVecs[2][maxc]);
+}
+
 KVector3D Karma::maxEigenExtents(const KMatrix3x3 &eigenVecs)
 {
   int maxc = 0;
@@ -93,12 +113,4 @@ KVector3D Karma::maxEigenExtents(const KMatrix3x3 &eigenVecs)
   maxf = std::abs(eigenVecs[2][2]);
   if (maxf > maxe) maxc = 2, maxe = maxf;
   return KVector3D(eigenVecs[0][maxc], eigenVecs[1][maxc], eigenVecs[2][maxc]);
-}
-
-
-void Karma::extractColumnVectors(const KMatrix3x3 &eigenVecs, KVector3D axes[])
-{
-  axes[0] = KVector3D(eigenVecs[0][0], eigenVecs[1][0], eigenVecs[2][0]);
-  axes[1] = KVector3D(eigenVecs[0][1], eigenVecs[1][1], eigenVecs[2][1]);
-  axes[2] = KVector3D(eigenVecs[0][2], eigenVecs[1][2], eigenVecs[2][2]);
 }
