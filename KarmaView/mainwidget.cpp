@@ -137,6 +137,10 @@ public:
   float m_dragVelocity;
   KVector3D m_dragAxis;
 
+  // Runtime
+  bool b_rX, b_rY, b_rZ;
+  bool b_bv[8];
+
   // Parent
   MainWidget *m_parent;
 };
@@ -152,6 +156,9 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_atmosphericColor[3] = 1.0f;
   m_camera.setTranslation(0.0f, 3.0f, 10.0f);
   m_camera.setRotation(-20.0f, 1.0f, 0.0f, 0.0f);
+  b_rX = b_rY = b_rZ = false;
+  for (int i = 0; i < 8; ++i)
+    b_bv[i] = true;
 }
 
 void MainWidgetPrivate::initializeGL()
@@ -591,13 +598,13 @@ void MainWidget::paintGL()
     // Draw BV
     for (OpenGLInstance *i : p.m_instances)
     {
-      p.m_aabbBV->draw(i->currentTransform(), Qt::red);
-      p.m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
-      p.m_sphereRittersBV->draw(i->currentTransform(), Qt::green);
-      p.m_sphereLarssonsBV->draw(i->currentTransform(), Qt::blue);
-      p.m_spherePcaBV->draw(i->currentTransform(), Qt::yellow);
-      p.m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
-      p.m_orientedPcaBV->draw(i->currentTransform(), Qt::red);
+      if (p.b_bv[0]) p.m_aabbBV->draw(i->currentTransform(), Qt::red);
+      if (p.b_bv[1]) p.m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
+      if (p.b_bv[2]) p.m_sphereRittersBV->draw(i->currentTransform(), Qt::green);
+      if (p.b_bv[3]) p.m_sphereLarssonsBV->draw(i->currentTransform(), Qt::blue);
+      if (p.b_bv[4]) p.m_spherePcaBV->draw(i->currentTransform(), Qt::yellow);
+      if (p.b_bv[5]) p.m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
+      if (p.b_bv[6]) p.m_orientedPcaBV->draw(i->currentTransform(), Qt::red);
     }
 
     OpenGLDebugDraw::draw();
@@ -649,9 +656,9 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   }
   for (OpenGLInstance *instance : p.m_instances)
   {
-    instance->currentTransform().rotate(0.5f, 0.0f, 0.0f, 1.0f);
-    instance->currentTransform().rotate(0.25f, 0.0f, 1.0f, 0.0f);
-    instance->currentTransform().rotate(-1.25f, 1.0f, 0.0f, 0.0f);
+    if (p.b_rZ) instance->currentTransform().rotate(0.5f, 0.0f, 0.0f, 1.0f);
+    if (p.b_rY) instance->currentTransform().rotate(0.25f, 0.0f, 1.0f, 0.0f);
+    if (p.b_rX) instance->currentTransform().rotate(-1.25f, 1.0f, 0.0f, 0.0f);
   }
 
   // Camera Transformation
@@ -697,6 +704,12 @@ void MainWidget::updateEvent(KUpdateEvent *event)
     }
     p.m_camera.translate(transSpeed * translation);
   }
+  else
+  {
+    if (KInputManager::keyTriggered(Qt::Key_X)) p.b_rX = !p.b_rX;
+    if (KInputManager::keyTriggered(Qt::Key_Y)) p.b_rY = !p.b_rY;
+    if (KInputManager::keyTriggered(Qt::Key_Z)) p.b_rZ = !p.b_rZ;
+  }
 
   if (KInputManager::keyPressed(Qt::Key_Control))
   {
@@ -707,45 +720,33 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   }
 
   // Change Buffer
-  if (KInputManager::keyPressed(Qt::Key_0))
+  if (KInputManager::keyTriggered(Qt::Key_0))
   {
-    p.m_buffer = (DeferredData)LightPass;
+    p.b_bv[0] = !p.b_bv[0];
   }
-  if (KInputManager::keyPressed(Qt::Key_1))
+  if (KInputManager::keyTriggered(Qt::Key_1))
   {
-    p.m_buffer = (DeferredData)0;
+    p.b_bv[1] = !p.b_bv[1];
   }
-  if (KInputManager::keyPressed(Qt::Key_2))
+  if (KInputManager::keyTriggered(Qt::Key_2))
   {
-    p.m_buffer = (DeferredData)1;
+    p.b_bv[2] = !p.b_bv[2];
   }
-  if (KInputManager::keyPressed(Qt::Key_3))
+  if (KInputManager::keyTriggered(Qt::Key_3))
   {
-    p.m_buffer = (DeferredData)2;
+    p.b_bv[3] = !p.b_bv[3];
   }
-  if (KInputManager::keyPressed(Qt::Key_4))
+  if (KInputManager::keyTriggered(Qt::Key_4))
   {
-    p.m_buffer = (DeferredData)3;
+    p.b_bv[4] = !p.b_bv[4];
   }
-  if (KInputManager::keyPressed(Qt::Key_5))
+  if (KInputManager::keyTriggered(Qt::Key_5))
   {
-    p.m_buffer = (DeferredData)4;
+    p.b_bv[5] = !p.b_bv[5];
   }
-  if (KInputManager::keyPressed(Qt::Key_6))
+  if (KInputManager::keyTriggered(Qt::Key_6))
   {
-    p.m_buffer = (DeferredData)5;
-  }
-  if (KInputManager::keyPressed(Qt::Key_7))
-  {
-    p.m_buffer = (DeferredData)6;
-  }
-  if (KInputManager::keyPressed(Qt::Key_8))
-  {
-    p.m_buffer = (DeferredData)7;
-  }
-  if (KInputManager::keyPressed(Qt::Key_9))
-  {
-    p.m_buffer = (DeferredData)8;
+    p.b_bv[6] = !p.b_bv[6];
   }
 
   // Pinching will grow/shrink
