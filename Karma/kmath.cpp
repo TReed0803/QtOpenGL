@@ -114,3 +114,12 @@ KVector3D Karma::maxEigenExtents(const KMatrix3x3 &eigenVecs)
   if (maxf > maxe) maxc = 2, maxe = maxf;
   return KVector3D(eigenVecs[0][maxc], eigenVecs[1][maxc], eigenVecs[2][maxc]);
 }
+
+std::vector<KVector3D> Karma::extractColumnVectors(const KMatrix3x3 &mtx)
+{
+  std::vector<KVector3D> columns;
+  columns.push_back(KVector3D(mtx[0][0], mtx[1][0], mtx[2][0]));
+  columns.push_back(KVector3D(mtx[0][1], mtx[1][1], mtx[2][1]));
+  columns.push_back(KVector3D(mtx[0][2], mtx[1][2], mtx[2][2]));
+  return std::move(columns);
+}

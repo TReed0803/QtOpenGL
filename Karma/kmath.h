@@ -26,20 +26,23 @@ namespace Karma
     }
   };
 
-  template <typename Val, typename It>
+  template <typename Val>
   struct DefaultMutator
   {
-    Val operator()(It it, float dotProd, KVector3D const &axis) const
+    Val operator()(Val v, float dotProd, KVector3D const &axis) const
     {
-      return *it;
+      (void)dotProd;
+      (void)axis;
+      return v;
     }
   };
 
-  template <typename Val, typename It>
+  template <typename Val>
   struct AxisMutator
   {
-    Val operator()(It it, float dotProd, KVector3D const &axis) const
+    Val operator()(Val v, float dotProd, KVector3D const &axis) const
     {
+      (void)v;
       return dotProd * axis;
     }
   };
@@ -53,10 +56,11 @@ namespace Karma
   KVector3D minEigenExtents(KMatrix3x3 const &eigenVecs);
   KVector3D maxEigenExtents(KMatrix3x3 const &eigenVecs);
   void extractColumnVectors(KMatrix3x3 const &eigenVecs, KVector3D axes[3]);
+  std::vector<KVector3D> extractColumnVectors(KMatrix3x3 const &mtx);
 
   // Covariance Matrix Calculations
-  template <typename It, typename Func>
-  KMatrix3x3 covarianceMatrix(It begin, It end, Func f);
+  template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>>
+  KMatrix3x3 covarianceMatrix(It begin, It end, Accessor accessor = DefaultAccessor<KVector3D, KVector3D>());
   void symSchur2(KMatrix3x3 const &symMtx, int p, int q, float *cosine, float *sine);
   KMatrix3x3 jacobi(KMatrix3x3 covar, int iterations);
 
@@ -65,14 +69,14 @@ namespace Karma
   MinMaxKVector3D findExtremalPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor = DefaultAccessor<KVector3D, KVector3D>());
   template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>>
   MinMaxKVector3D findExtremalProjectedPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor = DefaultAccessor<KVector3D, KVector3D>());
-  template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>, typename Mutator = DefaultMutator<KVector3D, KVector3D>>
-  MinMaxKVector3D findExtremalAlongAxis(It begin, It end, KVector3D axis, Accessor accessor = DefaultAccessor<KVector3D, It>(), Mutator mutator = DefaultMutator<KVector3D, KVector3D>());
-  template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor>
-  MinMaxKVector3DContainer findExtremalPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, It1>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, It2>());
-  template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor>
-  MinMaxKVector3DContainer findExtremalProjectedPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, It1>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, It2>());
-  template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor, typename Mutator>
-  MinMaxKVector3DContainer findExtremalAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, It1>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, It2>(), Mutator mutator = DefaultMutator<KVector3D, It1>());
+  template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>, typename Mutator = DefaultMutator<KVector3D>>
+  MinMaxKVector3D findExtremalAlongAxis(It begin, It end, KVector3D axis, Accessor accessor = DefaultAccessor<KVector3D, KVector3D>(), Mutator mutator = DefaultMutator<KVector3D>());
+  template <typename It1, typename It2, typename VecAccessor = DefaultAccessor<KVector3D, KVector3D>, typename AxisAccessor = DefaultAccessor<KVector3D, KVector3D>>
+  MinMaxKVector3DContainer findExtremalPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, KVector3D>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, KVector3D>());
+  template <typename It1, typename It2, typename VecAccessor = DefaultAccessor<KVector3D, KVector3D>, typename AxisAccessor = DefaultAccessor<KVector3D, KVector3D>>
+  MinMaxKVector3DContainer findExtremalProjectedPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, KVector3D>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, KVector3D>());
+  template <typename It1, typename It2, typename VecAccessor = DefaultAccessor<KVector3D, KVector3D>, typename AxisAccessor, typename Mutator = DefaultMutator<KVector3D>>
+  MinMaxKVector3DContainer findExtremalAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = DefaultAccessor<KVector3D, KVector3D>(), AxisAccessor aAccessor = DefaultAccessor<KVector3D, KVector3D>(), Mutator mutator = DefaultMutator<KVector3D>());
   template <typename It, typename Accessor>
   KVector3D findAverageCentroid(It begin, It end, Accessor accessor = DefaultAccessor<KVector3D, It>());
   template <typename It, typename Accessor = DefaultAccessor<KVector3D, KVector3D>>
@@ -91,13 +95,13 @@ namespace Karma
 template <typename It, typename Accessor>
 Karma::MinMaxKVector3D Karma::findExtremalPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor)
 {
-  return findExtremalPointsAlongAxis(begin, end, axis, accessor, DefaultMutator<KVector3D, It>());
+  return findExtremalPointsAlongAxis(begin, end, axis, accessor, DefaultMutator<KVector3D>());
 }
 
 template <typename It, typename Accessor>
 Karma::MinMaxKVector3D Karma::findExtremalProjectedPointsAlongAxis(It begin, It end, KVector3D axis, Accessor accessor)
 {
-  return findExtremalPointsAlongAxis(begin, end, axis, accessor, AxisMutator<KVector3D, It>());
+  return findExtremalPointsAlongAxis(begin, end, axis, accessor, AxisMutator<KVector3D>());
 }
 
 template <typename It, typename Accessor, typename Mutator>
@@ -106,39 +110,41 @@ Karma::MinMaxKVector3D Karma::findExtremalAlongAxis(It begin, It end, KVector3D 
   typedef std::numeric_limits<float> FloatLimits;
 
   float signedDist;
-  float minProjDist = -FloatLimits::infinity();
-  float maxProjDist =  FloatLimits::infinity();
+  float minProjDist =  FloatLimits::infinity();
+  float maxProjDist = -FloatLimits::infinity();
 
   KVector3D vector;
   MinMaxKVector3D maxMin;
   while (begin != end)
   {
-    vector = accessor(begin);
+    vector = accessor(*begin);
     signedDist = KVector3D::dotProduct(vector, axis);
     if (signedDist > maxProjDist)
     {
-      maxProjDist = sDist;
-      maxMin.max = mutator(begin, sDist, axis);
+      maxProjDist = signedDist;
+      maxMin.max = mutator(vector, signedDist, axis);
     }
     if (signedDist < minProjDist)
     {
-      minProjDist = sDist;
-      maxMin.min = mutator(begin, sDist, axis);
+      minProjDist = signedDist;
+      maxMin.min = mutator(vector, signedDist, axis);
     }
     ++begin;
   }
+
+  return maxMin;
 }
 
 template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor>
 Karma::MinMaxKVector3DContainer Karma::findExtremalPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor, AxisAccessor aAccessor)
 {
-  return std::move(findExtremalAlongAxes(bVec, eVec, bAxis, eAxis, vAccessor, aAccessor, DefaultMutator<KVector3D, It1>()));
+  return std::move(findExtremalAlongAxes(bVec, eVec, bAxis, eAxis, vAccessor, aAccessor, DefaultMutator<KVector3D>()));
 }
 
 template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor>
 Karma::MinMaxKVector3DContainer Karma::findExtremalProjectedPointsAlongAxes(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor, AxisAccessor aAccessor)
 {
-  return std::move(findExtremalAlongAxes(bVec, eVec, bAxis, eAxis, vAccessor, aAccessor, AxisMutator<KVector3D, It1>()));
+  return std::move(findExtremalAlongAxes(bVec, eVec, bAxis, eAxis, vAccessor, aAccessor, AxisMutator<KVector3D>()));
 }
 
 template <typename It1, typename It2, typename VecAccessor, typename AxisAccessor, typename Mutator>
@@ -147,7 +153,7 @@ Karma::MinMaxKVector3DContainer Karma::findExtremalAlongAxes(It1 bVec, It1 eVec,
   MinMaxKVector3DContainer results;
   while (bAxis != eAxis)
   {
-    results.push_back(findExtremalAlongAxis(bVec, eVec, vAccessor, mutator));
+    results.push_back(findExtremalAlongAxis(bVec, eVec, aAccessor(*bAxis), vAccessor, mutator));
     ++bAxis;
   }
   return std::move(results);
@@ -187,8 +193,8 @@ Karma::MinMaxKVector3D Karma::findMinMaxBounds(It begin, It end, Accessor access
   return m;
 }
 
-template <typename It, typename Func>
-KMatrix3x3 Karma::covarianceMatrix(It begin, It end, Func f)
+template <typename It, typename Accessor>
+KMatrix3x3 Karma::covarianceMatrix(It begin, It end, Accessor accessor)
 {
   It origBegin = begin;
   int count = std::distance(begin, end);
@@ -199,7 +205,7 @@ KMatrix3x3 Karma::covarianceMatrix(It begin, It end, Func f)
   // Calculate average center
   while (begin != end)
   {
-    center += f(*begin);
+    center += accessor(*begin);
     ++begin;
   }
   center /= float(count);
@@ -210,7 +216,7 @@ KMatrix3x3 Karma::covarianceMatrix(It begin, It end, Func f)
   e00 = e11 = e22 = e01 = e02 = e12 = 0.0f;
   while (begin != end)
   {
-    vCentered = f(*begin) - center;
+    vCentered = accessor(*begin) - center;
     e00 += vCentered.x() * vCentered.x();
     e11 += vCentered.y() * vCentered.y();
     e22 += vCentered.z() * vCentered.z();

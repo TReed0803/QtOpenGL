@@ -17,13 +17,35 @@ public:
 
 void KOrientedBoundingVolumePrivate::calculatePcaMethod(const KHalfEdgeMesh &mesh)
 {
-  KVector3D tempAxes[3];
   KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
-  KMatrix3x3 covariance = Karma::covarianceMatrix(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred());
+
+  // Solve for the covariance matrix
+  KMatrix3x3 covariance =
+    Karma::covarianceMatrix(
+      vertices.begin(),
+      vertices.end(),
+      KHalfEdgeMesh::VertexPositionPred()
+    );
   axes = Karma::jacobi(covariance, 50);
-  Karma::extractColumnVectors(axes, tempAxes);
-  centroid = Karma::calculateCentroid<3>(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred(), tempAxes, reinterpret_cast<float*>(&extents));
-  extents /= 2.0f; // Convert to half-extents.
+
+  // Find the extremal projected points along each axis
+  std::vector<KVector3D> extractedAxes = Karma::extractColumnVectors(axes);
+  std::vector<Karma::MinMaxKVector3D> extremal =
+    Karma::findExtremalProjectedPointsAlongAxes(
+      vertices.begin(),
+      vertices.end(),
+      extractedAxes.begin(),
+      extractedAxes.end(),
+      KHalfEdgeMesh::VertexPositionPred()
+    );
+
+  // Store information for the centroid and extent
+  extents.setX((extremal[0].max - extremal[0].min).length() / 2.0f);
+  extents.setY((extremal[1].max - extremal[1].min).length() / 2.0f);
+  extents.setZ((extremal[2].max - extremal[2].min).length() / 2.0f);
+  centroid  = (extremal[0].max + extremal[0].min) / 2.0f;
+  centroid += (extremal[1].max + extremal[1].min) / 2.0f;
+  centroid += (extremal[2].max + extremal[2].min) / 2.0f;
 }
 
 KOrientedBoundingVolume::KOrientedBoundingVolume(const KHalfEdgeMesh &mesh, Method method) :
