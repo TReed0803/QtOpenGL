@@ -52,12 +52,12 @@ void KSphereBoundingVolumePrivate::calculateRittersMethod(const KHalfEdgeMesh &m
 
 void KSphereBoundingVolumePrivate::calculateLarssonsMethod(const KHalfEdgeMesh &mesh)
 {
-
+  calculateExtremalPointsOptimalSphere(mesh, 0);
 }
 
 void KSphereBoundingVolumePrivate::calculatePcaMethod(const KHalfEdgeMesh &mesh)
 {
-  calculateFromCovarianceMatrix(mesh, 6);
+  calculateFromCovarianceMatrix(mesh, 50);
   for (KHalfEdgeMesh::Vertex const & v : mesh.vertices())
   {
     expandToContainPoint(v.position);

@@ -5,7 +5,6 @@
 #include <KHalfEdgeMesh>
 #include <KTransform3D>
 #include <OpenGLDebugDraw>
-#include <KColor>
 
 class KOrientedBoundingVolumePrivate
 {
