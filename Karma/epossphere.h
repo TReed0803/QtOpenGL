@@ -6,15 +6,15 @@ class EposSphere
 {
 public:
 
-  template <typename It1, typename It2, typename VecAccessor = Karma::DefaultAccessor<KVector3D, KVector3D>, typename AxisAccessor = Karma::DefaultAccessor<KVector3D, KVector3D>>
-  EposSphere(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = Karma::DefaultAccessor<KVector3D, KVector3D>(), AxisAccessor aAccessor = Karma::DefaultAccessor<KVector3D, KVector3D>());
+  template <typename It1, typename It2, typename VecAccessor = Karma::DefaultAccessor<KVector3D>, typename AxisAccessor = Karma::DefaultAccessor<KVector3D>>
+  EposSphere(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor = Karma::DefaultAccessor<KVector3D>(), AxisAccessor aAccessor = Karma::DefaultAccessor<KVector3D>());
   ~EposSphere();
 
   float radius() const;
   KVector3D centroid() const;
 };
 
-template <typename It1, typename It2, typename VecAccessor = Karma::DefaultAccessor<KVector3D, KVector3D>, typename AxisAccessor = Karma::DefaultAccessor<KVector3D, KVector3D>>
+template <typename It1, typename It2, typename VecAccessor = Karma::DefaultAccessor<KVector3D>, typename AxisAccessor = Karma::DefaultAccessor<KVector3D>>
 EposSphere::EposSphere(It1 bVec, It1 eVec, It2 bAxis, It2 eAxis, VecAccessor vAccessor, AxisAccessor aAccessor)
 {
   KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();

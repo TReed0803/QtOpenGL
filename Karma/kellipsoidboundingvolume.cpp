@@ -50,6 +50,7 @@ void KEllipsoidBoundingVolumePrivate::calculatePcaMethod(const KHalfEdgeMesh &me
   axisB /= extents.y();
   axisC /= extents.z();
   extents /= 2.0f;
+  extents *= extents;
   centroid  = (extremal[0].max + extremal[0].min) / 2.0f;
   centroid += (extremal[1].max + extremal[1].min) / 2.0f;
   centroid += (extremal[2].max + extremal[2].min) / 2.0f;
@@ -73,7 +74,7 @@ KEllipsoidBoundingVolume::~KEllipsoidBoundingVolume()
   delete m_private;
 }
 
-void KEllipsoidBoundingVolume::draw(KTransform3D &t, const KColor &color)
+void KEllipsoidBoundingVolume::draw(KTransform3D &t, const KColor &color) const
 {
   P(KEllipsoidBoundingVolumePrivate);
 
@@ -94,17 +95,21 @@ void KEllipsoidBoundingVolume::draw(KTransform3D &t, const KColor &color)
 
   float sqrtA = std::sqrt(scaledExtents.x());
   float sqrtB = std::sqrt(scaledExtents.y());
-  float denom = sqrtB / sqrtA;
+  float sqrtC = std::sqrt(scaledExtents.z());
+  float denomY = sqrtB / sqrtA;
+  float denomZ = sqrtC / sqrtA;
   float deltaX = scaledExtents.x() / float(12);
-  float y;
+  float sqrtAMinusASquared, y, z;
 
   // 5 is just some subvision value
-  OpenGLDebugDraw::World::drawCircle(center, extractedAxes[0], sqrtB, color);
+  OpenGLDebugDraw::World::drawOval(center, extractedAxes[0], extractedAxes[1], sqrtB, sqrtC, color);
   for (float x = deltaX; x < scaledExtents.x(); x += deltaX)
   {
-    y = std::sqrt(scaledExtents.x() - x * x) * denom;
-    OpenGLDebugDraw::World::drawCircle(center + extractedAxes[0] * x, extractedAxes[0], y, color);
-    OpenGLDebugDraw::World::drawCircle(center - extractedAxes[0] * x, extractedAxes[0], y, color);
+    sqrtAMinusASquared = std::sqrt(scaledExtents.x() - x * x);
+    y = sqrtAMinusASquared * denomY;
+    z = sqrtAMinusASquared * denomZ;
+    OpenGLDebugDraw::World::drawOval(center + extractedAxes[0] * x, extractedAxes[0], extractedAxes[1], y, z, color);
+    OpenGLDebugDraw::World::drawOval(center - extractedAxes[0] * x, extractedAxes[0], extractedAxes[1], y, z, color);
   }
 
   OpenGLDebugDraw::World::drawObb(center, p.axes, p.extents, color);

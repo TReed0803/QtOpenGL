@@ -26,6 +26,7 @@
 #include <KTransform3D>
 #include <KVector2D>
 #include <KVertex>
+#include <KStaticGeometry>
 
 // Bounding Volumes
 #include <KAabbBoundingVolume>
@@ -41,6 +42,8 @@
 #include <KHalfEdgeMesh>
 #include <KLinq>
 #include <OpenGLUniformBufferManager>
+#include <QMainWindow>
+#include <QApplication>
 
 static uint64_t sg_count = 0;
 #define DEFERRED_TEXTURES 4
@@ -117,6 +120,10 @@ public:
   KSphereBoundingVolume *m_spherePcaBV;
   KEllipsoidBoundingVolume *m_ellipsoidPcaBV;
   KOrientedBoundingVolume *m_orientedPcaBV;
+  KStaticGeometry *m_staticGeometryBottomUp;
+  KStaticGeometry *m_staticGeometryTopDown7;
+  KStaticGeometry *m_staticGeometryTopDown500;
+  KStaticGeometry *m_staticGeometry;
 
   // GBuffer
   OpenGLTexture m_gDepth;    // depth
@@ -140,6 +147,7 @@ public:
   // Runtime
   bool b_rX, b_rY, b_rZ;
   bool b_bv[8];
+  int m_minDraw, m_maxDraw;
 
   // Parent
   MainWidget *m_parent;
@@ -148,7 +156,7 @@ public:
 MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_openGLMesh(Q_NULLPTR), m_halfEdgeMesh(Q_NULLPTR),
   m_program(Q_NULLPTR), m_parent(parent), m_width(1), m_height(1),
-  m_buffer(LightPass), m_paused(false)
+  m_buffer(LightPass), m_paused(false), m_staticGeometry(0), m_minDraw(0), m_maxDraw(std::numeric_limits<size_t>::max())
 {
   m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.2f;
   m_ambientColor[3] = 1.0f;
@@ -159,6 +167,7 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   b_rX = b_rY = b_rZ = false;
   for (int i = 0; i < 8; ++i)
     b_bv[i] = true;
+  m_staticGeometryBottomUp = m_staticGeometryTopDown7 = m_staticGeometryTopDown500 = 0;
 }
 
 void MainWidgetPrivate::initializeGL()
@@ -211,6 +220,31 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
       m_boundaries = query();
       ms = timer.elapsed();
       qDebug() << "Mesh Query Time (sec)    :" << float(ms) / 1e3f;
+    }
+    {
+      delete m_staticGeometryTopDown500;
+      delete m_staticGeometryTopDown7;
+      delete m_staticGeometryBottomUp;
+      m_staticGeometryTopDown500 = new KStaticGeometry();
+      m_staticGeometryTopDown7 = new KStaticGeometry();
+      m_staticGeometryBottomUp = new KStaticGeometry();
+      KTransform3D geomTrans;
+      for (int i = 0; i < 4; ++i)
+      {
+        const float radius = 10.0f;
+        float radians = i * Karma::TwoPi / 4.0f;
+        geomTrans.setTranslation(std::cos(radians) * radius, 0.0f, std::sin(radians) * radius);
+        m_staticGeometryTopDown500->addGeometry(*m_halfEdgeMesh, geomTrans);
+        m_staticGeometryTopDown7->addGeometry(*m_halfEdgeMesh, geomTrans);
+        m_staticGeometryBottomUp->addGeometry(*m_halfEdgeMesh, geomTrans);
+      }
+      auto trianglePred = [](size_t numTriangles, size_t depth)->bool { (void)depth; return numTriangles > 500; };
+      auto depthPred = [](size_t numTriangles, size_t depth)->bool { (void)numTriangles; return depth < 7; };
+      m_staticGeometryTopDown500->build(KStaticGeometry::TopDownMethod, trianglePred);
+      m_staticGeometryTopDown7->build(KStaticGeometry::TopDownMethod, depthPred);
+      m_staticGeometryBottomUp->build(KStaticGeometry::BottomUpMethod);
+      m_staticGeometry = m_staticGeometryTopDown500;
+      m_maxDraw = static_cast<int>(m_staticGeometry->depth());
     }
     qDebug() << "--------------------------------------";
     qDebug() << "Mesh Vertexes  :" << m_halfEdgeMesh->vertices().size();
@@ -504,30 +538,24 @@ void MainWidget::initializeGL()
     p.loadObj(":/resources/objects/sphere.obj");
 
     // Initialize instances
-    /*
-    for (int level = 0; level < 1; ++level)
+    //*
+    KTransform3D geomTrans;
+    for (int i = 0; i < 4; ++i)
     {
-      for (int count = 0; count < 4; ++count)
-      {
-        float cosine = std::cos(count * 3.14159f / 2.0f);
-        float sine = std::sin(count * 3.14159f / 2.0f);
-        OpenGLInstance * instance = p.m_instanceGroup->createInstance();
-        instance->currentTransform().setScale(1.0f);
-        instance->material().setDiffuse(count / 4.0f, 1.0f - count / 4.0f, 0.0f);
-        instance->material().setSpecular(1.0f, 1.0f, 1.0f, 255.0f);
-        instance->currentTransform().setTranslation(cosine * 15, level * 5, sine * 15);
-        p.m_instances.push_back(instance);
-        ++sg_count;
-      }
+      const float radius = 10.0f;
+      float radians = i * Karma::TwoPi / 4.0f;
+      OpenGLInstance * instance = p.m_instanceGroup->createInstance();
+      instance->currentTransform().setScale(1.0f);
+      instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
+      instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
+      instance->currentTransform().setTranslation(std::cos(radians) * radius, 0.0f, std::sin(radians) * radius);
     }
-    //*/
     OpenGLInstance * instance = p.m_instanceGroup->createInstance();
     instance->currentTransform().setScale(1.0f);
     instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
     instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
-    instance->currentTransform().setTranslation(0.0f, 0.0f, 0.0f);
     p.m_instances.push_back(instance);
-    ++sg_count;
+    //*/
     qDebug() << "Instances: " << sg_count;
 
     // Release (unbind) all
@@ -598,6 +626,7 @@ void MainWidget::paintGL()
     // Draw BV
     for (OpenGLInstance *i : p.m_instances)
     {
+      //*
       if (p.b_bv[0]) p.m_aabbBV->draw(i->currentTransform(), Qt::red);
       if (p.b_bv[1]) p.m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
       if (p.b_bv[2]) p.m_sphereRittersBV->draw(i->currentTransform(), Qt::green);
@@ -605,7 +634,9 @@ void MainWidget::paintGL()
       if (p.b_bv[4]) p.m_spherePcaBV->draw(i->currentTransform(), Qt::yellow);
       if (p.b_bv[5]) p.m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
       if (p.b_bv[6]) p.m_orientedPcaBV->draw(i->currentTransform(), Qt::red);
+      //*/
     }
+    p.m_staticGeometry->drawAabbs(KTransform3D(), Qt::red, p.m_minDraw, p.m_maxDraw);
 
     OpenGLDebugDraw::draw();
     OpenGLWidget::paintGL();
@@ -647,13 +678,72 @@ void MainWidget::updateEvent(KUpdateEvent *event)
     }
   }
 
-  if (KInputManager::keyTriggered(Qt::Key_Minus))
+  if (KInputManager::keyTriggered(Qt::Key_Underscore))
   {
     for (OpenGLInstance *instance : p.m_instances)
     {
       instance->currentTransform().grow(-1.0f);
     }
   }
+
+  bool triggered = false;
+  if (KInputManager::keyTriggered(Qt::Key_BracketLeft))
+  {
+    --p.m_minDraw;
+    triggered = true;
+  }
+
+  if (KInputManager::keyTriggered(Qt::Key_BracketRight))
+  {
+    ++p.m_minDraw;
+    triggered = true;
+  }
+
+
+  if (KInputManager::keyTriggered(Qt::Key_BraceLeft))
+  {
+    --p.m_maxDraw;
+    triggered = true;
+  }
+
+  if (KInputManager::keyTriggered(Qt::Key_BraceRight))
+  {
+    ++p.m_maxDraw;
+    triggered = true;
+  }
+
+  if (p.m_minDraw < 0)
+  {
+    p.m_minDraw = 0;
+  }
+  if (p.m_minDraw > p.m_staticGeometry->depth())
+  {
+    p.m_minDraw = static_cast<int>(p.m_staticGeometry->depth());
+  }
+  if (p.m_maxDraw < p.m_minDraw)
+  {
+    p.m_maxDraw = p.m_minDraw;
+  }
+  if (p.m_maxDraw > p.m_staticGeometry->depth())
+  {
+    p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
+  }
+
+  if (triggered)
+  {
+    QString format("MinMaxBounds [%1,%2]");
+    QMainWindow* window = NULL;
+    foreach(QWidget *widget, qApp->topLevelWidgets())
+    {
+      if(widget->inherits("QMainWindow"))
+      {
+        window = static_cast<QMainWindow*>(widget);
+        window->setWindowTitle( format.arg(p.m_minDraw).arg(p.m_maxDraw) );
+        break;
+      }
+    }
+  }
+
   for (OpenGLInstance *instance : p.m_instances)
   {
     if (p.b_rZ) instance->currentTransform().rotate(0.5f, 0.0f, 0.0f, 1.0f);
@@ -716,6 +806,25 @@ void MainWidget::updateEvent(KUpdateEvent *event)
     if (KInputManager::keyTriggered(Qt::Key_O))
     {
       p.openObj();
+    }
+  }
+
+  if (KInputManager::keyTriggered(Qt::Key_B))
+  {
+    p.m_staticGeometry = p.m_staticGeometryBottomUp;
+  }
+  if (KInputManager::keyPressed(Qt::Key_Shift))
+  {
+    if (KInputManager::keyTriggered(Qt::Key_T))
+    {
+      p.m_staticGeometry = p.m_staticGeometryTopDown7;
+    }
+  }
+  else
+  {
+    if (KInputManager::keyTriggered(Qt::Key_T))
+    {
+      p.m_staticGeometry = p.m_staticGeometryTopDown500;
     }
   }
 

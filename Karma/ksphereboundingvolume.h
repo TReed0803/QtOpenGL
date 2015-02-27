@@ -23,7 +23,7 @@ public:
   ~KSphereBoundingVolume();
 
   // Virtual Implementation
-  void draw(KTransform3D &t, KColor const &color);
+  void draw(KTransform3D &t, KColor const &color) const;
 
 private:
   KSphereBoundingVolumePrivate *m_private;

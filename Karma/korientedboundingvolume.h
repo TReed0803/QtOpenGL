@@ -20,7 +20,7 @@ public:
   ~KOrientedBoundingVolume();
 
   // Virtual Implementaiton
-  void draw(KTransform3D &t, KColor const &color);
+  void draw(KTransform3D &t, KColor const &color) const;
 
 private:
   KOrientedBoundingVolumePrivate *m_private;

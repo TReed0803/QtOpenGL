@@ -46,3 +46,7 @@ INCLUDEPATH += $${SHARED_INCLUDES}
 
 RESOURCES += \
     $$PWD/resources.qrc
+
+HEADERS +=
+
+SOURCES +=

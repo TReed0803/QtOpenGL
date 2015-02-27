@@ -174,7 +174,7 @@ KSphereBoundingVolume::~KSphereBoundingVolume()
   delete m_private;
 }
 
-void KSphereBoundingVolume::draw(KTransform3D &t, const KColor &color)
+void KSphereBoundingVolume::draw(KTransform3D &t, const KColor &color) const
 {
   P(KSphereBoundingVolumePrivate);
   KVector3D position = t.toMatrix() * p.centroid;

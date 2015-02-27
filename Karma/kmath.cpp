@@ -131,3 +131,42 @@ void Karma::reconstructMatrixByColumnVectors(KMatrix3x3 *mtx, const KVector3D &a
   (*mtx)[0][1] = b.x(); (*mtx)[1][1] = b.y(); (*mtx)[2][1] = b.z();
   (*mtx)[0][2] = c.x(); (*mtx)[1][2] = c.y(); (*mtx)[2][2] = c.z();
 }
+
+
+KColor Karma::colorShift(const KColor &orig, float amt)
+{
+  int passes = std::floor(amt);
+  float delta = amt - passes;
+  unsigned char deltaR = orig.red() * delta;
+  unsigned char deltaG = orig.green() * delta;
+  unsigned char deltaB = orig.blue() * delta;
+  switch (passes % 3)
+  {
+  case 0:
+    return
+      KColor(
+        orig.red()   - deltaR + deltaG,
+        orig.green() - deltaG + deltaB,
+        orig.blue()  - deltaB + deltaR,
+        orig.alpha()
+      );
+  case 1:
+    return
+      KColor(
+        orig.blue()  - deltaB + deltaR,
+        orig.red()   - deltaR + deltaG,
+        orig.green() - deltaG + deltaB,
+        orig.alpha()
+      );
+  case 2:
+    return
+      KColor(
+        orig.green() - deltaG + deltaB,
+        orig.blue()  - deltaB + deltaR,
+        orig.red()   - deltaR + deltaG,
+        orig.alpha()
+      );
+  default:
+    return orig;
+  }
+}

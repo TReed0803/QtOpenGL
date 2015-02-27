@@ -15,7 +15,7 @@ public:
 
   KEllipsoidBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   ~KEllipsoidBoundingVolume();
-  void draw(KTransform3D &t, KColor const &color);
+  void draw(KTransform3D &t, KColor const &color) const;
 private:
   KEllipsoidBoundingVolumePrivate *m_private;
 };

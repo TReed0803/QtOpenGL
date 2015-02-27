@@ -65,7 +65,7 @@ KOrientedBoundingVolume::~KOrientedBoundingVolume()
   delete m_private;
 }
 
-void KOrientedBoundingVolume::draw(KTransform3D &t, const KColor &color)
+void KOrientedBoundingVolume::draw(KTransform3D &t, const KColor &color) const
 {
   P(KOrientedBoundingVolumePrivate);
   KVector3D center = t.toMatrix() * p.centroid;
