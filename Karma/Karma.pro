@@ -72,5 +72,5 @@ HEADERS += \
     korientedboundingvolume.h \
     kmatrix3x3.h \
     kmath.h \
-    epossphere.h \
-    kstaticgeometry.h
+    kstaticgeometry.h \
+    kepossphere.h
