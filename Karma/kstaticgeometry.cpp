@@ -141,6 +141,7 @@ struct KStaticGeometryNode
   bool isLeaf() const;
   void drawAabb(KTransform3D &trans, KColor const &color, size_t min, size_t max) const;
   void correctDepth(size_t depth);
+  size_t getMaxDepth();
 
   KAabbBoundingVolume aabb;
   KStaticGeometryNode *left;
@@ -211,6 +212,11 @@ void KStaticGeometryNode::correctDepth(size_t d)
   if (right) right->correctDepth(d + 1);
 }
 
+size_t KStaticGeometryNode::getMaxDepth()
+{
+  return std::max(depth, std::max(left ? left->getMaxDepth() : 0, right ? right->getMaxDepth() : 0));
+}
+
 /*******************************************************************************
  * KStaticGeometryPrivate
  ******************************************************************************/
@@ -246,14 +252,29 @@ void KStaticGeometryPrivate::buildBottomUp(TerminationPred pred)
   size_t numTriangles = m_triangleCloud.size();
   nodes.reserve(numTriangles);
 
+  int leafCount;
+  int depthEstimate;
+  int leafSize = numTriangles;
+  do
+  {
+    leafCount = numTriangles / leafSize;
+    depthEstimate = std::ceil(std::log(leafSize) / Karma::Log2);
+    leafSize /= 2;
+  }
+  while (pred(numTriangles / leafSize, depthEstimate));
+
   // Initial Construction
+  size_t remaining;
   KStaticGeometryNode *currNode;
   KTriangleCloud::const_iterator it = m_triangleCloud.begin();
-  while (it != m_triangleCloud.end())
+  while (it != m_triangleCloud.cend())
   {
-    currNode = new KStaticGeometryNode(0, it, it + 1, m_pointCloud);
+    remaining = std::distance(it, m_triangleCloud.cend());
+    if (remaining > leafCount)
+      remaining = leafCount;
+    currNode = new KStaticGeometryNode(0, it, it + remaining, m_pointCloud);
     nodes.push_back(currNode);
-    ++it;
+    std::advance(it, remaining);
   }
 
   std::vector<KStaticGeometryNode*> working;
@@ -284,6 +305,7 @@ void KStaticGeometryPrivate::buildBottomUp(TerminationPred pred)
 
   m_root = nodes[0];
   m_root->correctDepth(0);
+  m_maxDepth = m_root->getMaxDepth();
 }
 
 KStaticGeometryNode *KStaticGeometryPrivate::recursiveTopDown(size_t depth, TriangleIterator begin, TriangleIterator end, TerminationPred pred)
@@ -294,7 +316,7 @@ KStaticGeometryNode *KStaticGeometryPrivate::recursiveTopDown(size_t depth, Tria
   if (m_maxDepth < depth) m_maxDepth = depth;
 
   KStaticGeometryNode *node = new KStaticGeometryNode(depth, begin, end, m_pointCloud);
-  if (pred(numPoints, depth))
+  if (!pred(numPoints, depth))
   {
     KVector3D const &maxAxis = node->aabb.maxAxis();
     TriangleIterator secondHalf = std::partition(begin, end, KPartitionTrianglesAlongAxis(node->aabb.center(), maxAxis, m_pointCloud));

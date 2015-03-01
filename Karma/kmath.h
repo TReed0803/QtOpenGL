@@ -52,6 +52,7 @@ namespace Karma
   extern const float Pi;
   extern const float PiHalf;
   extern const float TwoPi;
+  extern const float Log2;
 
   // Matrix Decomposition
   KVector3D minEigenExtents(KMatrix3x3 const &eigenVecs);

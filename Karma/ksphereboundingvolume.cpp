@@ -5,6 +5,7 @@
 #include <OpenGLDebugDraw>
 #include <KMatrix3x3>
 #include <KMath>
+#include <KEposSphere>
 
 class KSphereBoundingVolumePrivate
 {
@@ -50,7 +51,19 @@ void KSphereBoundingVolumePrivate::calculateRittersMethod(const KHalfEdgeMesh &m
 
 void KSphereBoundingVolumePrivate::calculateLarssonsMethod(const KHalfEdgeMesh &mesh)
 {
-  // Not implemented yet
+  std::vector<KVector3D> normals =
+  {
+    KVector3D(1.0f, 0.0f, 0.0f),
+    KVector3D(0.0f, 1.0f, 0.0f),
+    KVector3D(0.0f, 0.0f, 1.0f)
+  };
+  KEposSphere sphere(mesh.vertices().begin(), mesh.vertices().end(), normals.begin(), normals.end(), KHalfEdgeMesh::VertexPositionPred());
+  centroid = sphere.centroid;
+  radius = sphere.radius;
+  for (KHalfEdgeMesh::Vertex const & v : mesh.vertices())
+  {
+    expandToContainPoint(v.position);
+  }
 }
 
 void KSphereBoundingVolumePrivate::calculatePcaMethod(const KHalfEdgeMesh &mesh)

@@ -120,7 +120,8 @@ public:
   KSphereBoundingVolume *m_spherePcaBV;
   KEllipsoidBoundingVolume *m_ellipsoidPcaBV;
   KOrientedBoundingVolume *m_orientedPcaBV;
-  KStaticGeometry *m_staticGeometryBottomUp;
+  KStaticGeometry *m_staticGeometryBottomUp7;
+  KStaticGeometry *m_staticGeometryBottomUp500;
   KStaticGeometry *m_staticGeometryTopDown7;
   KStaticGeometry *m_staticGeometryTopDown500;
   KStaticGeometry *m_staticGeometry;
@@ -167,7 +168,7 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   b_rX = b_rY = b_rZ = false;
   for (int i = 0; i < 8; ++i)
     b_bv[i] = false;
-  m_staticGeometryBottomUp = m_staticGeometryTopDown7 = m_staticGeometryTopDown500 = 0;
+  m_staticGeometryBottomUp7 = m_staticGeometryBottomUp500 = m_staticGeometryTopDown7 = m_staticGeometryTopDown500 = 0;
 }
 
 void MainWidgetPrivate::initializeGL()
@@ -224,10 +225,12 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
     {
       delete m_staticGeometryTopDown500;
       delete m_staticGeometryTopDown7;
-      delete m_staticGeometryBottomUp;
+      delete m_staticGeometryBottomUp7;
+      delete m_staticGeometryBottomUp500;
       m_staticGeometryTopDown500 = new KStaticGeometry();
       m_staticGeometryTopDown7 = new KStaticGeometry();
-      m_staticGeometryBottomUp = new KStaticGeometry();
+      m_staticGeometryBottomUp7 = new KStaticGeometry();
+      m_staticGeometryBottomUp500 = new KStaticGeometry();
       KTransform3D geomTrans;
       for (int i = 0; i < 4; ++i)
       {
@@ -236,7 +239,8 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
         geomTrans.setTranslation(std::cos(radians) * radius, 0.0f, std::sin(radians) * radius);
         m_staticGeometryTopDown500->addGeometry(*m_halfEdgeMesh, geomTrans);
         m_staticGeometryTopDown7->addGeometry(*m_halfEdgeMesh, geomTrans);
-        m_staticGeometryBottomUp->addGeometry(*m_halfEdgeMesh, geomTrans);
+        m_staticGeometryBottomUp7->addGeometry(*m_halfEdgeMesh, geomTrans);
+        m_staticGeometryBottomUp500->addGeometry(*m_halfEdgeMesh, geomTrans);
       }
       m_staticGeometry = 0;
     }
@@ -683,26 +687,26 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   bool triggered = false;
   if (KInputManager::keyTriggered(Qt::Key_BracketLeft))
   {
-    --p.m_minDraw;
+    --p.m_maxDraw;
     triggered = true;
   }
 
   if (KInputManager::keyTriggered(Qt::Key_BracketRight))
   {
-    ++p.m_minDraw;
+    ++p.m_maxDraw;
     triggered = true;
   }
 
 
   if (KInputManager::keyTriggered(Qt::Key_BraceLeft))
   {
-    --p.m_maxDraw;
+    --p.m_minDraw;
     triggered = true;
   }
 
   if (KInputManager::keyTriggered(Qt::Key_BraceRight))
   {
-    ++p.m_maxDraw;
+    ++p.m_minDraw;
     triggered = true;
   }
 
@@ -806,28 +810,34 @@ void MainWidget::updateEvent(KUpdateEvent *event)
     }
   }
 
-  if (KInputManager::keyTriggered(Qt::Key_B))
-  {
-    p.m_staticGeometry = p.m_staticGeometryBottomUp;
-    p.m_staticGeometryBottomUp->build(KStaticGeometry::BottomUpMethod);
-    p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
-  }
   if (KInputManager::keyPressed(Qt::Key_Shift))
   {
+    auto depthPred = [](size_t numTriangles, size_t depth)->bool { (void)numTriangles; return depth >= 7; };
+    if (KInputManager::keyTriggered(Qt::Key_B))
+    {
+      p.m_staticGeometry = p.m_staticGeometryBottomUp7;
+      p.m_staticGeometryBottomUp7->build(KStaticGeometry::BottomUpMethod, depthPred);
+      p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
+    }
     if (KInputManager::keyTriggered(Qt::Key_T))
     {
       p.m_staticGeometry = p.m_staticGeometryTopDown7;
-      auto depthPred = [](size_t numTriangles, size_t depth)->bool { (void)numTriangles; return depth < 7; };
       p.m_staticGeometryTopDown7->build(KStaticGeometry::TopDownMethod, depthPred);
       p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
     }
   }
   else
   {
+    auto trianglePred = [](size_t numTriangles, size_t depth)->bool { (void)depth; return numTriangles < 500; };
+    if (KInputManager::keyTriggered(Qt::Key_B))
+    {
+      p.m_staticGeometry = p.m_staticGeometryBottomUp500;
+      p.m_staticGeometryBottomUp500->build(KStaticGeometry::BottomUpMethod, trianglePred);
+      p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
+    }
     if (KInputManager::keyTriggered(Qt::Key_T))
     {
       p.m_staticGeometry = p.m_staticGeometryTopDown500;
-      auto trianglePred = [](size_t numTriangles, size_t depth)->bool { (void)depth; return numTriangles > 500; };
       p.m_staticGeometryTopDown500->build(KStaticGeometry::TopDownMethod, trianglePred);
       p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
     }
