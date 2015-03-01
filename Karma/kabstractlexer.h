@@ -75,6 +75,8 @@ private:
 #define WHITESPACE \
        ' ':\
   case '\t':\
+  case '\v':\
+  case '\f':\
   case '\r'
 
 #define NEWLINE \

@@ -6,6 +6,9 @@
 #include <KBufferedFileReader>
 #include <KCommon>
 
+// GLSL 3.30r6
+// (https://www.opengl.org/registry/doc/GLSLangSpec.3.30.6.clean.pdf)
+
 /*******************************************************************************
  * OpenGLSL Parsing Definitions
  ******************************************************************************/
@@ -18,6 +21,11 @@ enum OpenGLSLToken
 
   // Preprocessor Tokens
   PT_PP_UNKNOWN,
+
+  // GLSL Tokens
+  PT_UNKNOWN,
+
+  // Language Extensions
   PT_PP_INCLUDE,
   PT_PP_AUTOBIND,
 
@@ -27,6 +35,7 @@ enum OpenGLSLToken
 
 static KParseMap<OpenGLSLToken> const sg_reserved =
 {
+  // Preprocessor
   { "#include", PT_PP_INCLUDE },
   { "#autobind", PT_PP_AUTOBIND }
 };
