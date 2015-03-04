@@ -102,8 +102,8 @@ public:
   OpenGLShaderProgram *m_program;
   OpenGLShaderProgram *m_textureDrawer;
   OpenGLUniformBufferObject m_matrixBlock;
-  OpenGLInstanceGroup *m_instanceGroup;
-  OpenGLInstanceGroup *m_floorGroup;
+  OpenGLInstanceGroup m_instanceGroup;
+  OpenGLInstanceGroup m_floorGroup;
   OpenGLInstance *m_floorInstance;
   OpenGLShaderProgram *m_pointLightProgram;
   OpenGLPointLightGroup *m_pointLightGroup;
@@ -217,7 +217,7 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
       m_parent->makeCurrent();
       timer.start();
       m_openGLMesh.create(*m_halfEdgeMesh);
-      m_instanceGroup->setMesh(m_openGLMesh);
+      m_instanceGroup.setMesh(m_openGLMesh);
       ms = timer.elapsed();
       qDebug() << "Create OpenGLMesh (sec)      :" << float(ms) / 1e3f;
     }
@@ -537,14 +537,14 @@ void MainWidget::initializeGL()
       l->setRadius(50.0f);
       p.m_pointLights.push_back(l);
     }
+    p.m_floorGroup.create();
+    p.m_instanceGroup.create();
     // Open OBJ
-    p.m_instanceGroup = new OpenGLInstanceGroup(this);
-    p.m_floorGroup = new OpenGLInstanceGroup(this);
     KHalfEdgeMesh *mesh = new KHalfEdgeMesh(this, ":/resources/objects/floor.obj");
     mesh->calculateVertexNormals();
     p.m_floorGL.create(*mesh);
-    p.m_floorGroup->setMesh(p.m_floorGL);
-    p.m_floorInstance = p.m_floorGroup->createInstance();
+    p.m_floorGroup.setMesh(p.m_floorGL);
+    p.m_floorInstance = p.m_floorGroup.createInstance();
     p.m_floorInstance->material().setDiffuse(0.0f, 0.0f, 1.0f);
     p.m_floorInstance->material().setSpecular(0.25f, 0.25f, 0.25f, 1.0f);
     p.m_floorInstance->transform().setScale(100.0f);
@@ -557,13 +557,13 @@ void MainWidget::initializeGL()
     {
       const float radius = 10.0f;
       float radians = i * Karma::TwoPi / 4.0f;
-      OpenGLInstance * instance = p.m_instanceGroup->createInstance();
+      OpenGLInstance * instance = p.m_instanceGroup.createInstance();
       instance->currentTransform().setScale(1.0f);
       instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
       instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
       instance->currentTransform().setTranslation(std::cos(radians) * radius, 0.0f, std::sin(radians) * radius);
     }
-    OpenGLInstance * instance = p.m_instanceGroup->createInstance();
+    OpenGLInstance * instance = p.m_instanceGroup.createInstance();
     instance->currentTransform().setScale(1.0f);
     instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
     instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
@@ -619,16 +619,16 @@ void MainWidget::paintGL()
         p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2 + 2), &p.m_depthDiff, sizeof(float));
         p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2 + 3), &p.m_width, sizeof(float));
         p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2 + 4), &p.m_height, sizeof(float));
-        p.m_instanceGroup->update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
-        p.m_floorGroup->update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
+        p.m_instanceGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
+        p.m_floorGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
         p.m_pointLightGroup->update(p.m_projection, p.m_camera.toMatrix());
       }
       {
         OpenGLMarkerScoped _("Generate G Buffer");
         p.m_deferredBuffer.bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        p.m_floorGroup->draw();
-        p.m_instanceGroup->draw();
+        p.m_floorGroup.draw();
+        p.m_instanceGroup.draw();
         glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
       }
       p.m_program->release();

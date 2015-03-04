@@ -1,24 +1,29 @@
 #ifndef OPENGLINSTANCEGROUP_H
 #define OPENGLINSTANCEGROUP_H OpenGLInstanceGroup
 
-class OpenGLMesh;
-class KTransform3D;
-#include <QObject>
 #include <vector>
-#include <OpenGLInstance>
 
 class KMatrix4x4;
+class OpenGLInstance;
+class OpenGLMesh;
 
 class OpenGLInstanceGroupPrivate;
-class OpenGLInstanceGroup : public QObject
+class OpenGLInstanceGroup
 {
-  Q_OBJECT
 public:
   typedef std::vector<OpenGLInstance*> InstanceList;
-  OpenGLInstanceGroup(QObject *parent = 0);
+
+  // Constructors / Destructor
+  OpenGLInstanceGroup();
+  ~OpenGLInstanceGroup();
+
+  // Group Manipulation
+  void create();
   void setMesh(const OpenGLMesh &mesh);
-  void update(const KMatrix4x4 &currWorldToCamera, const KMatrix4x4 &prevWorldToCamera);
+  void update(const KMatrix4x4 &currView, const KMatrix4x4 &prevView);
   void draw();
+
+  // Group Queries
   OpenGLInstance *createInstance();
   InstanceList &instances();
   InstanceList const &instances() const;

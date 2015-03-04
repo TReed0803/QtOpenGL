@@ -1,109 +1,119 @@
 #include "openglinstancegroup.h"
-#include "openglbuffer.h"
-#include "openglmesh.h"
-#include "openglvertexarrayobject.h"
-#include "openglfunctions.h"
-#include "openglinstance.h"
-#include "openglmaterial.h"
 
-#include <vector>
-
-#include <KColor>
+#include <KMath>
 #include <KTransform3D>
 
-///
+#include <OpenGLDynamicBuffer>
+#include <OpenGLInstance>
+#include <OpenGLInstanceData>
+#include <OpenGLMaterial>
+#include <OpenGLMesh>
+
+/*******************************************************************************
+ * OpenGLInstanceGroupPrivate
+ ******************************************************************************/
 class OpenGLInstanceGroupPrivate
 {
 public:
+  typedef OpenGLInstanceData DataType;
+  typedef OpenGLInstanceData* DataPointer;
+  typedef OpenGLDynamicBuffer<OpenGLInstanceData> BufferType;
   typedef std::vector<OpenGLInstance*> TransformList;
 
-  OpenGLInstanceGroupPrivate();
+  void create();
+  void setMesh(const OpenGLMesh &mesh);
+  void update(KMatrix4x4 const &currView, KMatrix4x4 const &prevView);
 
-  uint64_t m_bufferSize;
   OpenGLMesh m_mesh;
-  OpenGLBuffer m_buffer;
+  BufferType m_buffer;
   TransformList m_instances;
 };
 
-OpenGLInstanceGroupPrivate::OpenGLInstanceGroupPrivate() :
-  m_bufferSize(0), m_buffer(OpenGLBuffer::VertexBuffer)
+void OpenGLInstanceGroupPrivate::create()
 {
   m_buffer.setUsagePattern(OpenGLBuffer::DynamicDraw);
   m_buffer.create();
 }
 
-///
+void OpenGLInstanceGroupPrivate::setMesh(const OpenGLMesh &mesh)
+{
+  m_mesh = mesh;
+  m_mesh.bind();
+  m_buffer.bind();
+  m_mesh.vertexAttribPointerDivisor(2, 3, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::DiffuseOffset(), 1);
+  m_mesh.vertexAttribPointerDivisor(3, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::SpecularOffset(), 1);
+  m_mesh.vertexAttribPointerDivisor(4, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::CurrentTransformOffset(), 1);
+  m_mesh.vertexAttribPointerDivisor(8, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::PreviousTransformOffset(), 1);
+  m_mesh.vertexAttribPointerDivisor(12, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::NormalsTransformOffset(), 1);
+  m_mesh.release();
+}
 
-OpenGLInstanceGroup::OpenGLInstanceGroup(QObject *parent) :
-  QObject(parent), m_private(new OpenGLInstanceGroupPrivate)
+void OpenGLInstanceGroupPrivate::update(const KMatrix4x4 &currView, const KMatrix4x4 &prevView)
+{
+  // Map Dynamic Data
+  m_buffer.bind();
+  m_buffer.reserve(m_instances.size());
+  BufferType::RangeAccessFlags flags =
+      BufferType::RangeInvalidate
+    | BufferType::RangeUnsynchronized
+    | BufferType::RangeWrite;
+  DataPointer dest = m_buffer.mapRange(0, m_instances.size(), flags);
+
+  if (dest == NULL)
+  {
+    qFatal("Failed to map the buffer range!");
+  }
+
+  // Upload data to GPU
+  DataPointer instanceDest;
+  OpenGLInstance *instanceSource;
+  for (int i = 0; i < m_instances.size(); ++i)
+  {
+    instanceDest   = &dest[i];
+    instanceSource = m_instances[i];
+    instanceDest->m_currModelView = Karma::ToGlm(currView * instanceSource->currentTransform().toMatrix());
+    instanceDest->m_diffuse = Karma::ToGlm(instanceSource->material().diffuse());
+    instanceDest->m_normalTransform = glm::transpose(glm::inverse(instanceDest->m_currModelView));
+    instanceDest->m_prevModelView = Karma::ToGlm(prevView * instanceSource->previousTransform().toMatrix());
+    instanceDest->m_specular = Karma::ToGlm(instanceSource->material().specularColor(), instanceSource->material().specularExponent());
+    instanceSource->update();
+  }
+
+  // Finalize Mapping
+  m_buffer.unmap();
+  m_buffer.release();
+}
+
+/*******************************************************************************
+ * OpenGLInstanceGroup
+ ******************************************************************************/
+OpenGLInstanceGroup::OpenGLInstanceGroup() :
+  m_private(new OpenGLInstanceGroupPrivate)
 {
   // Intentionally Empty
+}
+
+OpenGLInstanceGroup::~OpenGLInstanceGroup()
+{
+  delete m_private;
+}
+
+void OpenGLInstanceGroup::create()
+{
+  P(OpenGLInstanceGroupPrivate);
+  p.create();
 }
 
 void OpenGLInstanceGroup::setMesh(const OpenGLMesh &mesh)
 {
   P(OpenGLInstanceGroupPrivate);
-  p.m_mesh = mesh;
-  p.m_mesh.bind();
-  p.m_buffer.bind();
-  p.m_mesh.vertexAttribPointerDivisor(2, 3, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::DiffuseOffset(), 1);
-  p.m_mesh.vertexAttribPointerDivisor(3, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::SpecularOffset(), 1);
-  p.m_mesh.vertexAttribPointerDivisor(4, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::CurrentTransformOffset(), 1);
-  p.m_mesh.vertexAttribPointerDivisor(8, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::PreviousTransformOffset(), 1);
-  p.m_mesh.vertexAttribPointerDivisor(12, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::NormalsTransformOffset(), 1);
-  p.m_mesh.release();
+  p.setMesh(mesh);
 }
 
-void OpenGLInstanceGroup::update(KMatrix4x4 const &currWorldToCamera, KMatrix4x4 const &prevWorldToCamera)
+void OpenGLInstanceGroup::update(KMatrix4x4 const &currView, KMatrix4x4 const &prevView)
 {
   P(OpenGLInstanceGroupPrivate);
-  uint64_t required = 0;
-  required += p.m_instances.size() * sizeof(GLfloat) * 3;  // vec3:diffuse
-  required += p.m_instances.size() * sizeof(GLfloat) * 4;  // vec3:specular
-  required += p.m_instances.size() * sizeof(GLfloat) * 16; // mat4:currModelTransform
-  required += p.m_instances.size() * sizeof(GLfloat) * 16; // mat4:prevModelTransform
-  required += p.m_instances.size() * sizeof(GLfloat) * 16; // mat4:normalTransform
-
-  std::vector<float> instanceInfo;
-  instanceInfo.reserve(required);
-  for (OpenGLInstance *instance : p.m_instances)
-  {
-    KMatrix4x4 currTrans = currWorldToCamera * instance->currentTransform().toMatrix();
-    KMatrix4x4 prevTrans = prevWorldToCamera * instance->previousTransform().toMatrix();
-    KMatrix4x4 normTrans = currTrans.inverted().transposed();
-    KColor const &diffuse  = instance->material().diffuse();
-    KColor const &specular = instance->material().specularColor();
-    float specularExponent = instance->material().specularExponent();
-    instanceInfo.push_back( diffuse.redF() );
-    instanceInfo.push_back( diffuse.greenF() );
-    instanceInfo.push_back( diffuse.blueF() );
-    instanceInfo.push_back( specular.redF() );
-    instanceInfo.push_back( specular.greenF() );
-    instanceInfo.push_back( specular.blueF() );
-    instanceInfo.push_back( specularExponent );
-    for (int i = 0; i < 16; ++i)
-      instanceInfo.push_back( currTrans.constData()[i] );
-    for (int i = 0; i < 16; ++i)
-      instanceInfo.push_back( prevTrans.constData()[i] );
-    for (int i = 0; i < 16; ++i)
-      instanceInfo.push_back( normTrans.constData()[i] );
-    instance->update();
-  }
-
-  // Prepare OpenGL Buffer data
-  if (p.m_bufferSize < required)
-  {
-    p.m_buffer.bind();
-    p.m_buffer.allocate(instanceInfo.data(), required);
-    p.m_buffer.release();
-    p.m_bufferSize = required;
-  }
-  else
-  {
-    p.m_buffer.bind();
-    p.m_buffer.write(0, instanceInfo.data(), required);
-    p.m_buffer.release();
-  }
+  p.update(currView, prevView);
 }
 
 void OpenGLInstanceGroup::draw()

@@ -43,5 +43,4 @@ inline int OpenGLPointLightData::PerpectiveOffset()
   return offsetof(OpenGLPointLightData, m_perspTrans);
 }
 
-
 #endif // OPENGLPOINTLIGHTDATA_H

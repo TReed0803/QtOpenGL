@@ -72,4 +72,5 @@ HEADERS += \
     opengllightgroup.h \
     openglpointlightdata.h \
     opengldynamicbuffer.h \
-    openglelementtype.h
+    openglelementtype.h \
+    openglinstancedata.h

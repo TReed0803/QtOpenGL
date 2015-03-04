@@ -70,6 +70,7 @@ namespace Karma
   glm::vec4 ToGlm(QVector3D const &v, float w);
   glm::vec4 ToGlm(QVector4D const &v);
   glm::vec3 ToGlm(QColor const &c);
+  glm::vec4 ToGlm(QColor const &c, float w);
   glm::mat4 ToGlm(QMatrix4x4 const &m);
 
   // Matrix Decomposition
@@ -379,6 +380,11 @@ inline glm::mat4 Karma::ToGlm(QMatrix4x4 const &m)
 inline glm::vec3 Karma::ToGlm(QColor const &c)
 {
   return glm::vec3(c.redF(), c.greenF(), c.blueF());
+}
+
+inline glm::vec4 Karma::ToGlm(QColor const &c, float w)
+{
+  return glm::vec4(c.redF(), c.greenF(), c.blueF(), w);
 }
 
 #endif // KMATH_H
