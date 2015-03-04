@@ -10,7 +10,7 @@ public:
 
 
 OpenGLUniformBufferObject::OpenGLUniformBufferObject() :
-  OpenGLBuffer(static_cast<QOpenGLBuffer::Type>(GL_UNIFORM_BUFFER))
+  OpenGLBuffer(OpenGLBuffer::UniformBuffer)
  ,m_private(new OpenGLUniformBufferObjectPrivate)
 {
   P(OpenGLUniformBufferObjectPrivate);

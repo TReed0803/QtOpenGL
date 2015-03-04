@@ -91,11 +91,12 @@ public:
   // OpenGL State Information
   float m_width;
   float m_height;
-  OpenGLMesh *m_openGLMesh;
+  OpenGLMesh m_openGLMesh;
   KHalfEdgeMesh *m_halfEdgeMesh;
   KHalfEdgeMesh *m_quad;
   KHalfEdgeMesh *m_floor;
-  OpenGLMesh *m_quadGL;
+  OpenGLMesh m_quadGL;
+  OpenGLMesh m_floorGL;
   typedef std::tuple<KVector3D,KVector3D> QueryResultType;
   std::vector<QueryResultType> m_boundaries;
   OpenGLShaderProgram *m_program;
@@ -155,7 +156,7 @@ public:
 };
 
 MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
-  m_openGLMesh(Q_NULLPTR), m_halfEdgeMesh(Q_NULLPTR),
+  m_halfEdgeMesh(Q_NULLPTR),
   m_program(Q_NULLPTR), m_parent(parent), m_width(1), m_height(1),
   m_buffer(LightPass), m_paused(false), m_staticGeometry(0), m_minDraw(0), m_maxDraw(std::numeric_limits<size_t>::max())
 {
@@ -181,7 +182,6 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
   // Remove old mesh
   bool oldValue = m_paused;
   m_paused = true;
-  delete m_openGLMesh;
   delete m_halfEdgeMesh;
   m_boundaries.clear();
 
@@ -192,6 +192,17 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
     {
       timer.start();
       m_halfEdgeMesh = new KHalfEdgeMesh(m_parent, fileName);
+      ms = timer.elapsed();
+      qDebug() << "Create HalfEdgeMesh (sec)    :" << float(ms) / 1e3f;
+    }
+    {
+      timer.start();
+      m_halfEdgeMesh->calculateVertexNormals();
+      ms = timer.elapsed();
+      qDebug() << "Calculate Normals (sec)      :" << float(ms) / 1e3f;
+    }
+    {
+      timer.start();
       m_aabbBV = new KAabbBoundingVolume(*m_halfEdgeMesh, KAabbBoundingVolume::MinMaxMethod);
       m_sphereCentroidBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::CentroidMethod);
       m_sphereRittersBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::RittersMethod);
@@ -200,15 +211,15 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
       m_ellipsoidPcaBV = new KEllipsoidBoundingVolume(*m_halfEdgeMesh, KEllipsoidBoundingVolume::PcaMethod);
       m_orientedPcaBV = new KOrientedBoundingVolume(*m_halfEdgeMesh, KOrientedBoundingVolume::PcaMethod);
       ms = timer.elapsed();
-      qDebug() << "Create HalfEdgeMesh (sec):" << float(ms) / 1e3f;
+      qDebug() << "Create Bounding Volumes (sec):" << float(ms) / 1e3f;
     }
     {
       m_parent->makeCurrent();
       timer.start();
-      m_openGLMesh = m_halfEdgeMesh->createOpenGLMesh(OpenGLMesh::Contiguous | OpenGLMesh::Interleaved);
+      m_openGLMesh.create(*m_halfEdgeMesh);
       m_instanceGroup->setMesh(m_openGLMesh);
       ms = timer.elapsed();
-      qDebug() << "Create OpenGLMesh (sec)  :" << float(ms) / 1e3f;
+      qDebug() << "Create OpenGLMesh (sec)      :" << float(ms) / 1e3f;
     }
     auto query =
       SELECT
@@ -220,7 +231,7 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
       timer.start();
       m_boundaries = query();
       ms = timer.elapsed();
-      qDebug() << "Mesh Query Time (sec)    :" << float(ms) / 1e3f;
+      qDebug() << "Mesh Query Time (sec)        :" << float(ms) / 1e3f;
     }
     {
       delete m_staticGeometryTopDown500;
@@ -340,7 +351,7 @@ void MainWidgetPrivate::drawBackbuffer()
     m_pointLightProgram->bind();
     m_pointLightGroup->draw();
     m_ambientProgram->bind();
-    m_quadGL->draw();
+    m_quadGL.draw();
     glDepthFunc(GL_LESS);
   }
   {
@@ -348,7 +359,7 @@ void MainWidgetPrivate::drawBackbuffer()
     glBindFramebuffer(GL_FRAMEBUFFER, m_parent->defaultFramebufferObject());
     glClear(GL_COLOR_BUFFER_BIT);
     m_deferredPrograms[m_buffer]->bind();
-    m_quadGL->draw();
+    m_quadGL.draw();
     m_deferredPrograms[m_buffer]->release();
   }
   glDisable(GL_BLEND);
@@ -398,12 +409,8 @@ void MainWidgetPrivate::checkFramebuffer(char const *name, OpenGLFramebufferObje
  * MainWidget
  ******************************************************************************/
 MainWidget::MainWidget(QWidget *parent) :
-  OpenGLWidget(parent), m_private(new MainWidgetPrivate(this))
+  OpenGLWidget(parent)
 {
-  P(MainWidgetPrivate);
-  p.m_transform.scale(50.0f);
-  p.m_transform.translate(0.0f, 0.0f, -150.0f);
-  p.m_dragVelocity = 0.0f;
   OpenGLShaderProgram::addSharedIncludePath(":/resources/shaders");
   OpenGLShaderProgram::addSharedIncludePath(":/resources/shaders/ubo");
 }
@@ -421,7 +428,12 @@ static GLuint buffers[1];
  ******************************************************************************/
 void MainWidget::initializeGL()
 {
+  m_private = new MainWidgetPrivate(this);
   P(MainWidgetPrivate);
+  p.m_transform.scale(50.0f);
+  p.m_transform.translate(0.0f, 0.0f, -150.0f);
+  p.m_dragVelocity = 0.0f;
+
   p.initializeGL();
   OpenGLWidget::initializeGL();
   printVersionInformation();
@@ -434,7 +446,7 @@ void MainWidget::initializeGL()
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
   p.m_quad = new KHalfEdgeMesh(this, ":/resources/objects/quad.obj");
-  p.m_quadGL = p.m_quad->createOpenGLMesh(OpenGLMesh::Contiguous);
+  p.m_quadGL.create(*p.m_quad);
 
   // Application-specific initialization
   {
@@ -512,9 +524,12 @@ void MainWidget::initializeGL()
     p.m_deferredBuffer.create();
     p.m_lightBuffer.create();
 
-    p.m_pointLightGroup = new OpenGLPointLightGroup(this);
+    p.m_pointLightGroup = new OpenGLPointLightGroup;
     KHalfEdgeMesh *mesh1 = new KHalfEdgeMesh(this, ":/resources/objects/pointLight.obj");
-    OpenGLMesh * oglMesh1 = mesh1->createOpenGLMesh(OpenGLMesh::Contiguous);
+    mesh1->calculateVertexNormals();
+    OpenGLMesh oglMesh1;
+    oglMesh1.create(*mesh1);
+    p.m_pointLightGroup->create();
     p.m_pointLightGroup->setMesh(oglMesh1);
     for (int i = 0; i < 5; ++i)
     {
@@ -526,8 +541,9 @@ void MainWidget::initializeGL()
     p.m_instanceGroup = new OpenGLInstanceGroup(this);
     p.m_floorGroup = new OpenGLInstanceGroup(this);
     KHalfEdgeMesh *mesh = new KHalfEdgeMesh(this, ":/resources/objects/floor.obj");
-    OpenGLMesh *oglMesh = mesh->createOpenGLMesh(OpenGLMesh::Contiguous);
-    p.m_floorGroup->setMesh(oglMesh);
+    mesh->calculateVertexNormals();
+    p.m_floorGL.create(*mesh);
+    p.m_floorGroup->setMesh(p.m_floorGL);
     p.m_floorInstance = p.m_floorGroup->createInstance();
     p.m_floorInstance->material().setDiffuse(0.0f, 0.0f, 1.0f);
     p.m_floorInstance->material().setSpecular(0.25f, 0.25f, 0.25f, 1.0f);
@@ -844,33 +860,67 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   }
 
   // Change Buffer
-  if (KInputManager::keyTriggered(Qt::Key_0))
+  if (KInputManager::keyPressed(Qt::Key_Shift))
   {
-    p.b_bv[0] = !p.b_bv[0];
+    if (KInputManager::keyTriggered(Qt::Key_ParenRight))
+    {
+      p.m_buffer = (DeferredData)0;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_Exclam))
+    {
+      p.m_buffer = (DeferredData)1;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_At))
+    {
+      p.m_buffer = (DeferredData)2;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_NumberSign))
+    {
+      p.m_buffer = (DeferredData)3;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_Dollar))
+    {
+      p.m_buffer = (DeferredData)4;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_Percent))
+    {
+      p.m_buffer = (DeferredData)5;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_Ampersand))
+    {
+      p.m_buffer = (DeferredData)6;
+    }
   }
-  if (KInputManager::keyTriggered(Qt::Key_1))
+  else
   {
-    p.b_bv[1] = !p.b_bv[1];
-  }
-  if (KInputManager::keyTriggered(Qt::Key_2))
-  {
-    p.b_bv[2] = !p.b_bv[2];
-  }
-  if (KInputManager::keyTriggered(Qt::Key_3))
-  {
-    p.b_bv[3] = !p.b_bv[3];
-  }
-  if (KInputManager::keyTriggered(Qt::Key_4))
-  {
-    p.b_bv[4] = !p.b_bv[4];
-  }
-  if (KInputManager::keyTriggered(Qt::Key_5))
-  {
-    p.b_bv[5] = !p.b_bv[5];
-  }
-  if (KInputManager::keyTriggered(Qt::Key_6))
-  {
-    p.b_bv[6] = !p.b_bv[6];
+    if (KInputManager::keyTriggered(Qt::Key_0))
+    {
+      p.b_bv[0] = !p.b_bv[0];
+    }
+    if (KInputManager::keyTriggered(Qt::Key_1))
+    {
+      p.b_bv[1] = !p.b_bv[1];
+    }
+    if (KInputManager::keyTriggered(Qt::Key_2))
+    {
+      p.b_bv[2] = !p.b_bv[2];
+    }
+    if (KInputManager::keyTriggered(Qt::Key_3))
+    {
+      p.b_bv[3] = !p.b_bv[3];
+    }
+    if (KInputManager::keyTriggered(Qt::Key_4))
+    {
+      p.b_bv[4] = !p.b_bv[4];
+    }
+    if (KInputManager::keyTriggered(Qt::Key_5))
+    {
+      p.b_bv[5] = !p.b_bv[5];
+    }
+    if (KInputManager::keyTriggered(Qt::Key_6))
+    {
+      p.b_bv[6] = !p.b_bv[6];
+    }
   }
 
   // Pinching will grow/shrink

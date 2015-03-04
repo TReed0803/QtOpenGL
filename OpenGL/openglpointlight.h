@@ -2,6 +2,7 @@
 #define   OPENGLPOINTLIGHT_H OpenGLPointLight
 
 class KColor;
+class KMatrix4x4;
 class KVector3D;
 
 class OpenGLPointLightPrivate;
@@ -11,12 +12,16 @@ public:
   OpenGLPointLight();
   ~OpenGLPointLight();
 
+  // Static Scalar
+  static float CalculateScalar(int segments, int rings);
+
   // Light Positioning
   void translate(float x, float y, float z);
   void translate(KVector3D const &trans);
   void setTranslation(float x, float y, float z);
   void setTranslation(KVector3D const &pos);
   KVector3D const &translation() const;
+  const KMatrix4x4 &toMatrix();
 
   // Light Settings
   void setAttenuation(float c, float ex1, float ex2);
@@ -34,52 +39,9 @@ public:
   float radius() const;
   void setRadius(float r);
 
-  // Stride Information
-  static int Stride();
-  static int PositionOffset();
-  static int AttenuationOffset();
-  static int AmbientOffset();
-  static int DiffuseOffset();
-  static int SpecularOffset();
-  static int TransformOffset();
-
 private:
   OpenGLPointLightPrivate *m_private;
 };
 
-inline int OpenGLPointLight::Stride()
-{
-  return sizeof(float) * (3 + 4 + 3 + 3 + 3 + 16);
-}
-
-inline int OpenGLPointLight::PositionOffset()
-{
-  return 0;
-}
-
-inline int OpenGLPointLight::AttenuationOffset()
-{
-  return sizeof(float) * 3;
-}
-
-inline int OpenGLPointLight::AmbientOffset()
-{
-  return sizeof(float) * (3 + 4);
-}
-
-inline int OpenGLPointLight::DiffuseOffset()
-{
-  return sizeof(float) * (3 + 4 + 3);
-}
-
-inline int OpenGLPointLight::SpecularOffset()
-{
-  return sizeof(float) * (3 + 4 + 3 + 3);
-}
-
-inline int OpenGLPointLight::TransformOffset()
-{
-  return sizeof(float) * (3 + 4 + 3 + 3 + 3);
-}
 
 #endif // OPENGLPOINTLIGHT_H

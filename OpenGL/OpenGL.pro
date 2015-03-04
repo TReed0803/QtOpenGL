@@ -31,7 +31,11 @@ SOURCES += \
     openglpointlight.cpp \
     openglpointlightgroup.cpp \
     opengldebugdraw.cpp \
-    opengluniformbuffermanager.cpp
+    opengluniformbuffermanager.cpp \
+    openglspotlightgroup.cpp \
+    openglabstractlightgroup.cpp \
+    openglpointlightdata.cpp \
+    openglelementtype.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -62,4 +66,10 @@ HEADERS += \
     openglpointlightgroup.h \
     openglstorage.h \
     opengldebugdraw.h \
-    opengluniformbuffermanager.h
+    opengluniformbuffermanager.h \
+    openglspotlightgroup.h \
+    openglabstractlightgroup.h \
+    opengllightgroup.h \
+    openglpointlightdata.h \
+    opengldynamicbuffer.h \
+    openglelementtype.h

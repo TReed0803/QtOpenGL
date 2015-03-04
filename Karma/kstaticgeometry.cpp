@@ -254,10 +254,10 @@ void KStaticGeometryPrivate::buildBottomUp(TerminationPred pred)
 
   int leafCount;
   int depthEstimate;
-  int leafSize = numTriangles;
+  int leafSize = static_cast<int>(numTriangles);
   do
   {
-    leafCount = numTriangles / leafSize;
+    leafCount = static_cast<int>(numTriangles / leafSize);
     depthEstimate = std::ceil(std::log(leafSize) / Karma::Log2);
     leafSize /= 2;
   }

@@ -40,8 +40,21 @@ public:
 class OpenGLBuffer : public OpenGLBufferProfiled
 {
 public:
+  enum Type
+  {
+      VertexBuffer        = 0x8892, // GL_ARRAY_BUFFER
+      IndexBuffer         = 0x8893, // GL_ELEMENT_ARRAY_BUFFER
+      PixelPackBuffer     = 0x88EB, // GL_PIXEL_PACK_BUFFER
+      PixelUnpackBuffer   = 0x88EC, // GL_PIXEL_UNPACK_BUFFER
+      ArrayBuffer         = 0x8892,
+      UniformBuffer       = 0x8A11
+  };
+
   OpenGLBuffer() : OpenGLBufferProfiled() {}
-  OpenGLBuffer(QOpenGLBuffer::Type type) : OpenGLBufferProfiled(type) {}
+  OpenGLBuffer(Type type) : OpenGLBufferProfiled(static_cast<QOpenGLBuffer::Type>(type)) {}
+  void allocate(const void* data, size_t size) { OpenGLBufferProfiled::allocate(data, static_cast<int>(size)); }
+  void allocate(size_t size) { OpenGLBufferProfiled::allocate(static_cast<int>(size)); }
+  void *mapRange(size_t offset, size_t count, RangeAccessFlags access) { return OpenGLBufferProfiled::mapRange(static_cast<int>(offset), static_cast<int>(count), access); }
 };
 
 #endif // OPENGLBUFFER_H

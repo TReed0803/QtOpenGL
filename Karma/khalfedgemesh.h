@@ -54,6 +54,7 @@ public:
   {
     inline Vertex(KVector3D const &p, HalfEdgeIndex const& t);
     KVector3D position;
+    KVector3D normal;
     HalfEdgeIndex to;
   };
   struct HalfEdge
@@ -66,6 +67,7 @@ public:
   struct Face
   {
     inline Face(HalfEdgeIndex const &f);
+    KVector3D normal;
     HalfEdgeIndex first;
   };
 
@@ -111,8 +113,9 @@ public:
   HalfEdge const *twin(HalfEdgeIndex const &idx) const;
   HalfEdgeIndex twinIndex(HalfEdgeIndex const &he) const;
 
-  // Creates the OpenGL Mesh
-  virtual OpenGLMesh* createOpenGLMesh(OpenGLMesh::Options options);
+  // Mutation Commands
+  void calculateFaceNormals();
+  void calculateVertexNormals();
 
 private:
   KHalfEdgeMeshPrivate *m_private;

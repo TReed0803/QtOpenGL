@@ -5,16 +5,18 @@
 SOURCE_ROOT = $${PWD}
 include($${SOURCE_ROOT}/config.pri.user)
 
-SHARED_INCLUDES =         \
-  $${PWD}                 \
-  $${SOURCE_ROOT}/include \
-  $${SOURCE_ROOT}/Karma   \
-  $${SOURCE_ROOT}/OpenGL  \
+SHARED_INCLUDES =                       \
+  $${PWD}                               \
+  $${SOURCE_ROOT}/include               \
+  $${SOURCE_ROOT}/include/Karma         \
+  $${SOURCE_ROOT}/Karma                 \
+  $${SOURCE_ROOT}/OpenGL                \
   $${SOURCE_ROOT}/qtbaseExt/gui/opengl
 
 android {
   DEFINES += "QT_OPENGL_ES_3"
 }
+DEFINES += "GL_DEBUG"
 
 win32:CONFIG(release, debug|release): OUT_SUBDIR = release/
 win32:CONFIG(debug, debug|release): OUT_SUBDIR = debug/

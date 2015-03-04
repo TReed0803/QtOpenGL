@@ -73,4 +73,6 @@ HEADERS += \
     kmatrix3x3.h \
     kmath.h \
     kstaticgeometry.h \
-    kepossphere.h
+    kepossphere.h \
+    ksharedpointer.h \
+    kdebugvertex.h

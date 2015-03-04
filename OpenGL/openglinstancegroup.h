@@ -16,7 +16,7 @@ class OpenGLInstanceGroup : public QObject
 public:
   typedef std::vector<OpenGLInstance*> InstanceList;
   OpenGLInstanceGroup(QObject *parent = 0);
-  void setMesh(OpenGLMesh *mesh);
+  void setMesh(const OpenGLMesh &mesh);
   void update(const KMatrix4x4 &currWorldToCamera, const KMatrix4x4 &prevWorldToCamera);
   void draw();
   OpenGLInstance *createInstance();

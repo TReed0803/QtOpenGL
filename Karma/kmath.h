@@ -5,6 +5,12 @@
 #include <KMatrix3x3>
 #include <limits>
 #include <KColor>
+#include <QMatrix4x4>
+#include <QVector2D>
+#include <QVector3D>
+#include <QVector4D>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Karma
 {
@@ -53,6 +59,18 @@ namespace Karma
   extern const float PiHalf;
   extern const float TwoPi;
   extern const float Log2;
+  extern const float Sqrt2;
+
+  // Trigonometry
+  double sec(double x);
+
+  // Conversion
+  glm::vec2 ToGlm(QVector2D const &v);
+  glm::vec3 ToGlm(QVector3D const &v);
+  glm::vec4 ToGlm(QVector3D const &v, float w);
+  glm::vec4 ToGlm(QVector4D const &v);
+  glm::vec3 ToGlm(QColor const &c);
+  glm::mat4 ToGlm(QMatrix4x4 const &m);
 
   // Matrix Decomposition
   KVector3D minEigenExtents(KMatrix3x3 const &eigenVecs);
@@ -331,6 +349,36 @@ std::vector<KVector3D> findExtremalPoints(It1 origBeginPoints, It1 endPoints, It
     points.push_back(maximum);
     ++beginNorms;
   }
+}
+
+inline glm::vec2 Karma::ToGlm(QVector2D const &v)
+{
+  return glm::vec2(v.x(), v.y());
+}
+
+inline glm::vec3 Karma::ToGlm(QVector3D const &v)
+{
+  return glm::vec3(v.x(), v.y(), v.z());
+}
+
+inline glm::vec4 Karma::ToGlm(QVector3D const &v, float w)
+{
+  return glm::vec4(v.x(), v.y(), v.z(), w);
+}
+
+inline glm::vec4 Karma::ToGlm(QVector4D const &v)
+{
+  return glm::vec4(v.x(), v.y(), v.z(), v.w());
+}
+
+inline glm::mat4 Karma::ToGlm(QMatrix4x4 const &m)
+{
+  return glm::make_mat4(m.constData());
+}
+
+inline glm::vec3 Karma::ToGlm(QColor const &c)
+{
+  return glm::vec3(c.redF(), c.greenF(), c.blueF());
 }
 
 #endif // KMATH_H

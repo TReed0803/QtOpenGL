@@ -8,15 +8,15 @@
 #include <KCamera3D>
 #include <KRectF>
 #include <KTransform3D>
-#include <KVertex>
+#include <KDebugVertex>
 #include <KMath>
 
 /*******************************************************************************
  * OpenGLDebugDrawPrivate
  ******************************************************************************/
-static std::vector<KVertex> sg_lines;
-static std::vector<KVertex> sg_rectangles;
-static std::vector<KVertex> sg_points;
+static std::vector<KDebugVertex> sg_lines;
+static std::vector<KDebugVertex> sg_rectangles;
+static std::vector<KDebugVertex> sg_points;
 
 static size_t sg_bufferSize = 0;
 static OpenGLFunctions f;
@@ -37,7 +37,7 @@ static KRectF normalize(const KRectF &rect)
 static size_t requiredSize()
 {
   size_t verts = sg_lines.size() + sg_rectangles.size() + sg_points.size();
-  return verts * sizeof(KVertex);
+  return verts * sizeof(KDebugVertex);
 }
 
 /*******************************************************************************
@@ -68,8 +68,8 @@ void OpenGLDebugDraw::initialize()
   sg_debugBuffer->setUsagePattern(OpenGLBuffer::DynamicDraw);
   f.glEnableVertexAttribArray(0);
   f.glEnableVertexAttribArray(1);
-  f.glVertexAttribPointer(0, KVertex::PositionTupleSize, GL_FLOAT, GL_FALSE, KVertex::stride(), (void*)KVertex::positionOffset());
-  f.glVertexAttribPointer(1, KVertex::ColorTupleSize, GL_FLOAT, GL_FALSE, KVertex::stride(), (void*)KVertex::colorOffset());
+  f.glVertexAttribPointer(0, KDebugVertex::PositionTupleSize, GL_FLOAT, GL_FALSE, KDebugVertex::stride(), (void*)KDebugVertex::positionOffset());
+  f.glVertexAttribPointer(1, KDebugVertex::ColorTupleSize, GL_FLOAT, GL_FALSE, KDebugVertex::stride(), (void*)KDebugVertex::colorOffset());
 
   // Release (unbind) all
   sg_vertexArrayObject->release();
@@ -93,9 +93,9 @@ void OpenGLDebugDraw::draw()
   // Send data to GPU
   {
     sg_debugBuffer->bind();
-    sg_debugBuffer->write(0, sg_lines.data(), static_cast<int>(sizeof(KVertex) * sg_lines.size()));
-    sg_debugBuffer->write(static_cast<int>(sizeof(KVertex) * sg_lines.size()), sg_rectangles.data(), static_cast<int>(sizeof(KVertex) * sg_rectangles.size()));
-    sg_debugBuffer->write(static_cast<int>(sizeof(KVertex) * (sg_lines.size() + sg_rectangles.size())), sg_points.data(), static_cast<int>(sizeof(KVertex) * sg_points.size()));
+    sg_debugBuffer->write(0, sg_lines.data(), static_cast<int>(sizeof(KDebugVertex) * sg_lines.size()));
+    sg_debugBuffer->write(static_cast<int>(sizeof(KDebugVertex) * sg_lines.size()), sg_rectangles.data(), static_cast<int>(sizeof(KDebugVertex) * sg_rectangles.size()));
+    sg_debugBuffer->write(static_cast<int>(sizeof(KDebugVertex) * (sg_lines.size() + sg_rectangles.size())), sg_points.data(), static_cast<int>(sizeof(KDebugVertex) * sg_points.size()));
     sg_debugBuffer->release();
   }
 
@@ -148,12 +148,12 @@ void OpenGLDebugDraw::Screen::drawRect(const KRectF &rect, const KColor &color)
   float y2 = nRect.y() - nRect.height();
 
   // Create vertices
-  sg_rectangles.push_back(KVertex( KVector3D(x1, y1, 0.0f), color ));
-  sg_rectangles.push_back(KVertex( KVector3D(x1, y2, 0.0f), color ));
-  sg_rectangles.push_back(KVertex( KVector3D(x2, y1, 0.0f), color ));
-  sg_rectangles.push_back(KVertex( KVector3D(x2, y1, 0.0f), color ));
-  sg_rectangles.push_back(KVertex( KVector3D(x1, y2, 0.0f), color ));
-  sg_rectangles.push_back(KVertex( KVector3D(x2, y2, 0.0f), color ));
+  sg_rectangles.push_back(KDebugVertex( KVector3D(x1, y1, 0.0f), color ));
+  sg_rectangles.push_back(KDebugVertex( KVector3D(x1, y2, 0.0f), color ));
+  sg_rectangles.push_back(KDebugVertex( KVector3D(x2, y1, 0.0f), color ));
+  sg_rectangles.push_back(KDebugVertex( KVector3D(x2, y1, 0.0f), color ));
+  sg_rectangles.push_back(KDebugVertex( KVector3D(x1, y2, 0.0f), color ));
+  sg_rectangles.push_back(KDebugVertex( KVector3D(x2, y2, 0.0f), color ));
 }
 
 /*******************************************************************************
@@ -161,7 +161,7 @@ void OpenGLDebugDraw::Screen::drawRect(const KRectF &rect, const KColor &color)
  ******************************************************************************/
 void OpenGLDebugDraw::World::drawPoint(const KVector3D &point, const KColor &color)
 {
-  sg_points.push_back(KVertex(point, color));
+  sg_points.push_back(KDebugVertex(point, color));
 }
 
 void OpenGLDebugDraw::World::drawOval(const KVector3D &center, const KVector3D &normal, const KVector3D &up, float upRadius, float rightRadius, const KColor &color)
@@ -191,12 +191,12 @@ void OpenGLDebugDraw::World::drawOval(const KVector3D &center, const KVector3D &
   KVector3D point = x_axis * x * rightRadius;
   for (int i = 0; i < segments; ++i)
   {
-    sg_lines.push_back(KVertex(center + point, color));
+    sg_lines.push_back(KDebugVertex(center + point, color));
     t = x;
     x = cosine * x - sine * z;
     z = sine * t + cosine * z;
     point = z_axis * z * upRadius + x_axis * x * rightRadius;
-    sg_lines.push_back(KVertex(center + point, color));
+    sg_lines.push_back(KDebugVertex(center + point, color));
   }
 }
 
@@ -261,12 +261,12 @@ void OpenGLDebugDraw::World::drawCircle(const KVector3D &center, const KVector3D
   KVector3D point = x_axis * x;
   for (int i = 0; i < segments; ++i)
   {
-    sg_lines.push_back(KVertex(center + point, color));
+    sg_lines.push_back(KDebugVertex(center + point, color));
     t = x;
     x = cosine * x - sine * z;
     z = sine * t + cosine * z;
     point = z_axis * z + x_axis * x;
-    sg_lines.push_back(KVertex(center + point, color));
+    sg_lines.push_back(KDebugVertex(center + point, color));
   }
 }
 
@@ -333,6 +333,6 @@ void OpenGLDebugDraw::World::drawAabb(const KVector3D &frontA, const KVector3D &
 void OpenGLDebugDraw::World::drawLine(const KVector3D &from, const KVector3D &to, const KColor &color)
 {
   // Create vertices
-  sg_lines.push_back(KVertex(from, color));
-  sg_lines.push_back(KVertex(to, color));
+  sg_lines.push_back(KDebugVertex(from, color));
+  sg_lines.push_back(KDebugVertex(to, color));
 }

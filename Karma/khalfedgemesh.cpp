@@ -153,6 +153,8 @@ public:
   KVector3D calculateVertexNormal(const Vertex *vertex, std::vector<KVector3D> &accumulator);
   void connectBoundaries();
   void connectEdges(HalfEdge *edge);
+  void calculateFaceNormals();
+  void calculateVertexNormals();
 
 private:
   VertexContainer m_vertices;
@@ -479,7 +481,7 @@ KVector3D KHalfEdgeMeshPrivate::calculateVertexNormal(const Vertex *vertex, std:
   {
     if (edge->face != 0)
     {
-      normal = calculateFaceNormal(face(edge->face));
+      normal = face(edge->face)->normal;
       if (std::none_of(accumulator.begin(), accumulator.end(), DotTest(normal)))
       {
         accumulator.push_back(normal);
@@ -518,6 +520,24 @@ void KHalfEdgeMeshPrivate::connectEdges(KHalfEdgeMeshPrivate::HalfEdge *edge)
     edge = prev;
     prev = twin(cwBounds(edge));
   } while (prev->next == 0);
+}
+
+void KHalfEdgeMeshPrivate::calculateFaceNormals()
+{
+  for (Face &f : m_faces)
+  {
+    f.normal = calculateFaceNormal(&f);
+  }
+}
+
+void KHalfEdgeMeshPrivate::calculateVertexNormals()
+{
+  std::vector<KVector3D> accumulator;
+  calculateFaceNormals();
+  for (Vertex &v : m_vertices)
+  {
+    v.normal = calculateVertexNormal(&v, accumulator);
+  }
 }
 
 /*******************************************************************************
@@ -637,65 +657,14 @@ KHalfEdgeMesh::HalfEdgeIndex KHalfEdgeMesh::twinIndex(const KHalfEdgeMesh::HalfE
   return p.twinIndex(idx);
 }
 
-// Creates the OpenGL Mesh
-OpenGLMesh* KHalfEdgeMesh::createOpenGLMesh(OpenGLMesh::Options options)
+void KHalfEdgeMesh::calculateFaceNormals()
 {
   P(KHalfEdgeMeshPrivate);
+  p.calculateFaceNormals();
+}
 
-  // Currently we don't support options
-  (void)options;
-
-  // Create information
-  OpenGLFunctions f;
-  f.initializeOpenGLFunctions();
-  OpenGLMesh *mesh = new OpenGLMesh(parent());
-  OpenGLVertexArrayObject *vao = mesh->vertexArrayObject();
-  OpenGLBuffer vertexBuffer = mesh->createBuffer(OpenGLBuffer::VertexBuffer);
-  OpenGLBuffer indexBuffer = mesh->createBuffer(OpenGLBuffer::IndexBuffer);
-
-  // Load data into OpenGLBuffer
-  vao->bind();
-  {
-    KHalfEdgeMesh::HalfEdge *halfEdge;
-
-    // Send data to GPU
-    QVector3D n;
-    int i = 0;
-    std::vector<KVector3D> accumulator;
-    vertexBuffer.bind();
-    vertexBuffer.allocate(static_cast<int>(sizeof(KVertex) * p.vertices().size()));
-    KVertex *data = static_cast<KVertex*>(vertexBuffer.map(QOpenGLBuffer::WriteOnly));
-    for (KHalfEdgeMesh::Vertex const&v : p.vertices())
-    {
-      data[i++] = KVertex(v.position, p.calculateVertexNormal(&v, accumulator));
-    }
-    vertexBuffer.unmap();
-
-    i = 0;
-    indexBuffer.bind();
-    indexBuffer.allocate(static_cast<int>(sizeof(uint32_t) * p.faces().size() * 3));
-    uint32_t *index = static_cast<uint32_t*>(indexBuffer.map(QOpenGLBuffer::WriteOnly));
-    for (KHalfEdgeMesh::Face const&f : p.faces())
-    {
-      halfEdge = p.halfEdge(f.first);
-      index[i++] = halfEdge->to - 1;
-      halfEdge = p.halfEdge(halfEdge->next);
-      index[i++] = halfEdge->to - 1;
-      halfEdge = p.halfEdge(halfEdge->next);
-      index[i++] = halfEdge->to - 1;
-    }
-    indexBuffer.unmap();
-
-    // Bind attributes
-    f.glVertexAttribPointer(0, KVertex::PositionTupleSize, GL_FLOAT, GL_FALSE, KVertex::stride(), (void*)KVertex::positionOffset());
-    f.glVertexAttribPointer(1, KVertex::ColorTupleSize, GL_FLOAT, GL_FALSE, KVertex::stride(), (void*)KVertex::colorOffset());
-    f.glEnableVertexAttribArray(0);
-    f.glEnableVertexAttribArray(1);
-  }
-  vao->release();
-
-  // Initialize mesh
-  mesh->setMode(OpenGLMesh::Contiguous | OpenGLMesh::Interleaved | OpenGLMesh::Indexed);
-  mesh->setDrawArrays(GL_TRIANGLES, static_cast<int>(p.faces().size() * 3));
-  return mesh;
+void KHalfEdgeMesh::calculateVertexNormals()
+{
+  P(KHalfEdgeMeshPrivate);
+  p.calculateVertexNormals();
 }

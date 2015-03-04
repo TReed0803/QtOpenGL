@@ -2,13 +2,15 @@
 
 #include <KColor>
 #include <KVector3D>
+#include <KMath>
+#include <KTransform3D>
 #include <KMacros>
 
 class OpenGLPointLightPrivate
 {
 public:
   OpenGLPointLightPrivate();
-  KVector3D m_position;
+  KTransform3D m_transform;
   KVector3D m_attenuation;
   float m_radius;
   KColor m_ambient;
@@ -34,34 +36,59 @@ OpenGLPointLight::~OpenGLPointLight()
   delete m_private;
 }
 
+float OpenGLPointLight::CalculateScalar(int segments, int rings)
+{
+  if (rings % 2)
+
+    // Even Number of rings
+    return
+      std::sqrt(
+        std::pow(Karma::sec(Karma::Pi / segments ), 2.0f)
+      * std::pow(Karma::sec(Karma::Pi / (2*rings)), 2.0f)
+      );
+
+  // Odd number of rings
+  return
+    Karma::Sqrt2
+    * std::sqrt
+      (
+        1.0f /
+        (
+          1.0f
+          + std::cos(Karma::TwoPi / segments)
+          * std::cos(Karma::Pi    /    rings)
+        )
+      );
+}
+
 void OpenGLPointLight::translate(float x, float y, float z)
 {
   P(OpenGLPointLightPrivate);
-  p.m_position += KVector3D(x, y, z);
+  p.m_transform.translate(x, y, z);
 }
 
 void OpenGLPointLight::translate(const KVector3D &trans)
 {
   P(OpenGLPointLightPrivate);
-  p.m_position += trans;
+  p.m_transform.translate(trans);
 }
 
 void OpenGLPointLight::setTranslation(float x, float y, float z)
 {
   P(OpenGLPointLightPrivate);
-  p.m_position = KVector3D(x, y, z);
+  p.m_transform.setTranslation(x, y, z);
 }
 
 void OpenGLPointLight::setTranslation(const KVector3D &pos)
 {
   P(OpenGLPointLightPrivate);
-  p.m_position += pos;
+  p.m_transform.setTranslation(pos);
 }
 
 const KVector3D &OpenGLPointLight::translation() const
 {
   P(OpenGLPointLightPrivate);
-  return p.m_position;
+  return p.m_transform.translation();
 }
 
 void OpenGLPointLight::setAttenuation(float c, float ex1, float ex2)
@@ -146,4 +173,12 @@ void OpenGLPointLight::setRadius(float r)
 {
   P(OpenGLPointLightPrivate);
   p.m_radius = r;
+  p.m_transform.setScale(r * OpenGLPointLight::CalculateScalar(12, 8));
+}
+
+
+const KMatrix4x4 &OpenGLPointLight::toMatrix()
+{
+  P(OpenGLPointLightPrivate);
+  return p.m_transform.toMatrix();
 }

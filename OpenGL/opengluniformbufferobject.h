@@ -108,7 +108,7 @@ inline void OpenGLUniformBufferObject::allocate(const void *data, int count)
 
 inline void OpenGLUniformBufferObject::allocate(int count)
 {
-  this->OpenGLBuffer::allocate(0, count);
+  this->OpenGLBuffer::allocate(count);
 }
 
 inline void *OpenGLUniformBufferObject::map(QOpenGLBuffer::Access access)

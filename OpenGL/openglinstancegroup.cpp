@@ -20,16 +20,14 @@ public:
   OpenGLInstanceGroupPrivate();
 
   uint64_t m_bufferSize;
-  OpenGLMesh *m_mesh;
+  OpenGLMesh m_mesh;
   OpenGLBuffer m_buffer;
   TransformList m_instances;
-  OpenGLFunctions m_functions;
 };
 
 OpenGLInstanceGroupPrivate::OpenGLInstanceGroupPrivate() :
-  m_bufferSize(0)
+  m_bufferSize(0), m_buffer(OpenGLBuffer::VertexBuffer)
 {
-  m_functions.initializeOpenGLFunctions();
   m_buffer.setUsagePattern(OpenGLBuffer::DynamicDraw);
   m_buffer.create();
 }
@@ -42,38 +40,18 @@ OpenGLInstanceGroup::OpenGLInstanceGroup(QObject *parent) :
   // Intentionally Empty
 }
 
-void OpenGLInstanceGroup::setMesh(OpenGLMesh *mesh)
+void OpenGLInstanceGroup::setMesh(const OpenGLMesh &mesh)
 {
   P(OpenGLInstanceGroupPrivate);
   p.m_mesh = mesh;
-  OpenGLVertexArrayObject *obj = p.m_mesh->vertexArrayObject();
-  obj->bind();
+  p.m_mesh.bind();
   p.m_buffer.bind();
-  p.m_functions.glEnableVertexAttribArray(2);
-  p.m_functions.glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, OpenGLInstance::Stride(), (void*)(OpenGLInstance::DiffuseOffset()));
-  p.m_functions.glVertexAttribDivisor(2, 1);
-  p.m_functions.glEnableVertexAttribArray(3);
-  p.m_functions.glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, OpenGLInstance::Stride(), (void*)(OpenGLInstance::SpecularOffset()));
-  p.m_functions.glVertexAttribDivisor(3, 1);
-  for (int i = 0; i < 4; ++i)
-  {
-    p.m_functions.glEnableVertexAttribArray(4 + i);
-    p.m_functions.glVertexAttribPointer(4 + i, 4, GL_FLOAT, GL_FALSE, OpenGLInstance::Stride(), (void*)(OpenGLInstance::CurrentTransformOffset() + sizeof(GLfloat) * i * 4));
-    p.m_functions.glVertexAttribDivisor(4 + i, 1);
-  }
-  for (int i = 0; i < 4; ++i)
-  {
-    p.m_functions.glEnableVertexAttribArray(8 + i);
-    p.m_functions.glVertexAttribPointer(8 + i, 4, GL_FLOAT, GL_FALSE, OpenGLInstance::Stride(), (void*)(OpenGLInstance::PreviousTransformOffset() + sizeof(GLfloat) * i * 4));
-    p.m_functions.glVertexAttribDivisor(8 + i, 1);
-  }
-  for (int i = 0; i < 4; ++i)
-  {
-    p.m_functions.glEnableVertexAttribArray(12 + i);
-    p.m_functions.glVertexAttribPointer(12 + i, 4, GL_FLOAT, GL_FALSE, OpenGLInstance::Stride(), (void*)(OpenGLInstance::NormalsTransformOffset() + sizeof(GLfloat) * i * 4));
-    p.m_functions.glVertexAttribDivisor(12 + i, 1);
-  }
-  obj->release();
+  p.m_mesh.vertexAttribPointerDivisor(2, 3, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::DiffuseOffset(), 1);
+  p.m_mesh.vertexAttribPointerDivisor(3, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::SpecularOffset(), 1);
+  p.m_mesh.vertexAttribPointerDivisor(4, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::CurrentTransformOffset(), 1);
+  p.m_mesh.vertexAttribPointerDivisor(8, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::PreviousTransformOffset(), 1);
+  p.m_mesh.vertexAttribPointerDivisor(12, 4, 4, OpenGLElementType::Float, false, OpenGLInstance::Stride(), OpenGLInstance::NormalsTransformOffset(), 1);
+  p.m_mesh.release();
 }
 
 void OpenGLInstanceGroup::update(KMatrix4x4 const &currWorldToCamera, KMatrix4x4 const &prevWorldToCamera)
@@ -82,8 +60,8 @@ void OpenGLInstanceGroup::update(KMatrix4x4 const &currWorldToCamera, KMatrix4x4
   uint64_t required = 0;
   required += p.m_instances.size() * sizeof(GLfloat) * 3;  // vec3:diffuse
   required += p.m_instances.size() * sizeof(GLfloat) * 4;  // vec3:specular
-  required += p.m_instances.size() * sizeof(GLfloat) * 16; // mat4:prevModelTransform
   required += p.m_instances.size() * sizeof(GLfloat) * 16; // mat4:currModelTransform
+  required += p.m_instances.size() * sizeof(GLfloat) * 16; // mat4:prevModelTransform
   required += p.m_instances.size() * sizeof(GLfloat) * 16; // mat4:normalTransform
 
   std::vector<float> instanceInfo;
@@ -131,9 +109,9 @@ void OpenGLInstanceGroup::update(KMatrix4x4 const &currWorldToCamera, KMatrix4x4
 void OpenGLInstanceGroup::draw()
 {
   P(OpenGLInstanceGroupPrivate);
-  p.m_mesh->vertexArrayObject()->bind();
-  p.m_functions.glDrawElementsInstanced(p.m_mesh->mode(), static_cast<GLsizei>(p.m_mesh->count()), GL_UNSIGNED_INT, (void*)0, static_cast<GLsizei>(p.m_instances.size()));
-  p.m_mesh->vertexArrayObject()->release();
+  p.m_mesh.bind();
+  p.m_mesh.drawInstanced(0, p.m_instances.size());
+  p.m_mesh.release();
 }
 
 OpenGLInstance *OpenGLInstanceGroup::createInstance()

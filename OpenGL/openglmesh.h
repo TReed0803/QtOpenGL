@@ -2,40 +2,37 @@
 #define OPENGLMESH_H OpenGLMesh
 
 #include <cstdint>
-#include <vector>
+#include <KSharedPointer>
 #include <OpenGLBuffer>
-#include <QObject>
-class OpenGLVertexArrayObject;
+#include <OpenGLElementType>
+
+class KHalfEdgeMesh;
 
 class OpenGLMeshPrivate;
-class OpenGLMesh : public QObject
+class OpenGLMesh
 {
-  Q_OBJECT
 public:
-  enum Options
-  {
-    Contiguous,
-    Interleaved,
-    Indexed
-  };
 
-  typedef std::vector<OpenGLBuffer> OpenGLBufferList;
-  explicit OpenGLMesh(QObject *parent = 0);
-  OpenGLBufferList const &getBuffers() const;
-  OpenGLVertexArrayObject *vertexArrayObject();
-  OpenGLBuffer createBuffer(OpenGLBuffer::Type type = OpenGLBuffer::VertexBuffer, OpenGLBuffer::UsagePattern hint = OpenGLBuffer::StaticDraw);
-  void setMode(OpenGLMesh::Options options);
-  void setDrawArrays(GLenum mode, int count);
+  typedef OpenGLBuffer::UsagePattern UsagePattern;
+
+  // Constructors / Destructor
+  OpenGLMesh();
+  ~OpenGLMesh();
+
+  // Public Methods
+  void bind();
+  void setUsagePattern(UsagePattern pattern);
+  void create(const KHalfEdgeMesh &mesh);
   void draw();
-  GLenum mode() const;
-  uint64_t count() const;
-private:
-  OpenGLMeshPrivate *m_private;
-};
+  void drawInstanced(size_t begin, size_t end);
+  void vertexAttribPointer(int location, int elements, OpenGLElementType type, bool normalized, int stride, int offset);
+  void vertexAttribPointer(int location, int elements, int count, OpenGLElementType type, bool normalized, int stride, int offset);
+  void vertexAttribPointerDivisor(int location, int elements, OpenGLElementType type, bool normalized, int stride, int offset, int divisor);
+  void vertexAttribPointerDivisor(int location, int elements, int count, OpenGLElementType type, bool normalized, int stride, int offset, int divisor);
+  void release();
 
-inline OpenGLMesh::Options operator|(OpenGLMesh::Options lhs, OpenGLMesh::Options rhs)
-{
-  return static_cast<OpenGLMesh::Options>(static_cast<int>(lhs) | static_cast<int>(rhs));
-}
+private:
+  KSharedPointer<OpenGLMeshPrivate> m_private;
+};
 
 #endif // OPENGLMESH_H

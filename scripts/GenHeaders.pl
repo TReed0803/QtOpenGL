@@ -12,7 +12,7 @@ use File::Find;
 use File::Path qw( make_path );
 
 my $cwd = getcwd;
-my $outDir = $cwd . "/include/";
+my $outDir = $cwd . "/include/Karma/";
 
 sub make_link
 {
