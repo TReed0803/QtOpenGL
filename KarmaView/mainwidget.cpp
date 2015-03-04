@@ -534,7 +534,7 @@ void MainWidget::initializeGL()
     for (int i = 0; i < 5; ++i)
     {
       OpenGLPointLight *l = p.m_pointLightGroup->createLight();
-      l->setRadius(50.0f);
+      l->setRadius(25.0f);
       p.m_pointLights.push_back(l);
     }
     p.m_floorGroup.create();
@@ -547,7 +547,7 @@ void MainWidget::initializeGL()
     p.m_floorInstance = p.m_floorGroup.createInstance();
     p.m_floorInstance->material().setDiffuse(0.0f, 0.0f, 1.0f);
     p.m_floorInstance->material().setSpecular(0.25f, 0.25f, 0.25f, 1.0f);
-    p.m_floorInstance->transform().setScale(100.0f);
+    p.m_floorInstance->transform().setScale(10000.0f);
     p.m_floorInstance->transform().setTranslation(0.0f, -1.0f, 0.0f);
     p.loadObj(":/resources/objects/sphere.obj");
 
@@ -677,11 +677,20 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   static float f = 0.0f;
   f += 0.0016f;
   float angle = f;
+  int levelCount = 5;
+  int currLevel = 0;
+  int intLevel = 0;
   for (OpenGLPointLight *instance : p.m_pointLights)
   {
     static const float radius = 5.0f;
-    instance->setTranslation(cos(angle) * radius, 0.0f, sin(angle) * radius);
-    angle += 2 * 3.1415926 / p.m_pointLights.size();
+    instance->setTranslation(cos(angle) * (radius + intLevel * 5.0f), 0.0f, sin(angle) * (radius + intLevel * 5.0f));
+    angle += 2 * 3.1415926 / levelCount;
+    if (++currLevel == levelCount)
+    {
+      levelCount += 3;
+      currLevel = 0;
+      ++intLevel;
+    }
   }
 
   if (KInputManager::keyTriggered(Qt::Key_Plus))

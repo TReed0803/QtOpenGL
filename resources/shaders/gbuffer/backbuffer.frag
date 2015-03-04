@@ -14,7 +14,7 @@ void main()
   highp vec3 color = pow(lightbuffer().xyz, gamma);
   for (highp int i = 1; i < nSamples; ++i) {
      highp vec2 offset = -v * (float(i) / float(nSamples - 1) - 0.5);
-     color += pow(lightbufferCoord(fragCoord + offset).xyz, gamma);
+     color += pow(lightbuffer(fragCoord + offset).xyz, gamma);
   }
   color /= float(nSamples);
   fColor = vec4(color, 1.0);

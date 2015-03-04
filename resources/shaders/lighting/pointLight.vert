@@ -5,6 +5,7 @@
  ******************************************************************************/
 
 #include <GlobalBuffer.ubo>
+#include <Math.glsl> // uvCoord
 
 // Per-Vertex Attribs
 layout(location = 0) in highp vec3 position;
