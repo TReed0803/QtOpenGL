@@ -24,6 +24,7 @@ public:
   typedef typename LightContainer::const_iterator ConstLightIterator;
   typedef typename LightContainer::reverse_iterator LightReverseIterator;
   typedef typename LightContainer::const_reverse_iterator ConstLightReverseIterator;
+  typedef typename LightContainer::size_type SizeType;
 
   void prepMesh(OpenGLMesh &mesh);
   void update(const KMatrix4x4 &perspective, const KMatrix4x4 &view);
@@ -48,6 +49,8 @@ public:
   ConstLightReverseIterator rend() const;
   ConstLightReverseIterator crbegin() const;
   ConstLightReverseIterator crend() const;
+  SizeType size() const;
+  bool empty() const;
 
 protected:
   BufferType m_buffer;
@@ -176,6 +179,18 @@ template <typename T, typename D>
 auto OpenGLLightGroup<T, D>::crend() const -> ConstLightReverseIterator
 {
   return m_lights.crend();
+}
+
+template <typename T, typename D>
+auto OpenGLLightGroup<T, D>::size() const -> SizeType
+{
+  return m_lights.size();
+}
+
+template <typename T, typename D>
+auto OpenGLLightGroup<T, D>::empty() const -> bool
+{
+  return m_lights.empty();
 }
 
 #endif // OPENGLLIGHTGROUP_H

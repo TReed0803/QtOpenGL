@@ -13,9 +13,8 @@
 #include <OpenGLTexture>
 #include <OpenGLInstance>
 #include <OpenGLMaterial>
-#include <OpenGLPointLight>
 #include <OpenGLPointLightGroup>
-#include <OpenGLDirectionLight>
+#include <OpenGLSpotLightGroup>
 #include <OpenGLDirectionLightGroup>
 
 #include <KCamera3D>
@@ -109,8 +108,10 @@ public:
   OpenGLInstance *m_floorInstance;
   OpenGLShaderProgram *m_pointLightProgram;
   OpenGLShaderProgram *m_directionLightProgram;
+  OpenGLShaderProgram *m_spotLightProgram;
   OpenGLPointLightGroup m_pointLightGroup;
   OpenGLDirectionLightGroup m_directionLightGroup;
+  OpenGLSpotLightGroup m_spotLightGroup;
   bool m_paused;
   DeferredData m_buffer;
   OpenGLShaderProgram *m_ambientProgram;
@@ -353,6 +354,8 @@ void MainWidgetPrivate::drawBackbuffer()
     glDepthFunc(GL_GREATER);
     m_pointLightProgram->bind();
     m_pointLightGroup.draw();
+    m_spotLightProgram->bind();
+    m_spotLightGroup.draw();
     m_directionLightProgram->bind();
     m_directionLightGroup.draw();
     m_ambientProgram->bind();
@@ -496,6 +499,20 @@ void MainWidget::initializeGL()
     p.m_directionLightProgram->setUniformValue("depthTexture", 5);
     p.m_directionLightProgram->release();
 
+    // Create Shader for spot light pass
+    p.m_spotLightProgram = new OpenGLShaderProgram(this);
+    p.m_spotLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/spotLight.vert");
+    p.m_spotLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/spotLight.frag");
+    p.m_spotLightProgram->link();
+    p.m_spotLightProgram->bind();
+    p.m_spotLightProgram->setUniformValue("geometryTexture", 0);
+    p.m_spotLightProgram->setUniformValue("materialTexture", 1);
+    p.m_spotLightProgram->setUniformValue("dynamicsTexture", 2);
+    p.m_spotLightProgram->setUniformValue("backbufferTexture", 3);
+    p.m_spotLightProgram->setUniformValue("lightbufferTexture", 4);
+    p.m_spotLightProgram->setUniformValue("depthTexture", 5);
+    p.m_spotLightProgram->release();
+
     // Create Shader for ambient light pass
     p.m_ambientProgram = new OpenGLShaderProgram(this);
     p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/ambient.vert");
@@ -546,6 +563,7 @@ void MainWidget::initializeGL()
     // Initialize the Direction Light Group
     p.m_directionLightGroup.create();
     p.m_directionLightGroup.setMesh(p.m_quadGL);
+    for (int i = 0; i < 0; ++i)
     {
       OpenGLDirectionLight *light = p.m_directionLightGroup.createLight();
       light->setDiffuse(0.1f, 0.1f, 0.1f);
@@ -555,10 +573,19 @@ void MainWidget::initializeGL()
     // Initialize the Point Light Group
     p.m_pointLightGroup.create();
     p.m_pointLightGroup.setMesh(":/resources/objects/pointLight.obj");
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < 3; ++i)
     {
       OpenGLPointLight *light = p.m_pointLightGroup.createLight();
       light->setRadius(25.0f);
+    }
+
+    // Initialize the Spot Light Group
+    p.m_spotLightGroup.create();
+    p.m_spotLightGroup.setMesh(":/resources/objects/spotLight.obj");
+    for (int i = 0; i < 1; ++i)
+    {
+      OpenGLSpotLight *light = p.m_spotLightGroup.createLight();
+      light->setDepth(25.0f);
     }
 
     p.m_floorGroup.create();
@@ -647,6 +674,7 @@ void MainWidget::paintGL()
         p.m_floorGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
         p.m_pointLightGroup.update(p.m_projection, p.m_camera.toMatrix());
         p.m_directionLightGroup.update(p.m_projection, p.m_camera.toMatrix());
+        p.m_spotLightGroup.update(p.m_projection, p.m_camera.toMatrix());
       }
       {
         OpenGLMarkerScoped _("Generate G Buffer");
@@ -702,9 +730,6 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   static float f = 0.0f;
   f += 0.0016f;
   float angle = f;
-  int levelCount = 5;
-  int currLevel = 0;
-  int intLevel = 0;
   for (OpenGLDirectionLight *light : p.m_directionLightGroup)
   {
     light->setDirection(std::cos(angle), -1, std::sin(angle));
@@ -712,14 +737,16 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   for (OpenGLPointLight *instance : p.m_pointLightGroup)
   {
     static const float radius = 5.0f;
-    instance->setTranslation(cos(angle) * (radius + intLevel * 5.0f), 0.0f, sin(angle) * (radius + intLevel * 5.0f));
-    angle += 2 * 3.1415926 / levelCount;
-    if (++currLevel == levelCount)
-    {
-      levelCount += 3;
-      currLevel = 0;
-      ++intLevel;
-    }
+    instance->setTranslation(cos(angle) * radius, 0.0f, sin(angle) * radius);
+    angle += 2 * 3.1415926 / p.m_pointLightGroup.size();
+  }
+  angle = f;
+  for (OpenGLSpotLight *instance : p.m_spotLightGroup)
+  {
+    static const float radius = 5.0f;
+    instance->setTranslation(cos(angle) * radius, 10.0f, sin(angle) * radius);
+    instance->setDirection(-instance->translation().normalized());
+    angle += 2 * 3.1415926 / p.m_spotLightGroup.size();
   }
 
   if (KInputManager::keyTriggered(Qt::Key_Plus))

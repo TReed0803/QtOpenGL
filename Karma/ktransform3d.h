@@ -39,6 +39,7 @@ public:
   void setRotation(const KQuaternion &r);
   void setRotation(float angle, const KVector3D &axis);
   void setRotation(float angle, float ax, float ay, float az);
+  void lookTowards(const KVector3D &dir);
 
   // Accessors
   const KVector3D& translation() const;

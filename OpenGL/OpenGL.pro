@@ -34,10 +34,10 @@ SOURCES += \
     opengluniformbuffermanager.cpp \
     openglspotlightgroup.cpp \
     openglabstractlightgroup.cpp \
-    openglpointlightdata.cpp \
     openglelementtype.cpp \
     opengldirectionlight.cpp \
-    opengldirectionlightgroup.cpp
+    opengldirectionlightgroup.cpp \
+    openglspotlight.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -78,4 +78,6 @@ HEADERS += \
     openglinstancedata.h \
     opengldirectionlight.h \
     opengldirectionlightdata.h \
-    opengldirectionlightgroup.h
+    opengldirectionlightgroup.h \
+    openglspotlight.h \
+    openglspotlightdata.h

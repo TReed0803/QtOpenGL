@@ -63,13 +63,16 @@ namespace Karma
 
   // Trigonometry
   double sec(double x);
+  float RadsToDegrees(float rads);
 
   // Conversion
   glm::vec2 ToGlm(QVector2D const &v);
+  glm::vec2 ToGlm(float x, float y);
   glm::vec3 ToGlm(QVector3D const &v);
   glm::vec4 ToGlm(QVector3D const &v, float w);
   glm::vec4 ToGlm(QVector4D const &v);
   glm::vec3 ToGlm(QColor const &c);
+  glm::vec3 ToGlm(float x, float y, float z);
   glm::vec4 ToGlm(QColor const &c, float w);
   glm::mat4 ToGlm(QMatrix4x4 const &m);
 
@@ -352,9 +355,24 @@ std::vector<KVector3D> findExtremalPoints(It1 origBeginPoints, It1 endPoints, It
   }
 }
 
+inline float Karma::RadsToDegrees(float rads)
+{
+  return rads * 180.0f / Karma::Pi;
+}
+
 inline glm::vec2 Karma::ToGlm(QVector2D const &v)
 {
   return glm::vec2(v.x(), v.y());
+}
+
+inline glm::vec2 Karma::ToGlm(float x, float y)
+{
+  return glm::vec2(x, y);
+}
+
+inline glm::vec3 Karma::ToGlm(float x, float y, float z)
+{
+  return glm::vec3(x, y, z);
 }
 
 inline glm::vec3 Karma::ToGlm(QVector3D const &v)
