@@ -27,9 +27,6 @@ public:
   void setAttenuation(float c, float ex1, float ex2);
   void setAttenuation(KVector3D const &attn);
   KVector3D const &attenuation() const;
-  void setAmbient(float r, float g, float b);
-  void setAmbient(KColor const &rgb);
-  KColor const &ambient() const;
   void setDiffuse(float r, float g, float b);
   void setDiffuse(KColor const &rgb);
   KColor const &diffuse() const;

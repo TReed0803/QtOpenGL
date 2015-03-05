@@ -29,5 +29,7 @@
         <file>resources/shaders/lighting/ambient.vert</file>
         <file>resources/shaders/lighting/pointLight.frag</file>
         <file>resources/shaders/lighting/pointLight.vert</file>
+        <file>resources/shaders/lighting/directionLight.frag</file>
+        <file>resources/shaders/lighting/directionLight.vert</file>
     </qresource>
 </RCC>

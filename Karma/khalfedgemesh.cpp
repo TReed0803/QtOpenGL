@@ -551,6 +551,21 @@ KHalfEdgeMesh::KHalfEdgeMesh(QObject *parent) :
   // Intentionally Empty
 }
 
+KHalfEdgeMesh::KHalfEdgeMesh(const QString &fileName) :
+  KAbstractMesh(0), m_private(new KHalfEdgeMeshPrivate)
+{
+  P(KHalfEdgeMeshPrivate);
+  KBufferedFileReader reader(fileName, 2048);
+  if (!reader.valid())
+  {
+    qFatal("Failed to open file: `%s`", qPrintable(fileName));
+  }
+  KHalfEdgeObjParser parser(this, &reader);
+  parser.initialize();
+  parser.parse();
+  p.connectBoundaries();
+}
+
 KHalfEdgeMesh::KHalfEdgeMesh(QObject *parent, const QString &fileName) :
   KAbstractMesh(parent), m_private(new KHalfEdgeMeshPrivate)
 {

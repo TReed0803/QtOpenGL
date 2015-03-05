@@ -90,6 +90,7 @@ public:
 
   // Constructors / Destructor
   explicit KHalfEdgeMesh(QObject *parent = 0);
+  explicit KHalfEdgeMesh(const QString &fileName);
   KHalfEdgeMesh(QObject *parent, const QString &fileName);
   ~KHalfEdgeMesh();
 

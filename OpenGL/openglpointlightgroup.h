@@ -12,8 +12,8 @@ class OpenGLPointLightGroupPrivate;
 class OpenGLPointLightGroup : public OpenGLLightGroup<OpenGLPointLight, OpenGLPointLightData>
 {
 public:
-  void setMesh(const OpenGLMesh &mesh);
-  void update(const KMatrix4x4 &perspective, const KMatrix4x4 &view);
+  void initializeMesh(OpenGLMesh &mesh);
+  void translateData(const KMatrix4x4 &perspective, const KMatrix4x4 &view, DataPointer data);
   void draw();
 };
 

@@ -13,7 +13,6 @@ public:
   KTransform3D m_transform;
   KVector3D m_attenuation;
   float m_radius;
-  KColor m_ambient;
   KColor m_diffuse;
   KColor m_specular;
 };
@@ -107,24 +106,6 @@ const KVector3D &OpenGLPointLight::attenuation() const
 {
   P(OpenGLPointLightPrivate);
   return p.m_attenuation;
-}
-
-void OpenGLPointLight::setAmbient(float r, float g, float b)
-{
-  P(OpenGLPointLightPrivate);
-  p.m_ambient = KColor(r, g, b);
-}
-
-void OpenGLPointLight::setAmbient(const KColor &rgb)
-{
-  P(OpenGLPointLightPrivate);
-  p.m_ambient = rgb;
-}
-
-const KColor &OpenGLPointLight::ambient() const
-{
-  P(OpenGLPointLightPrivate);
-  return p.m_ambient;
 }
 
 void OpenGLPointLight::setDiffuse(float r, float g, float b)

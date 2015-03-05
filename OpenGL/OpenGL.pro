@@ -35,7 +35,9 @@ SOURCES += \
     openglspotlightgroup.cpp \
     openglabstractlightgroup.cpp \
     openglpointlightdata.cpp \
-    openglelementtype.cpp
+    openglelementtype.cpp \
+    opengldirectionlight.cpp \
+    opengldirectionlightgroup.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -73,4 +75,7 @@ HEADERS += \
     openglpointlightdata.h \
     opengldynamicbuffer.h \
     openglelementtype.h \
-    openglinstancedata.h
+    openglinstancedata.h \
+    opengldirectionlight.h \
+    opengldirectionlightdata.h \
+    opengldirectionlightgroup.h

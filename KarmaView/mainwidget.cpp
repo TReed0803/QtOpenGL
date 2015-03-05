@@ -15,6 +15,8 @@
 #include <OpenGLMaterial>
 #include <OpenGLPointLight>
 #include <OpenGLPointLightGroup>
+#include <OpenGLDirectionLight>
+#include <OpenGLDirectionLightGroup>
 
 #include <KCamera3D>
 #include <OpenGLDebugDraw>
@@ -106,8 +108,9 @@ public:
   OpenGLInstanceGroup m_floorGroup;
   OpenGLInstance *m_floorInstance;
   OpenGLShaderProgram *m_pointLightProgram;
-  OpenGLPointLightGroup *m_pointLightGroup;
-  std::vector<OpenGLPointLight*> m_pointLights;
+  OpenGLShaderProgram *m_directionLightProgram;
+  OpenGLPointLightGroup m_pointLightGroup;
+  OpenGLDirectionLightGroup m_directionLightGroup;
   bool m_paused;
   DeferredData m_buffer;
   OpenGLShaderProgram *m_ambientProgram;
@@ -349,7 +352,9 @@ void MainWidgetPrivate::drawBackbuffer()
     glClear(GL_COLOR_BUFFER_BIT);
     glDepthFunc(GL_GREATER);
     m_pointLightProgram->bind();
-    m_pointLightGroup->draw();
+    m_pointLightGroup.draw();
+    m_directionLightProgram->bind();
+    m_directionLightGroup.draw();
     m_ambientProgram->bind();
     m_quadGL.draw();
     glDepthFunc(GL_LESS);
@@ -477,6 +482,20 @@ void MainWidget::initializeGL()
     p.m_pointLightProgram->setUniformValue("depthTexture", 5);
     p.m_pointLightProgram->release();
 
+    // Create Shader for direction light pass
+    p.m_directionLightProgram = new OpenGLShaderProgram(this);
+    p.m_directionLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/directionLight.vert");
+    p.m_directionLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/directionLight.frag");
+    p.m_directionLightProgram->link();
+    p.m_directionLightProgram->bind();
+    p.m_directionLightProgram->setUniformValue("geometryTexture", 0);
+    p.m_directionLightProgram->setUniformValue("materialTexture", 1);
+    p.m_directionLightProgram->setUniformValue("dynamicsTexture", 2);
+    p.m_directionLightProgram->setUniformValue("backbufferTexture", 3);
+    p.m_directionLightProgram->setUniformValue("lightbufferTexture", 4);
+    p.m_directionLightProgram->setUniformValue("depthTexture", 5);
+    p.m_directionLightProgram->release();
+
     // Create Shader for ambient light pass
     p.m_ambientProgram = new OpenGLShaderProgram(this);
     p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/ambient.vert");
@@ -524,19 +543,24 @@ void MainWidget::initializeGL()
     p.m_deferredBuffer.create();
     p.m_lightBuffer.create();
 
-    p.m_pointLightGroup = new OpenGLPointLightGroup;
-    KHalfEdgeMesh *mesh1 = new KHalfEdgeMesh(this, ":/resources/objects/pointLight.obj");
-    mesh1->calculateVertexNormals();
-    OpenGLMesh oglMesh1;
-    oglMesh1.create(*mesh1);
-    p.m_pointLightGroup->create();
-    p.m_pointLightGroup->setMesh(oglMesh1);
+    // Initialize the Direction Light Group
+    p.m_directionLightGroup.create();
+    p.m_directionLightGroup.setMesh(p.m_quadGL);
+    {
+      OpenGLDirectionLight *light = p.m_directionLightGroup.createLight();
+      light->setDiffuse(0.1f, 0.1f, 0.1f);
+      light->setSpecular(0.1f, 0.1f, 0.1f);
+    }
+
+    // Initialize the Point Light Group
+    p.m_pointLightGroup.create();
+    p.m_pointLightGroup.setMesh(":/resources/objects/pointLight.obj");
     for (int i = 0; i < 5; ++i)
     {
-      OpenGLPointLight *l = p.m_pointLightGroup->createLight();
-      l->setRadius(25.0f);
-      p.m_pointLights.push_back(l);
+      OpenGLPointLight *light = p.m_pointLightGroup.createLight();
+      light->setRadius(25.0f);
     }
+
     p.m_floorGroup.create();
     p.m_instanceGroup.create();
     // Open OBJ
@@ -621,7 +645,8 @@ void MainWidget::paintGL()
         p.m_matrixBlock.write(sizeof(float) * (16 * 10 + 4 * 2 + 4), &p.m_height, sizeof(float));
         p.m_instanceGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
         p.m_floorGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
-        p.m_pointLightGroup->update(p.m_projection, p.m_camera.toMatrix());
+        p.m_pointLightGroup.update(p.m_projection, p.m_camera.toMatrix());
+        p.m_directionLightGroup.update(p.m_projection, p.m_camera.toMatrix());
       }
       {
         OpenGLMarkerScoped _("Generate G Buffer");
@@ -680,7 +705,11 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   int levelCount = 5;
   int currLevel = 0;
   int intLevel = 0;
-  for (OpenGLPointLight *instance : p.m_pointLights)
+  for (OpenGLDirectionLight *light : p.m_directionLightGroup)
+  {
+    light->setDirection(std::cos(angle), -1, std::sin(angle));
+  }
+  for (OpenGLPointLight *instance : p.m_pointLightGroup)
   {
     static const float radius = 5.0f;
     instance->setTranslation(cos(angle) * (radius + intLevel * 5.0f), 0.0f, sin(angle) * (radius + intLevel * 5.0f));

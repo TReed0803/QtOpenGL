@@ -75,4 +75,5 @@ HEADERS += \
     kstaticgeometry.h \
     kepossphere.h \
     ksharedpointer.h \
-    kdebugvertex.h
+    kdebugvertex.h \
+    kuniquepointer.h
