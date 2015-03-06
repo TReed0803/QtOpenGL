@@ -585,10 +585,7 @@ void MainWidget::initializeGL()
     for (int i = 0; i < 3; ++i)
     {
       OpenGLSpotLight *light = p.m_spotLightGroup.createLight();
-      light->setDiffuse(0.4f, 0.4f, 0.4f);
-      light->setAttenuation(1.0f, 0.0f, 0.0f);
-      light->setDirection(0.0f, -1.0f, 0.0f);
-      light->setInnerAngle(0.0f);
+      light->setInnerAngle(40.0f);
       light->setOuterAngle(45.0f);
       light->setDepth(25.0f);
     }
