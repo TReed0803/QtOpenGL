@@ -563,7 +563,7 @@ void MainWidget::initializeGL()
     // Initialize the Direction Light Group
     p.m_directionLightGroup.create();
     p.m_directionLightGroup.setMesh(p.m_quadGL);
-    for (int i = 0; i < 0; ++i)
+    for (int i = 0; i < 1; ++i)
     {
       OpenGLDirectionLight *light = p.m_directionLightGroup.createLight();
       light->setDiffuse(0.1f, 0.1f, 0.1f);
@@ -573,7 +573,7 @@ void MainWidget::initializeGL()
     // Initialize the Point Light Group
     p.m_pointLightGroup.create();
     p.m_pointLightGroup.setMesh(":/resources/objects/pointLight.obj");
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 5; ++i)
     {
       OpenGLPointLight *light = p.m_pointLightGroup.createLight();
       light->setRadius(25.0f);
@@ -582,9 +582,14 @@ void MainWidget::initializeGL()
     // Initialize the Spot Light Group
     p.m_spotLightGroup.create();
     p.m_spotLightGroup.setMesh(":/resources/objects/spotLight.obj");
-    for (int i = 0; i < 1; ++i)
+    for (int i = 0; i < 3; ++i)
     {
       OpenGLSpotLight *light = p.m_spotLightGroup.createLight();
+      light->setDiffuse(0.4f, 0.4f, 0.4f);
+      light->setAttenuation(1.0f, 0.0f, 0.0f);
+      light->setDirection(0.0f, -1.0f, 0.0f);
+      light->setInnerAngle(0.0f);
+      light->setOuterAngle(45.0f);
       light->setDepth(25.0f);
     }
 
@@ -741,10 +746,11 @@ void MainWidget::updateEvent(KUpdateEvent *event)
     angle += 2 * 3.1415926 / p.m_pointLightGroup.size();
   }
   angle = f;
+
   for (OpenGLSpotLight *instance : p.m_spotLightGroup)
   {
     static const float radius = 5.0f;
-    instance->setTranslation(cos(angle) * radius, 10.0f, sin(angle) * radius);
+    instance->setTranslation(cos(angle) * radius, 5.0f + std::sin(angle * 15.0f) * 5.0f, sin(angle) * radius);
     instance->setDirection(-instance->translation().normalized());
     angle += 2 * 3.1415926 / p.m_spotLightGroup.size();
   }

@@ -27,7 +27,7 @@ void OpenGLSpotLightGroup::translateData(const KMatrix4x4 &perspective, const KM
   {
     lightDest   = &data[i];
     lightSource = m_lights[i];
-    lightDest->m_angles       = Karma::ToGlm(lightSource->innerAngle(), lightSource->outerAngle() - lightSource->innerAngle());
+    lightDest->m_angles       = Karma::ToGlm(lightSource->innerAngle(), lightSource->outerAngle());
     lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation(), lightSource->depth());
     lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
     lightDest->m_direction    = glm::normalize(Karma::ToGlm(viewRotScale * lightSource->direction()));

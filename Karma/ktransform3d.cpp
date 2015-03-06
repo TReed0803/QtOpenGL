@@ -57,9 +57,45 @@ void KTransform3D::lookTowards(const KVector3D &dir)
   if (dot == 1.0f) return;
 
   float rotAngle = std::acos(dot);
-  KVector3D rotAxis = KVector3D::crossProduct(dir, KTransform3D::LocalForward);
+  KVector3D rotAxis = KVector3D::crossProduct(KTransform3D::LocalForward, dir);
   rotAxis.normalize();
   setRotation(rotAngle * 180.0f / Karma::Pi, rotAxis);
+}
+
+void KTransform3D::setTranslationX(float x)
+{
+  m_dirty = true;
+  m_translation.setX(x);
+}
+
+void KTransform3D::setTranslationY(float y)
+{
+  m_dirty = true;
+  m_translation.setY(y);
+}
+
+void KTransform3D::setTranslationZ(float z)
+{
+  m_dirty = true;
+  m_translation.setZ(z);
+}
+
+void KTransform3D::setScaleX(float x)
+{
+  m_dirty = true;
+  m_scale.setX(x);
+}
+
+void KTransform3D::setScaleY(float y)
+{
+  m_dirty = true;
+  m_scale.setY(y);
+}
+
+void KTransform3D::setScaleZ(float z)
+{
+  m_dirty = true;
+  m_scale.setZ(z);
 }
 
 // Accessors

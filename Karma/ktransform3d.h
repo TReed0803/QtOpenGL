@@ -41,6 +41,14 @@ public:
   void setRotation(float angle, float ax, float ay, float az);
   void lookTowards(const KVector3D &dir);
 
+  // Component Transform To (Setters)
+  void setTranslationX(float x);
+  void setTranslationY(float y);
+  void setTranslationZ(float z);
+  void setScaleX(float x);
+  void setScaleY(float y);
+  void setScaleZ(float z);
+
   // Accessors
   const KVector3D& translation() const;
   const KVector3D& scale() const;

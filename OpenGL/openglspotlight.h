@@ -32,6 +32,7 @@ public:
   void setRotation(const KQuaternion &quat);
   const KQuaternion &rotation() const;
   void setDirection(const KVector3D &dir);
+  void setDirection(float x, float y, float z);
   KVector3D direction() const;
   const KMatrix4x4 &toMatrix();
 

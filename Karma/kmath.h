@@ -64,6 +64,7 @@ namespace Karma
   // Trigonometry
   double sec(double x);
   float RadsToDegrees(float rads);
+  float DegreesToRads(float degrees);
 
   // Conversion
   glm::vec2 ToGlm(QVector2D const &v);
@@ -358,6 +359,11 @@ std::vector<KVector3D> findExtremalPoints(It1 origBeginPoints, It1 endPoints, It
 inline float Karma::RadsToDegrees(float rads)
 {
   return rads * 180.0f / Karma::Pi;
+}
+
+inline float Karma::DegreesToRads(float degrees)
+{
+  return degrees * Karma::Pi / 180.0f;
 }
 
 inline glm::vec2 Karma::ToGlm(QVector2D const &v)

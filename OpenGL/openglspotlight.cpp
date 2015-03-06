@@ -1,6 +1,7 @@
 #include "openglspotlight.h"
 
 #include <KMacros>
+#include <KMath>
 #include <KTransform3D>
 #include <KVector3D>
 #include <KColor>
@@ -14,12 +15,13 @@ public:
   float m_depth;
   float m_innerAngle;
   float m_outerAngle;
+  float m_angleOfInfluence;
   KColor m_diffuse;
   KColor m_specular;
 };
 
 OpenGLSpotLightPrivate::OpenGLSpotLightPrivate() :
-  m_diffuse(0.8f, 0.8f, 0.8f), m_specular(1.0f, 1.0f, 1.0f), m_depth(20.0f), m_innerAngle(0.8f), m_outerAngle(0.9f), m_attenuation(1.0f, 0.01f, 0.1f)
+  m_diffuse(0.8f, 0.8f, 0.8f), m_specular(1.0f, 1.0f, 1.0f), m_depth(20.0f), m_attenuation(1.0f, 0.01f, 0.1f)
 {
   // Intentionally Empty
 }
@@ -27,7 +29,8 @@ OpenGLSpotLightPrivate::OpenGLSpotLightPrivate() :
 OpenGLSpotLight::OpenGLSpotLight() :
   m_private(new OpenGLSpotLightPrivate)
 {
-  // Intentionally Empty
+  setInnerAngle(15.0f);
+  setOuterAngle(30.0f);
 }
 
 OpenGLSpotLight::~OpenGLSpotLight()
@@ -37,8 +40,18 @@ OpenGLSpotLight::~OpenGLSpotLight()
 
 float OpenGLSpotLight::CalculateScalar(int segments)
 {
-  (void)segments;
-  return 1.0f;
+  return
+    std::sqrt
+    (
+      std::pow
+      (
+        Karma::sec
+        (
+          Karma::Pi / segments
+        ),
+        2.0f
+      )
+    );
 }
 
 void OpenGLSpotLight::translate(float x, float y, float z)
@@ -119,6 +132,12 @@ void OpenGLSpotLight::setDirection(const KVector3D &dir)
   p.m_transform.lookTowards(dir);
 }
 
+void OpenGLSpotLight::setDirection(float x, float y, float z)
+{
+  P(OpenGLSpotLightPrivate);
+  p.m_transform.lookTowards(KVector3D(x, y, z));
+}
+
 KVector3D OpenGLSpotLight::direction() const
 {
   P(const OpenGLSpotLightPrivate);
@@ -188,7 +207,9 @@ const KColor &OpenGLSpotLight::specular()
 void OpenGLSpotLight::setInnerAngle(float angle)
 {
   P(OpenGLSpotLightPrivate);
-  p.m_innerAngle = angle;
+  angle /= 2.0f;
+  float rads = Karma::DegreesToRads(angle);
+  p.m_innerAngle = std::cos(rads);
 }
 
 float OpenGLSpotLight::innerAngle() const
@@ -200,7 +221,10 @@ float OpenGLSpotLight::innerAngle() const
 void OpenGLSpotLight::setOuterAngle(float angle)
 {
   P(OpenGLSpotLightPrivate);
-  p.m_outerAngle = angle;
+  angle /= 2.0f;
+  float rads = Karma::DegreesToRads(angle);
+  p.m_outerAngle = std::cos(rads);
+  p.m_angleOfInfluence = rads;
 }
 
 float OpenGLSpotLight::outerAngle() const
@@ -213,7 +237,11 @@ void OpenGLSpotLight::setDepth(float d)
 {
   P(OpenGLSpotLightPrivate);
   p.m_depth = d;
-  p.m_transform.setScale(d * OpenGLSpotLight::CalculateScalar(12));
+  p.m_transform.setScaleZ(d);
+  float z = p.m_transform.scale().z();
+  float dz = (p.m_transform.scale().z() * std::tan(p.m_angleOfInfluence)) * CalculateScalar(32);
+  p.m_transform.setScaleX(dz);
+  p.m_transform.setScaleY(dz);
 }
 
 float OpenGLSpotLight::depth() const

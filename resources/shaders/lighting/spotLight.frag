@@ -47,19 +47,10 @@ void main()
 
   // Spotlight Factor
   highp float spotAngle  = dot(-lightDir, vLightViewDirection);
-  highp float spotFactor = (spotAngle - vLightPhiThetaAngles.x) /  vLightPhiThetaAngles.y;
-  spotFactor = saturate(pow(spotFactor, vLightAttenuation.w));
+  highp float spotFactor = smoothstep(vLightPhiThetaAngles.y, vLightPhiThetaAngles.x, spotAngle);
 
   // Construct Lighting Terms
   highp vec3 diffuseTerm  = vLightDiffuse  * diffuse      * lambertian;
   highp vec3 specularTerm = vLightSpecular * specular.xyz * specFactor;
   fFragColor = vec4(spotFactor * attenuation * (diffuseTerm + specularTerm), 1.0);
-
-  // Temporary Debug Information
-  //*
-  if (spotFactor * attenuation > 0.0)
-    fFragColor += vec4(1.0, 0.0, 0.0, 1.0);
-  else
-    fFragColor = vec4(1.0);
-  //*/
 }
