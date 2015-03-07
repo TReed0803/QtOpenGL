@@ -55,6 +55,8 @@ public:
   void allocate(const void* data, size_t size) { OpenGLBufferProfiled::allocate(data, static_cast<int>(size)); }
   void allocate(size_t size) { OpenGLBufferProfiled::allocate(static_cast<int>(size)); }
   void *mapRange(size_t offset, size_t count, RangeAccessFlags access) { return OpenGLBufferProfiled::mapRange(static_cast<int>(offset), static_cast<int>(count), access); }
+  void release() { OpenGLBufferProfiled::release(); }
+  static void release(Type type) { OpenGLBufferProfiled::release((QOpenGLBuffer::Type)type); }
 };
 
 #endif // OPENGLBUFFER_H

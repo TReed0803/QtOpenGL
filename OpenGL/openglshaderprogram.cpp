@@ -18,13 +18,13 @@
 
 struct OpenGLShaderProgramUniformBufferUpdate
 {
-  OpenGLShaderProgramUniformBufferUpdate(unsigned location, const OpenGLUniformBufferObject *ubo);
+  OpenGLShaderProgramUniformBufferUpdate(unsigned location, unsigned index);
   unsigned m_bufferLocation;
-  const OpenGLUniformBufferObject *m_uniformBuffer;
+  unsigned m_bufferIndex;
 };
 
-OpenGLShaderProgramUniformBufferUpdate::OpenGLShaderProgramUniformBufferUpdate(unsigned location, const OpenGLUniformBufferObject *ubo) :
-  m_bufferLocation(location), m_uniformBuffer(ubo)
+OpenGLShaderProgramUniformBufferUpdate::OpenGLShaderProgramUniformBufferUpdate(unsigned location, unsigned index) :
+  m_bufferLocation(location), m_bufferIndex(index)
 {
   // Intentionally Empty
 }
@@ -96,17 +96,15 @@ bool OpenGLShaderProgram::addShaderFromSourceFile(QOpenGLShader::ShaderType type
   return false;
 }
 
-void OpenGLShaderProgram::uniformBlockBinding(const char *location, const OpenGLUniformBufferObject &ubo)
+void OpenGLShaderProgram::uniformBlockBinding(const char *location, unsigned index)
 {
-  GLuint index = this->uniformBlockLocation(location);
-  this->uniformBlockBinding(index, ubo);
+  this->uniformBlockBinding(uniformBlockLocation(location), index);
 }
 
-void OpenGLShaderProgram::uniformBlockBinding(unsigned location, const OpenGLUniformBufferObject &ubo)
+void OpenGLShaderProgram::uniformBlockBinding(unsigned location, unsigned index)
 {
   P(OpenGLShaderProgramPrivate);
-  p.glBindBufferBase(GL_UNIFORM_BUFFER, ubo.locationId(), ubo.bufferId());
-  p.glUniformBlockBinding(this->programId(), location, ubo.locationId());
+  p.glUniformBlockBinding(this->programId(), location, index);
 }
 
 unsigned OpenGLShaderProgram::uniformBlockLocation(const char *location)
@@ -115,10 +113,10 @@ unsigned OpenGLShaderProgram::uniformBlockLocation(const char *location)
   return p.glGetUniformBlockIndex(this->programId(), location);
 }
 
-void OpenGLShaderProgram::scheduleUniformUpdate(unsigned location, const OpenGLUniformBufferObject &ubo)
+void OpenGLShaderProgram::scheduleUniformUpdate(unsigned location, unsigned index)
 {
   P(OpenGLShaderProgramPrivate);
-  p.m_bufferUpdate.emplace_back(location, &ubo);
+  p.m_bufferUpdate.emplace_back(location, index);
 }
 
 QString OpenGLShaderProgram::getVersionComment()
@@ -203,7 +201,7 @@ bool OpenGLShaderProgram::bind()
   bool ret = OpenGLShaderProgramChecked::bind();
   for (OpenGLShaderProgramUniformBufferUpdate &update : p.m_bufferUpdate)
   {
-    uniformBlockBinding(update.m_bufferLocation, *update.m_uniformBuffer);
+    uniformBlockBinding(update.m_bufferLocation, update.m_bufferIndex);
   }
   p.m_bufferUpdate.clear();
   return ret;

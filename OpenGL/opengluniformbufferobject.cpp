@@ -1,20 +1,23 @@
 #include "opengluniformbufferobject.h"
 #include <OpenGLFunctions>
 
-class OpenGLUniformBufferObjectPrivate
+static GLuint sg_bindings[GL_MAX_UNIFORM_BUFFER_BINDINGS] = { 0 };
+
+class OpenGLUniformBufferObjectPrivate : public OpenGLFunctions
 {
 public:
-  int location;
-  OpenGLFunctions f;
+  OpenGLUniformBufferObjectPrivate();
 };
 
+OpenGLUniformBufferObjectPrivate::OpenGLUniformBufferObjectPrivate()
+{
+  initializeOpenGLFunctions();
+}
 
 OpenGLUniformBufferObject::OpenGLUniformBufferObject() :
   OpenGLBuffer(OpenGLBuffer::UniformBuffer)
  ,m_private(new OpenGLUniformBufferObjectPrivate)
 {
-  P(OpenGLUniformBufferObjectPrivate);
-  p.location = 0;
 }
 
 OpenGLUniformBufferObject::~OpenGLUniformBufferObject()
@@ -22,22 +25,19 @@ OpenGLUniformBufferObject::~OpenGLUniformBufferObject()
   delete m_private;
 }
 
-bool OpenGLUniformBufferObject::bind(int uniformIndex)
+void OpenGLUniformBufferObject::bindBase(unsigned uniformIndex)
 {
   P(OpenGLUniformBufferObjectPrivate);
-  p.location = uniformIndex;
-  return this->OpenGLBuffer::bind();
+  sg_bindings[uniformIndex] = bufferId();
+  p.glBindBufferBase(GL_UNIFORM_BUFFER, uniformIndex, sg_bindings[uniformIndex]);
 }
 
 void OpenGLUniformBufferObject::release()
 {
-  P(OpenGLUniformBufferObjectPrivate);
-  p.location = 0;
   this->OpenGLBuffer::release();
 }
 
-GLuint OpenGLUniformBufferObject::locationId() const
+GLuint OpenGLUniformBufferObject::boundBufferId(unsigned index)
 {
-  P(OpenGLUniformBufferObjectPrivate);
-  return p.location;
+  return sg_bindings[index];
 }

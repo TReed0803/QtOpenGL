@@ -93,3 +93,9 @@ void OpenGLRenderBlock::allocate()
 {
   OpenGLUniformBufferObject::allocate(sizeof(OpenGLRenderBlockData));
 }
+
+bool OpenGLRenderBlock::dirty() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_dirty;
+}

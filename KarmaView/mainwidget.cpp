@@ -468,13 +468,16 @@ void MainWidget::initializeGL()
     for (int i = 0; i < 2; ++i)
     {
       p.m_renderBlocks[i].create();
-      p.m_renderBlocks[i].bind(p.m_renderBlockIndex[i] + 1);
       p.m_renderBlocks[i].setUsagePattern(OpenGLBuffer::DynamicDraw);
+      p.m_renderBlocks[i].bind();
       p.m_renderBlocks[i].allocate();
+      p.m_renderBlocks[i].release();
       p.m_renderBlocks[i].setViewMatrix(p.m_camera.toMatrix());
     }
-    OpenGLUniformBufferManager::setBindingIndex("CurrentRenderBlock", p.m_renderBlocks[0]);
-    OpenGLUniformBufferManager::setBindingIndex("PreviousRenderBlock", p.m_renderBlocks[0]);
+    p.m_renderBlocks[0].bindBase(1);
+    p.m_renderBlocks[0].bindBase(2);
+    OpenGLUniformBufferManager::setBindingIndex("CurrentRenderBlock", 1);
+    OpenGLUniformBufferManager::setBindingIndex("PreviousRenderBlock", 2);
 
     // Create Shader for GBuffer Pass
     p.m_program = new OpenGLShaderProgram(this);
@@ -677,23 +680,32 @@ void MainWidget::paintGL()
       {
         OpenGLMarkerScoped _("Prepare Scene");
 
-        // Update the previous/current render blocks
+        // Update the previous/current render block bindings
         if (p.m_camera.dirty())
         {
-          std::swap(p.m_renderBlockIndex[0], p.m_renderBlockIndex[1]);
           OpenGLRenderBlock &currRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
           OpenGLRenderBlock &prevRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[1]];
+          std::swap(p.m_renderBlockIndex[0], p.m_renderBlockIndex[1]);
+          currRenderBlock.bindBase(p.m_renderBlockIndex[0] + 1);
+          prevRenderBlock.bindBase(p.m_renderBlockIndex[1] + 1);
           currRenderBlock.setViewMatrix(p.m_camera.toMatrix());
-          OpenGLUniformBufferManager::setBindingIndex("CurrentRenderBlock", currRenderBlock);
-          OpenGLUniformBufferManager::setBindingIndex("PreviousRenderBlock", prevRenderBlock);
         }
-        else
+        else if (OpenGLUniformBufferObject::boundBufferId(1) != OpenGLUniformBufferObject::boundBufferId(2))
         {
-          OpenGLRenderBlock &currRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
-          OpenGLUniformBufferManager::setBindingIndex("PreviousRenderBlock", currRenderBlock);
+          OpenGLRenderBlock &prevRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
+          prevRenderBlock.bindBase(p.m_renderBlockIndex[0] + 1);
         }
-        p.m_renderBlocks[0].update();
-        p.m_renderBlocks[1].update();
+
+        // Update previous/current render block data (if needed)
+        for (int i = 0; i < 2; ++i)
+        {
+          if (p.m_renderBlocks[i].dirty())
+          {
+            p.m_renderBlocks[i].bind();
+            p.m_renderBlocks[i].update();
+          }
+        }
+        OpenGLBuffer::release(OpenGLBuffer::UniformBuffer);
 
         // Update the GPU instance data
         p.m_instanceGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());

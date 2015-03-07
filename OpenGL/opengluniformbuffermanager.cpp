@@ -22,12 +22,12 @@ class OpenGLUniformBufferMapping
 {
 public:
   OpenGLUniformBufferMapping();
-  const OpenGLUniformBufferObject *m_buffer;
+  unsigned m_bufferIndex;
   std::vector<OpenGLShaderProgramPair> m_programs;
 };
 
 OpenGLUniformBufferMapping::OpenGLUniformBufferMapping() :
-  m_buffer(0)
+  m_bufferIndex(0)
 {
   // Intentionally Empty
 }
@@ -40,15 +40,15 @@ static OpenGLUniformBufferMapping &resolveMapping(const std::string &name)
   return m_staticUniformBufferMap[name];
 }
 
-void OpenGLUniformBufferManager::setBindingIndex(const std::string &name, const OpenGLUniformBufferObject &ubo)
+void OpenGLUniformBufferManager::setBindingIndex(const std::string &name, unsigned index)
 {
   OpenGLUniformBufferMapping &mapping = resolveMapping(name);
-  if (mapping.m_buffer != &ubo)
+  if (mapping.m_bufferIndex != index)
   {
-    mapping.m_buffer = &ubo;
+    mapping.m_bufferIndex = index;
     for (OpenGLShaderProgramPair &pair : mapping.m_programs)
     {
-      pair.m_program->scheduleUniformUpdate(pair.m_uniformLocation, ubo);
+      pair.m_program->scheduleUniformUpdate(pair.m_uniformLocation, index);
     }
   }
 }
@@ -63,8 +63,8 @@ void OpenGLUniformBufferManager::setBindingProgram(const std::string &name, unsi
   mapping.m_programs.emplace_back(location, &program);
 
   // Only schedule if a uniform is bound to the manager
-  if (mapping.m_buffer)
+  if (mapping.m_bufferIndex)
   {
-    program.scheduleUniformUpdate(location, *mapping.m_buffer);
+    program.scheduleUniformUpdate(location, mapping.m_bufferIndex);
   }
 }

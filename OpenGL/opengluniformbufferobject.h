@@ -28,11 +28,10 @@ public:
 
   void destroy();
 
-  bool bind(int uniformIndex);
+  void bindBase(unsigned uniformIndex);
   void release();
 
   GLuint bufferId() const;
-  GLuint locationId() const;
 
   int size() const;
 
@@ -45,6 +44,8 @@ public:
   void *map(QOpenGLBuffer::Access access);
   void *mapRange(int offset, int count, QOpenGLBuffer::RangeAccessFlags access);
   bool unmap();
+
+  static GLuint boundBufferId(unsigned index);
 
 private:
   OpenGLUniformBufferObjectPrivate *m_private;

@@ -24,6 +24,7 @@ public:
   // Public Methods
   void update();
   void allocate();
+  bool dirty() const;
 
 private:
   KUniquePointer<OpenGLRenderBlockPrivate> m_private;

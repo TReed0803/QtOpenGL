@@ -176,10 +176,10 @@ public:
   void addIncludePath(char const *path);
   static void addSharedIncludePath(char const *path);
   bool addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString & fileName);
-  void uniformBlockBinding(char const* location, OpenGLUniformBufferObject const &ubo);
-  void uniformBlockBinding(unsigned location, OpenGLUniformBufferObject const &ubo);
+  void uniformBlockBinding(char const* location, unsigned index);
+  void uniformBlockBinding(unsigned location, unsigned index);
   unsigned uniformBlockLocation(char const* location);
-  void scheduleUniformUpdate(unsigned location, OpenGLUniformBufferObject const &ubo);
+  void scheduleUniformUpdate(unsigned location, unsigned index);
   QString getVersionComment();
   bool link();
   bool bind();
