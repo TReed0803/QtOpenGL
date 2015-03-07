@@ -16,40 +16,60 @@
 #include "kparsetoken.h"
 #include "kstringwriter.h"
 
-class OpenGLShaderProgramWrappedPrivate
+struct OpenGLShaderProgramUniformBufferUpdate
 {
-public:
-  std::vector<char const*> m_includePaths;
-  std::vector<std::string> m_autobinder;
+  OpenGLShaderProgramUniformBufferUpdate(unsigned location, const OpenGLUniformBufferObject *ubo);
+  unsigned m_bufferLocation;
+  const OpenGLUniformBufferObject *m_uniformBuffer;
 };
 
-/*******************************************************************************
- * OpenGLShaderProgramWrapped
- ******************************************************************************/
-OpenGLShaderProgramWrapped::OpenGLShaderProgramWrapped(QObject *parent) :
-  OpenGLShaderProgramChecked(parent), m_private(new OpenGLShaderProgramWrappedPrivate)
+OpenGLShaderProgramUniformBufferUpdate::OpenGLShaderProgramUniformBufferUpdate(unsigned location, const OpenGLUniformBufferObject *ubo) :
+  m_bufferLocation(location), m_uniformBuffer(ubo)
 {
   // Intentionally Empty
 }
 
-OpenGLShaderProgramWrapped::~OpenGLShaderProgramWrapped()
+class OpenGLShaderProgramPrivate : public OpenGLFunctions
+{
+public:
+  std::vector<char const*> m_includePaths;
+  std::vector<std::string> m_autobinder;
+  std::vector<OpenGLShaderProgramUniformBufferUpdate> m_bufferUpdate;
+  OpenGLShaderProgramPrivate();
+};
+
+OpenGLShaderProgramPrivate::OpenGLShaderProgramPrivate()
+{
+  initializeOpenGLFunctions();
+}
+
+/*******************************************************************************
+ * OpenGLShaderProgramWrapped
+ ******************************************************************************/
+OpenGLShaderProgram::OpenGLShaderProgram(QObject *parent) :
+  OpenGLShaderProgramProfiled(parent), m_private(new OpenGLShaderProgramPrivate)
+{
+  // Intentionally Empty
+}
+
+OpenGLShaderProgram::~OpenGLShaderProgram()
 {
   delete m_private;
 }
 
-void OpenGLShaderProgramWrapped::addIncludePath(const char *path)
+void OpenGLShaderProgram::addIncludePath(const char *path)
 {
   m_private->m_includePaths.push_back(path);
 }
 
-void OpenGLShaderProgramWrapped::addSharedIncludePath(const char *path)
+void OpenGLShaderProgram::addSharedIncludePath(const char *path)
 {
   OpenGLSLParser::addSharedIncludePath(path);
 }
 
-bool OpenGLShaderProgramWrapped::addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString &fileName)
+bool OpenGLShaderProgram::addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString &fileName)
 {
-  P(OpenGLShaderProgramWrappedPrivate);
+  P(OpenGLShaderProgramPrivate);
   std::string ppSource = getVersionComment().toUtf8().constData();
 
   // Preprocess the shader file
@@ -76,30 +96,32 @@ bool OpenGLShaderProgramWrapped::addShaderFromSourceFile(QOpenGLShader::ShaderTy
   return false;
 }
 
-void OpenGLShaderProgramWrapped::uniformBlockBinding(const char *location, const OpenGLUniformBufferObject &ubo)
+void OpenGLShaderProgram::uniformBlockBinding(const char *location, const OpenGLUniformBufferObject &ubo)
 {
-  OpenGLFunctions f;
-  f.initializeOpenGLFunctions();
   GLuint index = this->uniformBlockLocation(location);
   this->uniformBlockBinding(index, ubo);
 }
 
-void OpenGLShaderProgramWrapped::uniformBlockBinding(unsigned location, const OpenGLUniformBufferObject &ubo)
+void OpenGLShaderProgram::uniformBlockBinding(unsigned location, const OpenGLUniformBufferObject &ubo)
 {
-  OpenGLFunctions f;
-  f.initializeOpenGLFunctions();
-  f.glBindBufferBase(GL_UNIFORM_BUFFER, ubo.locationId(), ubo.bufferId());
-  f.glUniformBlockBinding(this->programId(), location, ubo.locationId());
+  P(OpenGLShaderProgramPrivate);
+  p.glBindBufferBase(GL_UNIFORM_BUFFER, ubo.locationId(), ubo.bufferId());
+  p.glUniformBlockBinding(this->programId(), location, ubo.locationId());
 }
 
-unsigned OpenGLShaderProgramWrapped::uniformBlockLocation(const char *location)
+unsigned OpenGLShaderProgram::uniformBlockLocation(const char *location)
 {
-  OpenGLFunctions f;
-  f.initializeOpenGLFunctions();
-  return f.glGetUniformBlockIndex(this->programId(), location);
+  P(OpenGLShaderProgramPrivate);
+  return p.glGetUniformBlockIndex(this->programId(), location);
 }
 
-QString OpenGLShaderProgramWrapped::getVersionComment()
+void OpenGLShaderProgram::scheduleUniformUpdate(unsigned location, const OpenGLUniformBufferObject &ubo)
+{
+  P(OpenGLShaderProgramPrivate);
+  p.m_bufferUpdate.emplace_back(location, &ubo);
+}
+
+QString OpenGLShaderProgram::getVersionComment()
 {
   QString comment = "#version ";
   QOpenGLContext *ctx = QOpenGLContext::currentContext();
@@ -158,30 +180,31 @@ QString OpenGLShaderProgramWrapped::getVersionComment()
   return comment + "\n";
 }
 
-bool OpenGLShaderProgramWrapped::link()
+bool OpenGLShaderProgram::link()
 {
-  P(OpenGLShaderProgramWrappedPrivate);
+  P(OpenGLShaderProgramPrivate);
   bool ret = OpenGLShaderProgramChecked::link();
-  if (!p.m_autobinder.empty())
+  for (std::string const &resolver : p.m_autobinder)
   {
-    bind();
-    for (std::string const &resolver : p.m_autobinder)
+    unsigned loc = uniformBlockLocation(resolver.c_str());
+    if (loc == OpenGLUniformBufferObject::InvalidLocation)
     {
-      unsigned loc = uniformBlockLocation(resolver.c_str());
-      if (loc == OpenGLUniformBufferObject::InvalidLocation)
-      {
-        qFatal("Failed to find the UBO `%s` to for autobind.", resolver.c_str());
-        return false;
-      }
-      OpenGLUniformBufferObject *ubo = OpenGLUniformBufferManager::find(resolver.c_str());
-      if (!ubo)
-      {
-        qFatal("Manager has no knowledge of the UBO `%s`.", resolver.c_str());
-        return false;
-      }
-      uniformBlockBinding(loc, *ubo);
+      qFatal("Failed to find the UBO `%s` to for autobind.", resolver.c_str());
+      return false;
     }
-    release();
+    OpenGLUniformBufferManager::setBindingProgram(resolver, loc, *this);
   }
+  return ret;
+}
+
+bool OpenGLShaderProgram::bind()
+{
+  P(OpenGLShaderProgramPrivate);
+  bool ret = OpenGLShaderProgramChecked::bind();
+  for (OpenGLShaderProgramUniformBufferUpdate &update : p.m_bufferUpdate)
+  {
+    uniformBlockBinding(update.m_bufferLocation, *update.m_uniformBuffer);
+  }
+  p.m_bufferUpdate.clear();
   return ret;
 }

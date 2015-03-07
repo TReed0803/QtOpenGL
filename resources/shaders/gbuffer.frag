@@ -5,7 +5,6 @@
  ******************************************************************************/
 
 #include <EncodeDecode.glsl>
-#include <GlobalBuffer.ubo>
 
 // Vertex Inputs
 in highp vec3 vViewNormal;

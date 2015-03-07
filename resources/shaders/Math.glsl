@@ -11,7 +11,7 @@
 
 highp float linearizeDepth(highp float z)
 {
-  return (2.0 * depthNear) / (depthFar + depthNear - z * depthDiff);
+  return (2.0 * Current.NearPlane) / (Current.SumPlane - z * Current.DiffPlane);
 }
 
 highp float saturate(highp float v)
@@ -36,7 +36,7 @@ highp vec4 saturate(highp vec4 v)
 
 highp vec2 uvCoord()
 {
-  return gl_FragCoord.xy / vec2(viewWidth, viewHeight);
+  return gl_FragCoord.xy / Current.Dimensions;
 }
 
 highp vec2 ndcCoord()

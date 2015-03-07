@@ -35,8 +35,10 @@ void main()
   // Outputs
   vViewNormal = viewNormal.xyz;
   vCurrViewPosition = currViewPos;
-  vCurrClipPosition = viewToClip * currViewPos;
-  vPrevClipPosition = viewToClip * prevViewPos;
+  vCurrClipPosition = Current.ViewToPersp * currViewPos;
+  vPrevClipPosition = Previous.ViewToPersp * prevViewPos;
+  //vCurrClipPosition = currViewPos;
+  //vPrevClipPosition = prevViewPos;
   vDiffuse = diffuse;
   vSpecular = specular;
 

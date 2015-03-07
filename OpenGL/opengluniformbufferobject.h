@@ -4,7 +4,7 @@
 #include <OpenGLBuffer>
 
 class OpenGLUniformBufferObjectPrivate;
-class OpenGLUniformBufferObject : private OpenGLBuffer
+class OpenGLUniformBufferObject : public OpenGLBuffer
 {
 public:
 

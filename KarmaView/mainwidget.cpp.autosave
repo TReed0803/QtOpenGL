@@ -692,6 +692,8 @@ void MainWidget::paintGL()
           OpenGLRenderBlock &currRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
           OpenGLUniformBufferManager::setBindingIndex("PreviousRenderBlock", currRenderBlock);
         }
+        
+        // Render block will determine if an update is actually needed
         p.m_renderBlocks[0].update();
         p.m_renderBlocks[1].update();
 

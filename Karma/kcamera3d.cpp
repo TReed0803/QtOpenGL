@@ -44,6 +44,11 @@ const KMatrix4x4 &KCamera3D::toMatrix()
   return m_world;
 }
 
+bool KCamera3D::dirty() const
+{
+  return m_dirty;
+}
+
 // Queries
 KVector3D KCamera3D::forward() const
 {

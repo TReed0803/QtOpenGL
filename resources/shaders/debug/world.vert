@@ -12,6 +12,6 @@ out highp vec4 vColor;
 
 void main()
 {
-  gl_Position = worldToClip * vec4(position, 1.0);
+  gl_Position = Current.WorldToPersp * vec4(position, 1.0);
   vColor = vec4(color, 1.0);
 }

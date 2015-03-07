@@ -35,6 +35,7 @@ public:
   const KVector3D& translation() const;
   const KQuaternion& rotation() const;
   const KMatrix4x4& toMatrix();
+  bool dirty() const;
 
   // Queries
   KVector3D forward() const;

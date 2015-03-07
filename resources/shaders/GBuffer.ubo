@@ -50,7 +50,7 @@ highp vec3 clipPosition()
 highp vec3 viewPosition(vec2 uv)
 {
   highp vec4 clipPos = vec4(clipPosition(uv), 1.0);
-  highp vec4 viewPos = clipToView * clipPos;
+  highp vec4 viewPos = Current.PerspToView * clipPos;
   return (viewPos.xyz / viewPos.w);
 }
 
@@ -62,7 +62,7 @@ highp vec3 viewPosition()
 highp vec3 worldPosition(vec2 uv)
 {
   highp vec4 clipPos = vec4(clipPosition(uv), 1.0);
-  highp vec4 worldPos = clipToWorld * clipPos;
+  highp vec4 worldPos = Current.PerspToWorld * clipPos;
   return (worldPos.xyz / worldPos.w);
 }
 

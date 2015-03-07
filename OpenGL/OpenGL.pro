@@ -37,7 +37,8 @@ SOURCES += \
     openglelementtype.cpp \
     opengldirectionlight.cpp \
     opengldirectionlightgroup.cpp \
-    openglspotlight.cpp
+    openglspotlight.cpp \
+    openglrenderblock.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -80,4 +81,6 @@ HEADERS += \
     opengldirectionlightdata.h \
     opengldirectionlightgroup.h \
     openglspotlight.h \
-    openglspotlightdata.h
+    openglspotlightdata.h \
+    openglrenderblock.h \
+    openglrenderblockdata.h

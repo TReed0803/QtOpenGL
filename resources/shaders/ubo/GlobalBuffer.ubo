@@ -8,26 +8,37 @@
 #define GLOBALBUFFER_UBO
 
 layout(std140)
-uniform GlobalBuffer
+uniform CurrentRenderBlock
 {
-  highp mat4 worldToView;
-  highp mat4 viewToClip;
-  highp mat4 worldToClip;
-  highp mat4 viewToWorld;
-  highp mat4 clipToView;
-  highp mat4 clipToWorld;
-  highp mat4 prevWorldToView;
-  highp mat4 prevWorldToClip;
-  highp mat4 prevViewToWorld;
-  highp mat4 prevClipToWorld;
-  highp vec4 ambientColor;
-  highp vec4 atmosphericColor;
-  highp float depthFar;
-  highp float depthNear;
-  highp float depthDiff;
-  highp float viewWidth;
-  highp float viewHeight;
-};
+  highp mat4 WorldToView;
+  highp mat4 ViewToWorld;
+  highp mat4 WorldToPersp;
+  highp mat4 PerspToWorld;
+  highp mat4 ViewToPersp;
+  highp mat4 PerspToView;
+  highp vec2 Dimensions;
+  highp float NearPlane;
+  highp float FarPlane;
+  highp float DiffPlane;
+  highp float SumPlane;
+} Current;
 
-#autobind GlobalBuffer
+layout(std140)
+uniform PreviousRenderBlock
+{
+  highp mat4 WorldToView;
+  highp mat4 ViewToWorld;
+  highp mat4 WorldToPersp;
+  highp mat4 PerspToWorld;
+  highp mat4 ViewToPersp;
+  highp mat4 PerspToView;
+  highp vec2 Dimensions;
+  highp float NearPlane;
+  highp float FarPlane;
+  highp float DiffPlane;
+  highp float SumPlane;
+} Previous;
+
+#autobind CurrentRenderBlock
+#autobind PreviousRenderBlock
 #endif // GLOBALBUFFER_UBO
