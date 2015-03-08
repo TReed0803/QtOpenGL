@@ -4,6 +4,7 @@
 #include <KMath>
 #include <OpenGLMesh>
 #include <QVector4D>
+#include <OpenGLRenderBlock>
 
 void OpenGLDirectionLightGroup::initializeMesh(OpenGLMesh &mesh)
 {
@@ -12,28 +13,38 @@ void OpenGLDirectionLightGroup::initializeMesh(OpenGLMesh &mesh)
   mesh.vertexAttribPointerDivisor(3, 3, OpenGLElementType::Float, false, sizeof(DataType), DataType::SpecularOffset()  , 1);
 }
 
-void OpenGLDirectionLightGroup::translateData(const KMatrix4x4 &perspective, const KMatrix4x4 &view, DataPointer data)
+void OpenGLDirectionLightGroup::translateBuffer(const OpenGLRenderBlock &stats, DataPointer data, ConstLightIterator begin, ConstLightIterator end)
 {
-  (void)perspective;
-
   // Upload data to GPU
   DataPointer lightDest;
-  LightPointer lightSource;
-  KMatrix3x3 viewRotScale = KMatrix3x3(view);
-  for (int i = 0; i < m_lights.size(); ++i)
+  ConstLightPointer lightSource;
+  while (begin != end)
   {
-    lightDest   = &data[i];
-    lightSource = m_lights[i];
-    lightDest->m_direction    = glm::normalize(Karma::ToGlm(viewRotScale * lightSource->direction()));
+    lightDest   = data;
+    lightSource = *begin;
+    lightDest->m_direction    = glm::vec3(glm::normalize(stats.worldToView() * Karma::ToGlm(lightSource->direction(), 0.0f)));
     lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
+    ++data;
+    ++begin;
   }
 
 }
 
-void OpenGLDirectionLightGroup::draw()
+void OpenGLDirectionLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byte *data, OpenGLLightGroup::SizeType step, OpenGLLightGroup::ConstLightIterator begin, OpenGLLightGroup::ConstLightIterator end)
 {
-  m_mesh.bind();
-  m_mesh.drawInstanced(0, m_lights.size());
-  m_mesh.release();
+  // Upload data to GPU
+  DataPointer lightDest;
+  ConstLightPointer lightSource;
+  while (begin != end)
+  {
+    lightDest   = reinterpret_cast<DataType*>(data);
+    lightSource = *begin;
+    lightDest->m_direction    = glm::vec3(glm::normalize(stats.worldToView() * Karma::ToGlm(lightSource->direction(), 0.0f)));
+    lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
+    lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
+    data += step;
+    ++begin;
+  }
+
 }

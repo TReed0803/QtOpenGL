@@ -1,0 +1,25 @@
+/*******************************************************************************
+ * ubo/SpotLight.ubo
+ *------------------------------------------------------------------------------
+ * All of the current rendering spotlight information.
+ ******************************************************************************/
+
+#ifndef SPOTLIGHT_UBO
+#define SPOTLIGHT_UBO
+
+layout(std140)
+uniform SpotLightProperties
+{
+  highp mat4 ModelToPersp;
+  highp vec4 Attenuation;
+  highp vec3 ViewPosition;
+  float InnerAngle;
+  highp vec3 ViewDirection;
+  float OuterAngle;
+  highp vec3 Diffuse;
+  float DiffAngle;
+  highp vec3 Specular;
+} Light;
+
+#autobind SpotLightProperties
+#endif // SPOTLIGHT_UBO

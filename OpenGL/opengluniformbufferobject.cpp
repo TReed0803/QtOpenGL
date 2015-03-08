@@ -41,3 +41,21 @@ GLuint OpenGLUniformBufferObject::boundBufferId(unsigned index)
 {
   return sg_bindings[index];
 }
+
+void OpenGLUniformBufferObject::bindBufferId(unsigned index, GLuint buffer)
+{
+  sg_bindings[index] = buffer;
+}
+
+int OpenGLUniformBufferObject::getAlignment()
+{
+  GLint offset;
+  GL::glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &offset);
+  return int(offset);
+}
+
+int OpenGLUniformBufferObject::alignmentOffset()
+{
+  const static int alignmentOffset = getAlignment();
+  return alignmentOffset;
+}

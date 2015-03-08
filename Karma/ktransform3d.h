@@ -40,6 +40,7 @@ public:
   void setRotation(float angle, const KVector3D &axis);
   void setRotation(float angle, float ax, float ay, float az);
   void lookTowards(const KVector3D &dir);
+  void lookTowards(float x, float y, float z);
 
   // Component Transform To (Setters)
   void setTranslationX(float x);
@@ -53,7 +54,7 @@ public:
   const KVector3D& translation() const;
   const KVector3D& scale() const;
   const KQuaternion& rotation() const;
-  const KMatrix4x4& toMatrix();
+  const KMatrix4x4& toMatrix() const;
 
   // Queries
   KVector3D forward() const;
@@ -61,11 +62,11 @@ public:
   KVector3D right() const;
 
 private:
-  bool m_dirty;
+  mutable bool m_dirty;
   KVector3D m_translation;
   KVector3D m_scale;
   KQuaternion m_rotation;
-  KMatrix4x4 m_world;
+  mutable KMatrix4x4 m_world;
 
 #ifndef QT_NO_DATASTREAM
   friend QDataStream &operator<<(QDataStream &out, const KTransform3D &transform);

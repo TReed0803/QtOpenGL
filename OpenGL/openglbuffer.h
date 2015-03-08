@@ -3,6 +3,7 @@
 
 #include <OpenGLCommon>
 #include <QOpenGLBuffer>
+#include <OpenGLFunctions>
 
 // Register to check OpenGLBuffer
 class OpenGLBufferChecked : public QOpenGLBuffer
@@ -50,12 +51,13 @@ public:
       UniformBuffer       = 0x8A11
   };
 
-  OpenGLBuffer() : OpenGLBufferProfiled() {}
+  OpenGLBuffer() : OpenGLBufferProfiled() { }
   OpenGLBuffer(Type type) : OpenGLBufferProfiled(static_cast<QOpenGLBuffer::Type>(type)) {}
   void allocate(const void* data, size_t size) { OpenGLBufferProfiled::allocate(data, static_cast<int>(size)); }
   void allocate(size_t size) { OpenGLBufferProfiled::allocate(static_cast<int>(size)); }
   void *mapRange(size_t offset, size_t count, RangeAccessFlags access) { return OpenGLBufferProfiled::mapRange(static_cast<int>(offset), static_cast<int>(count), access); }
   void release() { OpenGLBufferProfiled::release(); }
+  void bindRange(Type type, unsigned index, int offset, int size) { GL::glBindBufferRange((GLenum)type, (GLuint)index, (GLuint)bufferId(), (GLintptr)offset, (GLsizeiptr)size); }
   static void release(Type type) { OpenGLBufferProfiled::release((QOpenGLBuffer::Type)type); }
 };
 

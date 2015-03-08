@@ -40,12 +40,16 @@ public:
 
   void allocate(const void *data, int count);
   void allocate(int count);
+  int reserve(int elementSize, int count);
 
   void *map(QOpenGLBuffer::Access access);
   void *mapRange(int offset, int count, QOpenGLBuffer::RangeAccessFlags access);
   bool unmap();
 
   static GLuint boundBufferId(unsigned index);
+  static void bindBufferId(unsigned index, GLuint buffer);
+  static int getAlignment();
+  static int alignmentOffset();
 
 private:
   OpenGLUniformBufferObjectPrivate *m_private;
@@ -125,6 +129,17 @@ inline void *OpenGLUniformBufferObject::mapRange(int offset, int count, QOpenGLB
 inline bool OpenGLUniformBufferObject::unmap()
 {
   return this->OpenGLBuffer::unmap();
+}
+
+inline int OpenGLUniformBufferObject::reserve(int elementSize, int count)
+{
+  int perElement = std::ceil(float(elementSize) / OpenGLUniformBufferObject::alignmentOffset()) * OpenGLUniformBufferObject::alignmentOffset();
+  int required = perElement * count;
+  if (size() < required)
+  {
+    allocate(required);
+  }
+  return perElement;
 }
 
 #endif // OPENGLUNIFORMBUFFEROBJECT_H

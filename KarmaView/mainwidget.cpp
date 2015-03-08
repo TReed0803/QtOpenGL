@@ -80,6 +80,7 @@ public:
   void drawBackbuffer();
   void constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f);
   void checkFramebuffer(char const *name, OpenGLFramebufferObject &fbo);
+  void linkShader(OpenGLShaderProgram *shader);
 
   // Transformations
   KCamera3D m_camera;
@@ -110,6 +111,7 @@ public:
   OpenGLShaderProgram *m_pointLightProgram;
   OpenGLShaderProgram *m_directionLightProgram;
   OpenGLShaderProgram *m_spotLightProgram;
+  OpenGLShaderProgram *m_shadowSpotLightProgram;
   OpenGLPointLightGroup m_pointLightGroup;
   OpenGLDirectionLightGroup m_directionLightGroup;
   OpenGLSpotLightGroup m_spotLightGroup;
@@ -185,6 +187,7 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
 void MainWidgetPrivate::initializeGL()
 {
   initializeOpenGLFunctions();
+  GL::setInstance(this);
 }
 
 void MainWidgetPrivate::loadObj(const QString &fileName)
@@ -358,12 +361,9 @@ void MainWidgetPrivate::drawBackbuffer()
     m_lightBuffer.bind();
     glClear(GL_COLOR_BUFFER_BIT);
     glDepthFunc(GL_GREATER);
-    m_pointLightProgram->bind();
-    m_pointLightGroup.draw();
-    m_spotLightProgram->bind();
-    m_spotLightGroup.draw();
-    m_directionLightProgram->bind();
-    m_directionLightGroup.draw();
+    m_pointLightGroup.draw(m_pointLightProgram, m_pointLightProgram);
+    m_spotLightGroup.draw(m_spotLightProgram, m_shadowSpotLightProgram);
+    m_directionLightGroup.draw(m_directionLightProgram, m_directionLightProgram);
     m_ambientProgram->bind();
     m_quadGL.draw();
     glDepthFunc(GL_LESS);
@@ -416,6 +416,21 @@ void MainWidgetPrivate::checkFramebuffer(char const *name, OpenGLFramebufferObje
   case OpenGLFramebufferObject::Unsupported:
     qFatal("%s: Unsupported", name);
     break;
+  }
+}
+
+void MainWidgetPrivate::linkShader(OpenGLShaderProgram *shader)
+{
+  if (shader->link())
+  {
+    shader->bind();
+    shader->setUniformValue("geometryTexture", 0);
+    shader->setUniformValue("materialTexture", 1);
+    shader->setUniformValue("dynamicsTexture", 2);
+    shader->setUniformValue("backbufferTexture", 3);
+    shader->setUniformValue("lightbufferTexture", 4);
+    shader->setUniformValue("depthTexture", 5);
+    shader->release();
   }
 }
 
@@ -478,6 +493,7 @@ void MainWidget::initializeGL()
     p.m_renderBlocks[0].bindBase(2);
     OpenGLUniformBufferManager::setBindingIndex("CurrentRenderBlock", 1);
     OpenGLUniformBufferManager::setBindingIndex("PreviousRenderBlock", 2);
+    OpenGLUniformBufferManager::setBindingIndex("SpotLightProperties", 3);
 
     // Create Shader for GBuffer Pass
     p.m_program = new OpenGLShaderProgram(this);
@@ -489,57 +505,31 @@ void MainWidget::initializeGL()
     p.m_pointLightProgram = new OpenGLShaderProgram(this);
     p.m_pointLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/pointLight.vert");
     p.m_pointLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/pointLight.frag");
-    p.m_pointLightProgram->link();
-    p.m_pointLightProgram->bind();
-    p.m_pointLightProgram->setUniformValue("geometryTexture", 0);
-    p.m_pointLightProgram->setUniformValue("materialTexture", 1);
-    p.m_pointLightProgram->setUniformValue("dynamicsTexture", 2);
-    p.m_pointLightProgram->setUniformValue("backbufferTexture", 3);
-    p.m_pointLightProgram->setUniformValue("lightbufferTexture", 4);
-    p.m_pointLightProgram->setUniformValue("depthTexture", 5);
-    p.m_pointLightProgram->release();
+    p.linkShader(p.m_pointLightProgram);
 
     // Create Shader for direction light pass
     p.m_directionLightProgram = new OpenGLShaderProgram(this);
     p.m_directionLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/directionLight.vert");
     p.m_directionLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/directionLight.frag");
-    p.m_directionLightProgram->link();
-    p.m_directionLightProgram->bind();
-    p.m_directionLightProgram->setUniformValue("geometryTexture", 0);
-    p.m_directionLightProgram->setUniformValue("materialTexture", 1);
-    p.m_directionLightProgram->setUniformValue("dynamicsTexture", 2);
-    p.m_directionLightProgram->setUniformValue("backbufferTexture", 3);
-    p.m_directionLightProgram->setUniformValue("lightbufferTexture", 4);
-    p.m_directionLightProgram->setUniformValue("depthTexture", 5);
-    p.m_directionLightProgram->release();
+    p.linkShader(p.m_directionLightProgram);
 
     // Create Shader for spot light pass
     p.m_spotLightProgram = new OpenGLShaderProgram(this);
     p.m_spotLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/spotLight.vert");
     p.m_spotLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/spotLight.frag");
-    p.m_spotLightProgram->link();
-    p.m_spotLightProgram->bind();
-    p.m_spotLightProgram->setUniformValue("geometryTexture", 0);
-    p.m_spotLightProgram->setUniformValue("materialTexture", 1);
-    p.m_spotLightProgram->setUniformValue("dynamicsTexture", 2);
-    p.m_spotLightProgram->setUniformValue("backbufferTexture", 3);
-    p.m_spotLightProgram->setUniformValue("lightbufferTexture", 4);
-    p.m_spotLightProgram->setUniformValue("depthTexture", 5);
-    p.m_spotLightProgram->release();
+    p.linkShader(p.m_spotLightProgram);
+
+    // Create Shader for spot light pass (uniform)
+    p.m_shadowSpotLightProgram = new OpenGLShaderProgram(this);
+    p.m_shadowSpotLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/shadowSpotLight.vert");
+    p.m_shadowSpotLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/shadowSpotLight.frag");
+    p.linkShader(p.m_shadowSpotLightProgram);
 
     // Create Shader for ambient light pass
     p.m_ambientProgram = new OpenGLShaderProgram(this);
     p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/ambient.vert");
     p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/ambient.frag");
-    p.m_ambientProgram->link();
-    p.m_ambientProgram->bind();
-    p.m_ambientProgram->setUniformValue("geometryTexture", 0);
-    p.m_ambientProgram->setUniformValue("materialTexture", 1);
-    p.m_ambientProgram->setUniformValue("dynamicsTexture", 2);
-    p.m_ambientProgram->setUniformValue("backbufferTexture", 3);
-    p.m_ambientProgram->setUniformValue("lightbufferTexture", 4);
-    p.m_ambientProgram->setUniformValue("depthTexture", 5);
-    p.m_ambientProgram->release();
+    p.linkShader(p.m_ambientProgram);
 
     char const* fragFiles[DeferredDataCount] = {
       ":/resources/shaders/gbuffer/depth.frag",
@@ -559,15 +549,7 @@ void MainWidget::initializeGL()
       p.m_deferredPrograms[i]->addIncludePath(":/resources/shaders");
       p.m_deferredPrograms[i]->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/gbuffer/main.vert");
       p.m_deferredPrograms[i]->addShaderFromSourceFile(QOpenGLShader::Fragment, fragFiles[i]);
-      p.m_deferredPrograms[i]->link();
-      p.m_deferredPrograms[i]->bind();
-      p.m_deferredPrograms[i]->setUniformValue("geometryTexture", 0);
-      p.m_deferredPrograms[i]->setUniformValue("materialTexture", 1);
-      p.m_deferredPrograms[i]->setUniformValue("dynamicsTexture", 2);
-      p.m_deferredPrograms[i]->setUniformValue("backbufferTexture", 3);
-      p.m_deferredPrograms[i]->setUniformValue("lightbufferTexture", 4);
-      p.m_deferredPrograms[i]->setUniformValue("depthTexture", 5);
-      p.m_deferredPrograms[i]->release();
+      p.linkShader(p.m_deferredPrograms[i]);
     }
 
     // Framebuffer Object
@@ -599,6 +581,7 @@ void MainWidget::initializeGL()
     for (int i = 0; i < 3; ++i)
     {
       OpenGLSpotLight *light = p.m_spotLightGroup.createLight();
+      light->setShadowCasting(i % 2);
       light->setInnerAngle(40.0f);
       light->setOuterAngle(45.0f);
       light->setDepth(25.0f);
@@ -681,10 +664,10 @@ void MainWidget::paintGL()
         OpenGLMarkerScoped _("Prepare Scene");
 
         // Update the previous/current render block bindings
+        OpenGLRenderBlock &currRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
+        OpenGLRenderBlock &prevRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[1]];
         if (p.m_camera.dirty())
         {
-          OpenGLRenderBlock &currRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
-          OpenGLRenderBlock &prevRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[1]];
           std::swap(p.m_renderBlockIndex[0], p.m_renderBlockIndex[1]);
           currRenderBlock.bindBase(p.m_renderBlockIndex[0] + 1);
           prevRenderBlock.bindBase(p.m_renderBlockIndex[1] + 1);
@@ -692,7 +675,6 @@ void MainWidget::paintGL()
         }
         else if (OpenGLUniformBufferObject::boundBufferId(1) != OpenGLUniformBufferObject::boundBufferId(2))
         {
-          OpenGLRenderBlock &prevRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
           prevRenderBlock.bindBase(p.m_renderBlockIndex[0] + 1);
         }
 
@@ -703,16 +685,23 @@ void MainWidget::paintGL()
           {
             p.m_renderBlocks[i].bind();
             p.m_renderBlocks[i].update();
+            p.m_renderBlocks[i].release();
           }
         }
-        OpenGLBuffer::release(OpenGLBuffer::UniformBuffer);
+
+        // Test
+        testPerspective = p.m_projection;
+        testView = p.m_camera.toMatrix();
+        KMatrix4x4 woowP = testPerspective;
+        KMatrix4x4 woowV = testView;
+        KMatrix4x4 testBoth = testPerspective * testView;
 
         // Update the GPU instance data
         p.m_instanceGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
         p.m_floorGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
-        p.m_pointLightGroup.update(p.m_projection, p.m_camera.toMatrix());
-        p.m_directionLightGroup.update(p.m_projection, p.m_camera.toMatrix());
-        p.m_spotLightGroup.update(p.m_projection, p.m_camera.toMatrix());
+        p.m_pointLightGroup.update(currRenderBlock);
+        p.m_directionLightGroup.update(currRenderBlock);
+        p.m_spotLightGroup.update(currRenderBlock);
       }
       p.m_program->bind();
       {

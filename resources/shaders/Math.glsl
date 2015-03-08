@@ -44,4 +44,12 @@ highp vec2 ndcCoord()
   return uvCoord() * 2.0 - 1.0;
 }
 
+highp vec4 debugExecution(float amount)
+{
+  if (amount > 0)
+    return vec4(1.0, 0.0, 0.0, 1.0);
+  else
+    return vec4(1.0);
+}
+
 #endif // MATH_GLSL

@@ -8,18 +8,19 @@ class OpenGLSpotLightData
 public:
   static int TranslationOffset();
   static int DirectionOffset();
-  static int AnglesOffset();
   static int AttenuationOffset();
   static int DiffuseOffset();
   static int SpecularOffset();
   static int PerpectiveOffset();
-  glm::vec3 m_viewTrans;   // { x, y, z }
-  glm::vec3 m_direction;   // { x, y, z }
-  glm::vec2 m_angles;      // { inner, outer - inner }
-  glm::vec4 m_attenuation; // { k, d, d^2, radius }
-  glm::vec3 m_diffuse;     // { r, g, b }
-  glm::vec3 m_specular;    // { r, g, b }
   glm::mat4 m_perspTrans;  // { Model->View->Persp }
+  glm::vec4 m_attenuation; // { k, d, d^2, radius }
+  glm::vec3 m_viewTrans;   // { x, y, z }
+  float m_innerAngle;      // { inner }
+  glm::vec3 m_direction;   // { x, y, z }
+  float m_outerAngle;      // { outer }
+  glm::vec3 m_diffuse;     // { r, g, b }
+  float m_diffAngle;       // { outer - inner }
+  glm::vec3 m_specular;    // { r, g, b }
 };
 
 inline int OpenGLSpotLightData::TranslationOffset()
@@ -30,11 +31,6 @@ inline int OpenGLSpotLightData::TranslationOffset()
 inline int OpenGLSpotLightData::DirectionOffset()
 {
   return offsetof(OpenGLSpotLightData, m_direction);
-}
-
-inline int OpenGLSpotLightData::AnglesOffset()
-{
-  return offsetof(OpenGLSpotLightData, m_angles);
 }
 
 inline int OpenGLSpotLightData::AttenuationOffset()

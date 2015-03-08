@@ -4,6 +4,10 @@
 #include <KMatrix4x4>
 #include <OpenGLMesh>
 #include <OpenGLElementType>
+#include <OpenGLRenderBlock>
+
+KMatrix4x4 testView;
+KMatrix4x4 testPerspective;
 
 void OpenGLPointLightGroup::initializeMesh(OpenGLMesh &mesh)
 {
@@ -14,27 +18,40 @@ void OpenGLPointLightGroup::initializeMesh(OpenGLMesh &mesh)
   mesh.vertexAttribPointerDivisor(5, 4, 4,  OpenGLElementType::Float, false, sizeof(DataType), DataType::PerpectiveOffset()  , 1);
 }
 
-void OpenGLPointLightGroup::translateData(const KMatrix4x4 &perspective, const KMatrix4x4 &view, DataPointer data)
+void OpenGLPointLightGroup::translateBuffer(const OpenGLRenderBlock &stats, DataPointer data, ConstLightIterator begin, ConstLightIterator end)
+{
+  // Upload data to GPU
+  DataPointer lightDest;
+  ConstLightPointer lightSource;
+  while (begin != end)
+  {
+    lightDest   = data;
+    lightSource = *begin;
+    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation(), lightSource->radius());
+    lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
+    lightDest->m_perspTrans   = stats.worldToPersp() * Karma::ToGlm(lightSource->toMatrix());
+    lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
+    lightDest->m_viewTrans    = glm::vec3(stats.worldToView() * Karma::ToGlm(lightSource->translation(), 1.0f));
+    ++data;
+    ++begin;
+  }
+}
+
+void OpenGLPointLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byte *data, OpenGLLightGroup::SizeType step, OpenGLLightGroup::ConstLightIterator begin, OpenGLLightGroup::ConstLightIterator end)
 {
   // Upload data to GPU
   DataPointer lightDest;
   LightPointer lightSource;
-  KMatrix4x4 worldToPersp = perspective * view;
-  for (int i = 0; i < m_lights.size(); ++i)
+  while (begin != end)
   {
-    lightDest   = &data[i];
-    lightSource = m_lights[i];
+    lightDest   = reinterpret_cast<DataType*>(data);
+    lightSource = *begin;
     lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation(), lightSource->radius());
     lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
-    lightDest->m_perspTrans   = Karma::ToGlm(worldToPersp * lightSource->toMatrix());
+    lightDest->m_perspTrans   = stats.worldToPersp() * Karma::ToGlm(lightSource->toMatrix());
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
-    lightDest->m_viewTrans    = Karma::ToGlm(view * lightSource->translation());
+    lightDest->m_viewTrans    = glm::vec3(stats.worldToView() * Karma::ToGlm(lightSource->translation(), 1.0f));
+    data += step;
+    ++begin;
   }
-}
-
-void OpenGLPointLightGroup::draw()
-{
-  m_mesh.bind();
-  m_mesh.drawInstanced(0, m_lights.size());
-  m_mesh.release();
 }

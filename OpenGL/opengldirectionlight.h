@@ -1,31 +1,36 @@
 #ifndef OPENGLDIRECTIONLIGHT_H
 #define OPENGLDIRECTIONLIGHT_H OpenGLDirectionLight
 
-#include <KUniquePointer>
+#include <KVector3D>
+#include <OpenGLLight>
 
-class KColor;
-class KVector3D;
-
-class OpenGLDirectionLightPrivate;
-class OpenGLDirectionLight
+class OpenGLDirectionLight : public OpenGLLight
 {
 public:
   OpenGLDirectionLight();
-  ~OpenGLDirectionLight();
 
   //Light Settings
   void setDirection(float x, float y, float z);
   void setDirection(KVector3D const &dir);
-  KVector3D const &direction() const;
-  void setDiffuse(float r, float g, float b);
-  void setDiffuse(KColor const &rgb);
-  KColor const &diffuse() const;
-  void setSpecular(float r, float g, float b);
-  void setSpecular(KColor const &rgb);
-  KColor const &specular();
+  const KVector3D &direction() const;
 
 private:
-  KUniquePointer<OpenGLDirectionLightPrivate> m_private;
+  KVector3D m_direction;
 };
+
+inline void OpenGLDirectionLight::setDirection(float x, float y, float z)
+{
+  setDirection(KVector3D(x, y ,z));
+}
+
+inline void OpenGLDirectionLight::setDirection(KVector3D const &dir)
+{
+  m_direction = dir.normalized();
+}
+
+inline const KVector3D &OpenGLDirectionLight::direction() const
+{
+  return m_direction;
+}
 
 #endif // OPENGLDIRECTIONLIGHT_H

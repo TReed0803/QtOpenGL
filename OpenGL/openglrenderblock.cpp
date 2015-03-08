@@ -22,8 +22,8 @@ OpenGLRenderBlockPrivate::OpenGLRenderBlockPrivate() :
 
 void OpenGLRenderBlockPrivate::updateCombinationMatrices()
 {
-  m_blockData.m_viewProjection = m_blockData.m_view * m_blockData.m_projection;
-  m_blockData.i_viewProjection = m_blockData.i_view * m_blockData.i_projection;
+  m_blockData.m_viewProjection = m_blockData.m_projection * m_blockData.m_view;
+  m_blockData.i_viewProjection = m_blockData.i_projection * m_blockData.i_view;
 }
 
 OpenGLRenderBlock::OpenGLRenderBlock() :
@@ -70,6 +70,78 @@ void OpenGLRenderBlock::setDimensions(int width, int height)
   P(OpenGLRenderBlockPrivate);
   p.m_dirty = true;
   p.m_blockData.v_dimensions = glm::vec2(float(width), float(height));
+}
+
+const glm::mat4 &OpenGLRenderBlock::worldToView() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.m_view;
+}
+
+const glm::mat4 &OpenGLRenderBlock::viewToWorld() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.i_view;
+}
+
+const glm::mat4 &OpenGLRenderBlock::worldToPersp() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.m_viewProjection;
+}
+
+const glm::mat4 &OpenGLRenderBlock::perspToWorld() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.i_viewProjection;
+}
+
+const glm::mat4 &OpenGLRenderBlock::viewToPersp() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.m_projection;
+}
+
+const glm::mat4 &OpenGLRenderBlock::perspToView() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.i_projection;
+}
+
+float OpenGLRenderBlock::nearPlane() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.f_nearPlane;
+}
+
+float OpenGLRenderBlock::farPlane() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.f_farPlane;
+}
+
+float OpenGLRenderBlock::diffPlane() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.f_diffPlane;
+}
+
+float OpenGLRenderBlock::sumPlane() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.f_sumPlane;
+}
+
+int OpenGLRenderBlock::width() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.v_dimensions.x;
+}
+
+int OpenGLRenderBlock::height() const
+{
+  P(const OpenGLRenderBlockPrivate);
+  return p.m_blockData.v_dimensions.y;
 }
 
 void OpenGLRenderBlock::update()

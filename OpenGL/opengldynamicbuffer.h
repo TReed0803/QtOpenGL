@@ -10,10 +10,13 @@ public:
   typedef T ElementType;
   typedef T* ElementPointer;
   typedef T& ElementReference;
+  typedef size_t SizeType;
 
   OpenGLDynamicBuffer(OpenGLBuffer::Type type = OpenGLBuffer::VertexBuffer);
   void reserve(size_t elements);
   ElementPointer mapRange(size_t offset, size_t count, RangeAccessFlags access);
+  void bindRangeElement(Type type, unsigned index, unsigned element);
+  SizeType count() const;
 };
 
 template <typename T>
@@ -37,6 +40,18 @@ template <typename T>
 auto OpenGLDynamicBuffer<T>::mapRange(size_t offset, size_t count, RangeAccessFlags access) -> ElementPointer
 {
   return static_cast<ElementPointer>(OpenGLBuffer::mapRange(offset, sizeof(ElementType) * count, access));
+}
+
+template <typename T>
+void OpenGLDynamicBuffer<T>::bindRangeElement(Type type, unsigned index, unsigned element)
+{
+  OpenGLBuffer::bindRange(type, index, sizeof(ElementType) * element, sizeof(ElementType));
+}
+
+template <typename T>
+auto OpenGLDynamicBuffer<T>::count() const -> SizeType
+{
+  return size() / sizeof(ElementType);
 }
 
 #endif // OPENGLDYNAMICBUFFER_H

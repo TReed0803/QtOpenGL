@@ -62,6 +62,11 @@ void KTransform3D::lookTowards(const KVector3D &dir)
   setRotation(rotAngle * 180.0f / Karma::Pi, rotAxis);
 }
 
+void KTransform3D::lookTowards(float x, float y, float z)
+{
+  lookTowards(KVector3D(x, y, z));
+}
+
 void KTransform3D::setTranslationX(float x)
 {
   m_dirty = true;
@@ -99,7 +104,7 @@ void KTransform3D::setScaleZ(float z)
 }
 
 // Accessors
-const KMatrix4x4 &KTransform3D::toMatrix()
+const KMatrix4x4 &KTransform3D::toMatrix() const
 {
   if (m_dirty)
   {

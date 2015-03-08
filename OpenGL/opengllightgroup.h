@@ -5,6 +5,11 @@
 #include <OpenGLMesh>
 #include <OpenGLDynamicBuffer>
 #include <OpenGLAbstractLightGroup>
+#include <OpenGLLight>
+#include <OpenGLUniformBufferObject>
+#include <OpenGLShaderProgram>
+
+class OpenGLRenderBlock;
 
 template <typename T, typename D>
 class OpenGLLightGroup : public OpenGLAbstractLightGroup
@@ -15,6 +20,9 @@ public:
   typedef T LightType;
   typedef T* LightPointer;
   typedef T& LightReference;
+  typedef const T ConstLightType;
+  typedef const T* ConstLightPointer;
+  typedef const T& ConstLightRefernece;
   typedef D DataType;
   typedef D* DataPointer;
   typedef D& DataReference;
@@ -27,9 +35,11 @@ public:
   typedef typename LightContainer::size_type SizeType;
 
   void prepMesh(OpenGLMesh &mesh);
-  void update(const KMatrix4x4 &perspective, const KMatrix4x4 &view);
+  void update(const OpenGLRenderBlock &stats);
+  void draw(OpenGLShaderProgram *instanceProgram, OpenGLShaderProgram *uniformProgram);
   virtual void initializeMesh(OpenGLMesh &mesh) = 0;
-  virtual void translateData(const KMatrix4x4 &perspective, const KMatrix4x4 &view, DataPointer data) = 0;
+  virtual void translateBuffer(const OpenGLRenderBlock &stats, DataPointer data, ConstLightIterator begin, ConstLightIterator end) = 0;
+  virtual void translateUniforms(const OpenGLRenderBlock &stats, Byte *data, SizeType step, ConstLightIterator begin, ConstLightIterator end) = 0;
 
   // Light Factory Methods
   bool create();
@@ -54,6 +64,10 @@ public:
 
 protected:
   BufferType m_buffer;
+  OpenGLUniformBufferObject m_uniforms;
+  unsigned m_uniformOffset;
+  unsigned m_numShadowLights;
+  unsigned m_numRegularLights;
   LightContainer m_lights;
 };
 
@@ -65,34 +79,87 @@ void OpenGLLightGroup<T, D>::prepMesh(OpenGLMesh &mesh)
 }
 
 template <typename T, typename D>
-void OpenGLLightGroup<T, D>::update(const KMatrix4x4 &perspective, const KMatrix4x4 &view)
+void OpenGLLightGroup<T, D>::update(const OpenGLRenderBlock &stats)
 {
   if (m_lights.empty()) return;
 
-  m_buffer.bind();
-  m_buffer.reserve(m_lights.size());
+  // Seperate shadow-casters from regular lights
+  LightIterator regularLights = std::partition(m_lights.begin(), m_lights.end(), OpenGLLight::ShadowCastingPred<true>());
+  m_numShadowLights  = std::distance(m_lights.begin(), regularLights);
+  m_numRegularLights = int(m_lights.size() - m_numShadowLights);
+
   BufferType::RangeAccessFlags flags =
       BufferType::RangeInvalidate
     | BufferType::RangeUnsynchronized
     | BufferType::RangeWrite;
-  DataPointer data = m_buffer.mapRange(0, m_lights.size(), flags);
 
-  if (data == NULL)
+  // Upload regular light information
+  if (m_numRegularLights > 0)
   {
-    qFatal("Failed to map the buffer range!");
+    m_buffer.bind();
+    m_buffer.reserve(m_numRegularLights);
+    DataPointer data = m_buffer.mapRange(0, m_numRegularLights, flags);
+
+    if (data == NULL)
+    {
+      qFatal("Failed to map the buffer range!");
+    }
+
+    translateBuffer(stats, data, regularLights, m_lights.end());
+
+    m_buffer.unmap();
+    m_buffer.release();
   }
 
-  translateData(perspective, view, data);
+  // Upload uniform light information
+  // Note: because UBOs have complicated alignments, we cannot cast to DataPointer.
+  //       The UBO must increment preciecely by GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT.
+  if (m_numShadowLights > 0)
+  {
+    m_uniforms.bind();
+    m_uniformOffset = m_uniforms.reserve(sizeof(DataType), m_numShadowLights);
+    Byte *data = static_cast<Byte*>(m_uniforms.mapRange(0, m_uniformOffset * m_numShadowLights, flags));
 
-  m_buffer.unmap();
-  m_buffer.release();
+    if (data == NULL)
+    {
+      qFatal("Failed to map the buffer range!");
+    }
+
+    translateUniforms(stats, data, m_uniformOffset, m_lights.begin(), regularLights);
+
+    m_uniforms.unmap();
+    m_uniforms.release();
+  }
+}
+
+template <typename T, typename D>
+void OpenGLLightGroup<T, D>::draw(OpenGLShaderProgram *instanceProgram, OpenGLShaderProgram *uniformProgram)
+{
+  if (m_lights.empty()) return;
+
+  m_mesh.bind();
+
+  // Batch render regular lights
+  instanceProgram->bind();
+  m_mesh.drawInstanced(0, m_numRegularLights);
+
+  // Render each shadow light
+  uniformProgram->bind();
+  for (size_t i = 0; i < m_numShadowLights; ++i)
+  {
+    m_uniforms.bindRange(BufferType::UniformBuffer, 3, m_uniformOffset * i, sizeof(DataType));
+    m_mesh.draw();
+  }
+
+  m_mesh.release();
 }
 
 template <typename T, typename D>
 auto OpenGLLightGroup<T, D>::create() -> bool
 {
+  m_uniforms.setUsagePattern(BufferType::DynamicDraw);
   m_buffer.setUsagePattern(BufferType::DynamicDraw);
-  return m_buffer.create();
+  return m_buffer.create() && m_uniforms.create();
 }
 
 template <typename T, typename D>

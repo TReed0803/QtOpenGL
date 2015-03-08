@@ -12,8 +12,8 @@ class OpenGLDirectionLightGroup : public OpenGLLightGroup<OpenGLDirectionLight, 
 {
 public:
   void initializeMesh(OpenGLMesh &mesh);
-  void translateData(const KMatrix4x4 &perspective, const KMatrix4x4 &view, DataPointer data);
-  void draw();
+  void translateBuffer(const OpenGLRenderBlock &stats, DataPointer data, ConstLightIterator begin, ConstLightIterator end);
+  void translateUniforms(const OpenGLRenderBlock &stats, Byte *data, SizeType step, ConstLightIterator begin, ConstLightIterator end);
 };
 
 #endif // OPENGLDIRECTIONLIGHTGROUP_H

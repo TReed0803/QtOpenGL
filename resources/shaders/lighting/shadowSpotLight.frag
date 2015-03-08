@@ -5,21 +5,9 @@
  * Uses GBuffer information to access statistics about the scene itself.
  ******************************************************************************/
 
+#include <SpotLight.ubo>
 #include <GBuffer.ubo>
 #include <Math.glsl> // saturate
-
-// Light Properties
-in LightData
-{
-  flat vec3 ViewPosition;
-  flat vec3 ViewDirection;
-  flat vec4 Attenuation;
-  flat vec3 Diffuse;
-  flat vec3 Specular;
-  flat float InnerAngle;
-  flat float OuterAngle;
-  flat float DiffAngle;
-} Light;
 
 // Light Output
 layout(location = 0) out highp vec4 fFragColor;
