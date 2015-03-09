@@ -7,6 +7,20 @@
 #include <OpenGLUniformBufferObject>
 #include <OpenGLRenderBlock>
 
+bool OpenGLSpotLightGroup::create()
+{
+  // Create Regular Shader
+  m_regularLight = new OpenGLShaderProgram();
+  m_regularLight->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/spotLight.vert");
+  m_regularLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/spotLight.frag");
+  m_regularLight->link();
+
+  // Create Shadow-Casting Shader
+  m_shadowCastingLight = 0;
+
+  return LightGroup::create();
+}
+
 void OpenGLSpotLightGroup::initializeMesh(OpenGLMesh &mesh)
 {
   mesh.vertexAttribPointerDivisor(1, 4,     OpenGLElementType::Float, false, sizeof(DataType), DataType::TranslationOffset() , 1);

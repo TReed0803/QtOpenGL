@@ -17,7 +17,7 @@ flat in highp vec4 vSpecular;
 // Framebuffer Outputs
 layout(location = 0) out highp vec4 fGeometry;
 layout(location = 1) out highp vec4 fMaterial;
-layout(location = 2) out highp vec4 fSurface;
+layout(location = 2) out highp float fSurface;
 
 void main()
 {
@@ -41,5 +41,5 @@ void main()
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 3: Surface Buffer
   // Encode Dynamics information (Specular Exp.)
-  fSurface.x = encodeSpecularExponent(vSpecular.w);
+  fSurface = encodeSpecularExponent(vSpecular.w);
 }

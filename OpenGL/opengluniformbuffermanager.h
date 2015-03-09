@@ -1,16 +1,18 @@
-#ifndef OPENGLUNIFORMBUFFERMANAGER_H
-#define OPENGLUNIFORMBUFFERMANAGER_H OpenGLUniformBufferManager
+#ifndef OPENGLUNIFORMMANAGER_H
+#define OPENGLUNIFORMMANAGER_H OpenGLUniformManager
 
 #include <string>
 
 class OpenGLShaderProgram;
 class OpenGLUniformBufferObject;
 
-class OpenGLUniformBufferManager
+class OpenGLUniformManager
 {
 public:
-  static void setBindingIndex(std::string const &name, unsigned index);
-  static void setBindingProgram(std::string const &name, unsigned location, OpenGLShaderProgram &program);
+  static void setTextureSampler(std::string const &name, unsigned textureId);
+  static void setUniformBufferIndex(std::string const &name, unsigned index);
+  static void registerTextureSamplerCallbacks(std::string const &name, OpenGLShaderProgram &program);
+  static void registerUniformBufferCallbacks(std::string const &name, OpenGLShaderProgram &program);
 };
 
-#endif // OPENGLUNIFORMBUFFERMANAGER_H
+#endif // OPENGLUNIFORMMANAGER_H

@@ -6,8 +6,19 @@
 #include <OpenGLElementType>
 #include <OpenGLRenderBlock>
 
-KMatrix4x4 testView;
-KMatrix4x4 testPerspective;
+bool OpenGLPointLightGroup::create()
+{
+  // Create Regular Shader
+  m_regularLight = new OpenGLShaderProgram();
+  m_regularLight->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/pointLight.vert");
+  m_regularLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/pointLight.frag");
+  m_regularLight->link();
+
+  // Create Shadow-Casting Shader
+  m_shadowCastingLight = 0;
+
+  return LightGroup::create();
+}
 
 void OpenGLPointLightGroup::initializeMesh(OpenGLMesh &mesh)
 {

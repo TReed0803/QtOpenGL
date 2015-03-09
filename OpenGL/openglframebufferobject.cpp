@@ -95,6 +95,8 @@ bool OpenGLFramebufferObject::validate() const
     qFatal("OpenGLFramebufferObject: Unsupported");
     return false;
   }
+  qFatal("OpenGLFramebufferObject: Impossible condition!");
+  return false;
 }
 
 int OpenGLFramebufferObject::objectId()

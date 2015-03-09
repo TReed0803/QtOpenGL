@@ -21,10 +21,12 @@ public:
   // Virtual
   virtual void prepMesh(OpenGLMesh &mesh) = 0;
   virtual void update(const OpenGLRenderBlock &stats) = 0;
-  virtual void draw(OpenGLShaderProgram *instanceProgram, OpenGLShaderProgram *uniformProgram) = 0;
+  virtual void draw() = 0;
 
 protected:
   OpenGLMesh m_mesh;
+  OpenGLShaderProgram *m_regularLight;
+  OpenGLShaderProgram *m_shadowCastingLight;
 };
 
 #endif // OPENGLABSTRACTLIGHTGROUP_H

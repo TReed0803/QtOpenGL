@@ -6,6 +6,20 @@
 #include <QVector4D>
 #include <OpenGLRenderBlock>
 
+bool OpenGLDirectionLightGroup::create()
+{
+  // Create Regular Shader
+  m_regularLight = new OpenGLShaderProgram();
+  m_regularLight->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/directionLight.vert");
+  m_regularLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/directionLight.frag");
+  m_regularLight->link();
+
+  // Create Shadow-Casting Shader
+  m_shadowCastingLight = 0;
+
+  return LightGroup::create();
+}
+
 void OpenGLDirectionLightGroup::initializeMesh(OpenGLMesh &mesh)
 {
   mesh.vertexAttribPointerDivisor(1, 3, OpenGLElementType::Float, false, sizeof(DataType), DataType::DirectionOffset() , 1);

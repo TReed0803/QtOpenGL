@@ -58,7 +58,7 @@ public:
   void *mapRange(size_t offset, size_t count, RangeAccessFlags access) { return OpenGLBufferProfiled::mapRange(static_cast<int>(offset), static_cast<int>(count), access); }
   void release() { OpenGLBufferProfiled::release(); }
   void bindRange(Type type, unsigned index, int offset, int size) { GL::glBindBufferRange((GLenum)type, (GLuint)index, (GLuint)bufferId(), (GLintptr)offset, (GLsizeiptr)size); }
-  static void release(Type type) { OpenGLBufferProfiled::release((QOpenGLBuffer::Type)type); }
+  static void release(Type type) { QOpenGLBuffer::release((QOpenGLBuffer::Type)type); }
 };
 
 #endif // OPENGLBUFFER_H

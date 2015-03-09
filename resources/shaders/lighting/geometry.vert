@@ -17,29 +17,7 @@ layout(location = 4)  in highp mat4 currModelToView;
 layout(location = 8)  in highp mat4 prevModelToView;
 layout(location = 12) in highp mat4 normalTransform;
 
-// Framebuffer Outputs
-out highp vec3 vViewNormal;
-out highp vec4 vCurrViewPosition;
-out highp vec4 vCurrClipPosition;
-out highp vec4 vPrevClipPosition;
-flat out highp vec3 vDiffuse;
-flat out highp vec4 vSpecular;
-
 void main()
 {
-  // Calculations
-  highp vec4 currViewPos = currModelToView * vec4(position, 1.0);
-  highp vec4 prevViewPos = prevModelToView * vec4(position, 1.0);
-  highp vec4 viewNormal  = normalTransform * vec4(normal  , 1.0);
-
-  // Outputs
-  vViewNormal = viewNormal.xyz;
-  vCurrViewPosition = currViewPos;
-  vCurrClipPosition = Current.ViewToPersp * currViewPos;
-  vPrevClipPosition = Previous.ViewToPersp * prevViewPos;
-  vDiffuse = diffuse;
-  vSpecular = specular;
-
-  // Final position
-  gl_Position = vCurrClipPosition;
+  gl_Position = Current.ViewToPersp * currModelToView * vec4(position, 1.0);
 }

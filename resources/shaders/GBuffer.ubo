@@ -10,12 +10,17 @@
 #include <Math.glsl>
 #include <EncodeDecode.glsl>
 
+uniform highp sampler2D depthTexture;
 uniform highp sampler2D geometryTexture;
 uniform highp sampler2D materialTexture;
 uniform highp sampler2D surfaceTexture;
-uniform highp sampler2D backbufferTexture;
 uniform highp sampler2D lightbufferTexture;
-uniform highp sampler2D depthTexture;
+
+#autosample depthTexture
+#autosample geometryTexture
+#autosample materialTexture
+#autosample surfaceTexture
+#autosample lightbufferTexture
 
 highp float depth(highp vec2 uv)
 {
@@ -94,7 +99,7 @@ highp vec3 diffuse()
 highp vec4 specular(highp vec2 uv)
 {
   highp vec3 specColor = decodeSpecularColor(texture(materialTexture, uv).w);
-  highp float specExponent = decodeSpecularExponent(texture(surfaceTexture, uv).x);
+  highp float specExponent = decodeSpecularExponent(texture(surfaceTexture, uv).r);
   return vec4(specColor, specExponent);
 }
 
@@ -111,16 +116,6 @@ highp vec2 velocity(highp vec2 uv)
 highp vec2 velocity()
 {
   return velocity(uvCoord());
-}
-
-highp vec4 backbuffer(highp vec2 uv)
-{
-  return texture(backbufferTexture, uv);
-}
-
-highp vec4 backbuffer()
-{
-  return backbuffer(uvCoord());
 }
 
 highp vec4 lightbuffer(highp vec2 uv)

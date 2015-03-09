@@ -171,6 +171,7 @@ class OpenGLShaderProgramPrivate;
 class OpenGLShaderProgram : public OpenGLShaderProgramProfiled
 {
 public:
+
   explicit OpenGLShaderProgram(QObject *parent = 0);
   ~OpenGLShaderProgram();
   void addIncludePath(char const *path);
@@ -179,6 +180,7 @@ public:
   void uniformBlockBinding(char const* location, unsigned index);
   void uniformBlockBinding(unsigned location, unsigned index);
   unsigned uniformBlockLocation(char const* location);
+  void scheduleUniformBlockUpdate(unsigned location, unsigned index);
   void scheduleUniformUpdate(unsigned location, unsigned index);
   QString getVersionComment();
   bool link();

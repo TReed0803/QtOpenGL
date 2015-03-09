@@ -21,10 +21,14 @@ PRE_TARGETDEPS += $${QTBASEEXT_DEP}
 
 SOURCES += \
     main.cpp \
-    mainwidget.cpp
+    mainwidget.cpp \
+    gbufferpass.cpp \
+    lightpass.cpp
 
 HEADERS += \
-    mainwidget.h
+    mainwidget.h \
+    gbufferpass.h \
+    lightpass.h
 
 RESOURCES += \
     ../resources.qrc

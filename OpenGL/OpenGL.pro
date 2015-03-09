@@ -87,4 +87,6 @@ HEADERS += \
     openglrenderblock.h \
     openglrenderblockdata.h \
     opengllight.h \
-    opengltranslationlight.h
+    opengltranslationlight.h \
+    openglrenderpass.h \
+    openglrenderer.h

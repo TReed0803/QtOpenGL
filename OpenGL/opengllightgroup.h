@@ -17,6 +17,7 @@ class OpenGLLightGroup : public OpenGLAbstractLightGroup
 public:
 
   // Light Types
+  typedef OpenGLLightGroup<T, D> LightGroup;
   typedef T LightType;
   typedef T* LightPointer;
   typedef T& LightReference;
@@ -36,7 +37,7 @@ public:
 
   void prepMesh(OpenGLMesh &mesh);
   void update(const OpenGLRenderBlock &stats);
-  void draw(OpenGLShaderProgram *instanceProgram, OpenGLShaderProgram *uniformProgram);
+  void draw();
   virtual void initializeMesh(OpenGLMesh &mesh) = 0;
   virtual void translateBuffer(const OpenGLRenderBlock &stats, DataPointer data, ConstLightIterator begin, ConstLightIterator end) = 0;
   virtual void translateUniforms(const OpenGLRenderBlock &stats, Byte *data, SizeType step, ConstLightIterator begin, ConstLightIterator end) = 0;
@@ -133,22 +134,25 @@ void OpenGLLightGroup<T, D>::update(const OpenGLRenderBlock &stats)
 }
 
 template <typename T, typename D>
-void OpenGLLightGroup<T, D>::draw(OpenGLShaderProgram *instanceProgram, OpenGLShaderProgram *uniformProgram)
+void OpenGLLightGroup<T, D>::draw()
 {
   if (m_lights.empty()) return;
 
   m_mesh.bind();
 
   // Batch render regular lights
-  instanceProgram->bind();
+  m_regularLight->bind();
   m_mesh.drawInstanced(0, m_numRegularLights);
 
   // Render each shadow light
-  uniformProgram->bind();
-  for (size_t i = 0; i < m_numShadowLights; ++i)
+  if (m_shadowCastingLight)
   {
-    m_uniforms.bindRange(BufferType::UniformBuffer, 3, m_uniformOffset * i, sizeof(DataType));
-    m_mesh.draw();
+    m_shadowCastingLight->bind();
+    for (size_t i = 0; i < m_numShadowLights; ++i)
+    {
+      m_uniforms.bindRange(BufferType::UniformBuffer, 3, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
+      m_mesh.draw();
+    }
   }
 
   m_mesh.release();

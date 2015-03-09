@@ -11,12 +11,14 @@ class OpenGLSLParser
 {
 public:
   typedef std::vector<std::string> Autoresolver;
+  typedef std::vector<std::string> Autosampler;
   OpenGLSLParser(KAbstractReader *reader, KAbstractWriter *writer);
   ~OpenGLSLParser();
 
   void initialize();
   void setFilePath(char const *filePath);
   void setAutoresolver(Autoresolver *a);
+  void setAutosampler(Autosampler *a);
   void addIncludePath(char const *path);
   static void addSharedIncludePath(char const *path);
   bool parse();

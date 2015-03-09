@@ -17,6 +17,10 @@
 #include <OpenGLSpotLightGroup>
 #include <OpenGLDirectionLightGroup>
 #include <OpenGLRenderBlock>
+#include <OpenGLPointLight>
+#include <OpenGLSpotLight>
+#include <OpenGLDirectionLight>
+#include <OpenGLRenderer>
 
 #include <KCamera3D>
 #include <OpenGLDebugDraw>
@@ -43,32 +47,31 @@
 #include <OpenGLMesh>
 #include <KHalfEdgeMesh>
 #include <KLinq>
-#include <OpenGLUniformBufferManager>
+#include <OpenGLUniformManager>
 #include <QMainWindow>
 #include <QApplication>
 
-static uint64_t sg_count = 0;
-#define DEFERRED_TEXTURES 4
+#include <GBufferPass>
+#include <LightPass>
 
-enum DeferredData
+enum PresentType
 {
-  DepthData,
-  LinearDepthData,
-  PositionData,
-  NormalData,
-  DiffuseData,
-  SpecularData,
-  VelocityData,
-  AmbientPass,
-  MotionBlurPass,
-  LightPass,
-  DeferredDataCount
+  PresentComposition,
+  PresentDepth,
+  PresentLinearDepth,
+  PresentPosition,
+  PresentViewNormal,
+  PresentDiffuse,
+  PresentSpecular,
+  PresentVelocity,
+  PresentLightAccumulation,
+  MaxPresentations
 };
 
 /*******************************************************************************
  * MainWidgetPrivate
  ******************************************************************************/
-class MainWidgetPrivate : protected OpenGLFunctions
+class MainWidgetPrivate : protected OpenGLFunctions, public OpenGLRenderer
 {
 public:
   MainWidgetPrivate(MainWidget *parent);
@@ -89,18 +92,18 @@ public:
   void openObj();
   void drawBoundaries();
   void drawBackbuffer();
-  void constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f);
-  void linkShader(OpenGLShaderProgram *shader);
   OpenGLRenderBlock &currentRenderBlock();
   OpenGLRenderBlock &previousRenderBlock();
   void swapRenderBlocks();
   void fixRenderBlocks();
   void updateRenderBlocks();
+  void renderGeometry();
 
   // Scene Data
   KCamera3D m_camera;
   OpenGLRenderBlock m_renderBlocks[2];
   int m_renderBlockIndex[2];
+  LightPass *m_lightPass;
 
   // OpenGL State Information
   bool m_paused;
@@ -112,21 +115,12 @@ public:
   OpenGLMesh m_floorGL;
   typedef std::tuple<KVector3D,KVector3D> QueryResultType;
   std::vector<QueryResultType> m_boundaries;
-  OpenGLShaderProgram *m_program;
   OpenGLShaderProgram *m_textureDrawer;
   OpenGLInstanceGroup m_instanceGroup;
   OpenGLInstanceGroup m_floorGroup;
   OpenGLInstance *m_floorInstance;
-  OpenGLShaderProgram *m_pointLightProgram;
-  OpenGLShaderProgram *m_directionLightProgram;
-  OpenGLShaderProgram *m_spotLightProgram;
-  OpenGLShaderProgram *m_shadowSpotLightProgram;
-  OpenGLPointLightGroup m_pointLightGroup;
-  OpenGLDirectionLightGroup m_directionLightGroup;
-  OpenGLSpotLightGroup m_spotLightGroup;
-  DeferredData m_buffer;
-  OpenGLShaderProgram *m_ambientProgram;
-  OpenGLShaderProgram *m_deferredPrograms[DeferredDataCount];
+  PresentType m_presentation;
+  OpenGLShaderProgram *m_deferredPrograms[MaxPresentations];
 
   // Bounding Volumes
   KAabbBoundingVolume *m_aabbBV;
@@ -142,18 +136,8 @@ public:
   KStaticGeometry *m_staticGeometryTopDown500;
   KStaticGeometry *m_staticGeometry;
 
-  // GBuffer
-  OpenGLTexture m_gDepth;    // depth
-  OpenGLTexture m_gGeometry; // normal normal vel vel
-  OpenGLTexture m_gMaterial; // diff diff diff spec
-  OpenGLTexture m_gSurface;  // exp
-  OpenGLFramebufferObject m_gFbo;
-
-  // Light Accumulation
-  OpenGLTexture m_gLighting;
-  OpenGLFramebufferObject m_lightBuffer;
-
   std::vector<OpenGLInstance*> m_instances;
+  std::vector<OpenGLRenderPass*> m_passes;
   float m_ambientColor[4];
   float m_atmosphericColor[4];
 
@@ -171,9 +155,8 @@ public:
 };
 
 MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
-  m_halfEdgeMesh(Q_NULLPTR),
-  m_program(Q_NULLPTR), m_parent(parent),
-  m_buffer(LightPass), m_paused(false), m_staticGeometry(0), m_minDraw(0), m_maxDraw(std::numeric_limits<size_t>::max())
+  m_halfEdgeMesh(Q_NULLPTR), m_parent(parent),
+  m_presentation(PresentComposition), m_paused(false), m_staticGeometry(0), m_minDraw(0), m_maxDraw(std::numeric_limits<size_t>::max())
 {
   m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.2f;
   m_ambientColor[3] = 1.0f;
@@ -187,12 +170,33 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_staticGeometryBottomUp7 = m_staticGeometryBottomUp500 = m_staticGeometryTopDown7 = m_staticGeometryTopDown500 = 0;
   m_renderBlockIndex[0] = 0; // Current Index
   m_renderBlockIndex[1] = 1; // Previous Index
+
+  m_lightPass = new LightPass;
+  m_passes.push_back(new GBufferPass);
+  m_passes.push_back(m_lightPass);
 }
 
 void MainWidgetPrivate::initializeGL()
 {
-  initializeOpenGLFunctions();
   GL::setInstance(this);
+  initializeOpenGLFunctions();
+
+  // Set Uniform Buffers
+  OpenGLUniformManager::setUniformBufferIndex("CurrentRenderBlock"  , 1);
+  OpenGLUniformManager::setUniformBufferIndex("PreviousRenderBlock" , 2);
+  OpenGLUniformManager::setUniformBufferIndex("SpotLightProperties" , 3);
+
+  // Set Texture Samplers
+  OpenGLUniformManager::setTextureSampler("depthTexture"      , OpenGLTexture::numTextureUnits() - 1);
+  OpenGLUniformManager::setTextureSampler("geometryTexture"   , OpenGLTexture::numTextureUnits() - 2);
+  OpenGLUniformManager::setTextureSampler("materialTexture"   , OpenGLTexture::numTextureUnits() - 3);
+  OpenGLUniformManager::setTextureSampler("surfaceTexture"    , OpenGLTexture::numTextureUnits() - 4);
+  OpenGLUniformManager::setTextureSampler("lightbufferTexture", OpenGLTexture::numTextureUnits() - 5);
+
+  for (OpenGLRenderPass *pass : m_passes)
+  {
+    pass->initialize();
+  }
 }
 
 void MainWidgetPrivate::loadObj(const QString &fileName)
@@ -278,7 +282,7 @@ void MainWidgetPrivate::loadObj(const QString &fileName)
     qDebug() << "Mesh Faces     :" << m_halfEdgeMesh->faces().size();
     qDebug() << "Mesh HalfEdges :" << m_halfEdgeMesh->halfEdges().size();
     qDebug() << "Boundary Edges :" << m_boundaries.size();
-    qDebug() << "Polygons /Frame:" << m_halfEdgeMesh->faces().size() * sg_count;
+    qDebug() << "Polygons /Frame:" << m_halfEdgeMesh->faces().size() * m_instances.size();
   }
 
   m_paused = oldValue;
@@ -315,43 +319,10 @@ void MainWidgetPrivate::resizeGL(int width, int height)
   prevRenderBlock.setPerspectiveMatrix(perspective);
   prevRenderBlock.setDimensions(width, height);
 
-  // GBuffer Texture Storage
-  constructDeferredTexture(m_gDepth, OpenGLInternalFormat::Depth32F);   // Depth
-  constructDeferredTexture(m_gGeometry, OpenGLInternalFormat::Rgba32F); // Normal Normal Velocity Velocity
-  constructDeferredTexture(m_gMaterial, OpenGLInternalFormat::Rgba8);   // Diffuse Diffuse Diffuse SpecularColor
-  constructDeferredTexture(m_gSurface, OpenGLInternalFormat::R8);       // SpecularExp
-
-  // Other Texture Storage
-  constructDeferredTexture(m_gLighting, OpenGLInternalFormat::Rgba16);
-
-  // GBuffer Framebuffer
-  m_gFbo.bind();
-  m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gGeometry);
-  m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, m_gMaterial);
-  m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_gSurface);
-  m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  m_gDepth);
-  m_gFbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2);
-  m_gFbo.validate();
-  m_gFbo.release();
-
-  // Light Buffer
-  m_lightBuffer.bind();
-  m_lightBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gLighting);
-  m_lightBuffer.drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
-  m_lightBuffer.validate();
-  m_lightBuffer.release();
-
-  // Activate Backbuffers
-  glActiveTexture(OpenGLTexture::endTextureUnits() - 1);
-  m_gGeometry.bind();
-  glActiveTexture(OpenGLTexture::endTextureUnits() - 2);
-  m_gMaterial.bind();
-  glActiveTexture(OpenGLTexture::endTextureUnits() - 3);
-  m_gSurface.bind();
-  glActiveTexture(OpenGLTexture::endTextureUnits() - 4);
-  m_gLighting.bind();
-  glActiveTexture(OpenGLTexture::endTextureUnits() - 5);
-  m_gDepth.bind();
+  for (OpenGLRenderPass *pass : m_passes)
+  {
+    pass->resize(width, height);
+  }
 }
 
 void MainWidgetPrivate::paintGL()
@@ -368,8 +339,11 @@ void MainWidgetPrivate::paintGL()
 
 void MainWidgetPrivate::renderGL()
 {
-  buildGBuffer();
-  renderLights();
+  for (OpenGLRenderPass *pass : m_passes)
+  {
+    // Todo: Pass Geometry Manager
+    pass->render(*this);
+  }
   composeScene();
 
   // Draw Bounding Volumes
@@ -387,44 +361,12 @@ void MainWidgetPrivate::renderGL()
     m_staticGeometry->drawAabbs(KTransform3D(), Qt::red, m_minDraw, m_maxDraw);
 }
 
-void MainWidgetPrivate::renderLights()
-{
-  OpenGLMarkerScoped _("Light Pass");
-  glDisable(GL_DEPTH_TEST);
-  glDepthMask(GL_FALSE);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_ONE, GL_ONE);
-
-  m_lightBuffer.bind();
-  glClear(GL_COLOR_BUFFER_BIT);
-  m_pointLightGroup.draw(m_pointLightProgram, m_pointLightProgram);
-  m_spotLightGroup.draw(m_spotLightProgram, m_shadowSpotLightProgram);
-  m_directionLightGroup.draw(m_directionLightProgram, m_directionLightProgram);
-  m_lightBuffer.release();
-
-  glDisable(GL_BLEND);
-  glDepthMask(GL_TRUE);
-  glEnable(GL_DEPTH_TEST);
-}
-
 void MainWidgetPrivate::composeScene()
 {
   OpenGLMarkerScoped _("Composition Pass");
-  m_deferredPrograms[m_buffer]->bind();
+  m_deferredPrograms[m_presentation]->bind();
   m_quadGL.draw();
-  m_deferredPrograms[m_buffer]->release();
-}
-
-void MainWidgetPrivate::buildGBuffer()
-{
-  OpenGLMarkerScoped _("Generate G Buffer");
-  m_program->bind();
-  m_gFbo.bind();
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  m_floorGroup.draw();
-  m_instanceGroup.draw();
-  m_gFbo.release();
-  m_program->release();
+  m_deferredPrograms[m_presentation]->release();
 }
 
 void MainWidgetPrivate::commitGL()
@@ -448,36 +390,9 @@ void MainWidgetPrivate::commitGL()
   OpenGLRenderBlock &prevRenderBlock = previousRenderBlock();
   m_instanceGroup.update(currRenderBlock, prevRenderBlock);
   m_floorGroup.update(currRenderBlock, prevRenderBlock);
-  m_pointLightGroup.update(currRenderBlock);
-  m_directionLightGroup.update(currRenderBlock);
-  m_spotLightGroup.update(currRenderBlock);
-}
-
-void MainWidgetPrivate::constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f)
-{
-  t.create(OpenGLTexture::Texture2D);
-  t.bind();
-  t.setInternalFormat(f);
-  t.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
-  t.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
-  t.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
-  t.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  t.setSize(currentRenderBlock().width(), currentRenderBlock().height());
-  t.allocate();
-  t.release();
-}
-
-void MainWidgetPrivate::linkShader(OpenGLShaderProgram *shader)
-{
-  if (shader->link())
+  for (OpenGLRenderPass *pass : m_passes)
   {
-    shader->bind();
-    shader->setUniformValue("geometryTexture"   , OpenGLTexture::numTextureUnits() - 1);
-    shader->setUniformValue("materialTexture"   , OpenGLTexture::numTextureUnits() - 2);
-    shader->setUniformValue("surfaceTexture"    , OpenGLTexture::numTextureUnits() - 3);
-    shader->setUniformValue("lightbufferTexture", OpenGLTexture::numTextureUnits() - 4);
-    shader->setUniformValue("depthTexture"      , OpenGLTexture::numTextureUnits() - 5);
-    shader->release();
+    pass->commit(currRenderBlock, prevRenderBlock);
   }
 }
 
@@ -533,12 +448,19 @@ void MainWidgetPrivate::updateRenderBlocks()
   }
 }
 
+void MainWidgetPrivate::renderGeometry()
+{
+  m_instanceGroup.draw();
+  m_floorGroup.draw();
+}
+
 /*******************************************************************************
  * MainWidget
  ******************************************************************************/
 MainWidget::MainWidget(QWidget *parent) :
   OpenGLWidget(parent)
 {
+  // Set Shader Includes
   OpenGLShaderProgram::addSharedIncludePath(":/resources/shaders");
   OpenGLShaderProgram::addSharedIncludePath(":/resources/shaders/ubo");
 }
@@ -546,10 +468,9 @@ MainWidget::MainWidget(QWidget *parent) :
 MainWidget::~MainWidget()
 {
   makeCurrent();
+  teardownGL();
   delete m_private;
 }
-
-static GLuint buffers[1];
 
 /*******************************************************************************
  * OpenGL Methods
@@ -588,47 +509,9 @@ void MainWidget::initializeGL()
     }
     p.m_renderBlocks[0].bindBase(1);
     p.m_renderBlocks[0].bindBase(2);
-    OpenGLUniformBufferManager::setBindingIndex("CurrentRenderBlock", 1);
-    OpenGLUniformBufferManager::setBindingIndex("PreviousRenderBlock", 2);
-    OpenGLUniformBufferManager::setBindingIndex("SpotLightProperties", 3);
 
-    // Create Shader for GBuffer Pass
-    p.m_program = new OpenGLShaderProgram(this);
-    p.m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/gbuffer.vert");
-    p.m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/gbuffer.frag");
-    p.m_program->link();
-
-    // Create Shader for point light pass
-    p.m_pointLightProgram = new OpenGLShaderProgram(this);
-    p.m_pointLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/pointLight.vert");
-    p.m_pointLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/pointLight.frag");
-    p.linkShader(p.m_pointLightProgram);
-
-    // Create Shader for direction light pass
-    p.m_directionLightProgram = new OpenGLShaderProgram(this);
-    p.m_directionLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/directionLight.vert");
-    p.m_directionLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/directionLight.frag");
-    p.linkShader(p.m_directionLightProgram);
-
-    // Create Shader for spot light pass
-    p.m_spotLightProgram = new OpenGLShaderProgram(this);
-    p.m_spotLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/spotLight.vert");
-    p.m_spotLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/spotLight.frag");
-    p.linkShader(p.m_spotLightProgram);
-
-    // Create Shader for spot light pass (uniform)
-    p.m_shadowSpotLightProgram = new OpenGLShaderProgram(this);
-    p.m_shadowSpotLightProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/shadowSpotLight.vert");
-    p.m_shadowSpotLightProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/shadowSpotLight.frag");
-    p.linkShader(p.m_shadowSpotLightProgram);
-
-    // Create Shader for ambient light pass
-    p.m_ambientProgram = new OpenGLShaderProgram(this);
-    p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/ambient.vert");
-    p.m_ambientProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/ambient.frag");
-    p.linkShader(p.m_ambientProgram);
-
-    char const* fragFiles[DeferredDataCount] = {
+    char const* fragFiles[] = {
+      ":/resources/shaders/gbuffer/backbuffer.frag",
       ":/resources/shaders/gbuffer/depth.frag",
       ":/resources/shaders/gbuffer/linearDepth.frag",
       ":/resources/shaders/gbuffer/position.frag",
@@ -636,49 +519,42 @@ void MainWidget::initializeGL()
       ":/resources/shaders/gbuffer/diffuse.frag",
       ":/resources/shaders/gbuffer/specular.frag",
       ":/resources/shaders/gbuffer/velocity.frag",
-      ":/resources/shaders/gbuffer/ambient.frag",
-      ":/resources/shaders/gbuffer/motion.frag",
-      ":/resources/shaders/gbuffer/backbuffer.frag"
+      ":/resources/shaders/gbuffer/lightbuffer.frag"
     };
-    for (int i = 0; i < DeferredDataCount; ++i)
+
+    if (sizeof(fragFiles) / sizeof(char const*) != MaxPresentations)
+    {
+      qFatal("Fatal: Must be able to present screen data for every presentation type!");
+    }
+
+    for (int i = 0; i < MaxPresentations; ++i)
     {
       p.m_deferredPrograms[i] = new OpenGLShaderProgram(this);
       p.m_deferredPrograms[i]->addIncludePath(":/resources/shaders");
       p.m_deferredPrograms[i]->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/gbuffer/main.vert");
       p.m_deferredPrograms[i]->addShaderFromSourceFile(QOpenGLShader::Fragment, fragFiles[i]);
-      p.linkShader(p.m_deferredPrograms[i]);
+      p.m_deferredPrograms[i]->link();
     }
 
-    // Framebuffer Object
-    p.m_gFbo.create();
-    p.m_lightBuffer.create();
-
     // Initialize the Direction Light Group
-    p.m_directionLightGroup.create();
-    p.m_directionLightGroup.setMesh(p.m_quadGL);
     for (int i = 0; i < 1; ++i)
     {
-      OpenGLDirectionLight *light = p.m_directionLightGroup.createLight();
+      OpenGLDirectionLight *light = p.m_lightPass->createDirectionLight();
       light->setDiffuse(0.1f, 0.1f, 0.1f);
       light->setSpecular(0.1f, 0.1f, 0.1f);
     }
 
     // Initialize the Point Light Group
-    p.m_pointLightGroup.create();
-    p.m_pointLightGroup.setMesh(":/resources/objects/pointLight.obj");
     for (int i = 0; i < 5; ++i)
     {
-      OpenGLPointLight *light = p.m_pointLightGroup.createLight();
+      OpenGLPointLight *light = p.m_lightPass->createPointLight();
       light->setRadius(25.0f);
     }
 
     // Initialize the Spot Light Group
-    p.m_spotLightGroup.create();
-    p.m_spotLightGroup.setMesh(":/resources/objects/spotLight.obj");
     for (int i = 0; i < 3; ++i)
     {
-      OpenGLSpotLight *light = p.m_spotLightGroup.createLight();
-      light->setShadowCasting(i % 2);
+      OpenGLSpotLight *light = p.m_lightPass->createSpotLight();
       light->setInnerAngle(40.0f);
       light->setOuterAngle(45.0f);
       light->setDepth(25.0f);
@@ -716,10 +592,6 @@ void MainWidget::initializeGL()
     instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
     p.m_instances.push_back(instance);
     //*/
-    qDebug() << "Instances: " << sg_count;
-
-    // Release (unbind) all
-    p.m_program->release();
   }
 
   OpenGLDebugDraw::initialize();
@@ -763,24 +635,24 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   static float f = 0.0f;
   f += 0.0016f;
   float angle = f;
-  for (OpenGLDirectionLight *light : p.m_directionLightGroup)
+  for (OpenGLDirectionLight *light : p.m_lightPass->directionLights())
   {
     light->setDirection(std::cos(angle), -1, std::sin(angle));
   }
-  for (OpenGLPointLight *instance : p.m_pointLightGroup)
+  for (OpenGLPointLight *instance : p.m_lightPass->pointLights())
   {
     static const float radius = 5.0f;
     instance->setTranslation(cos(angle) * radius, 0.0f, sin(angle) * radius);
-    angle += 2 * 3.1415926 / p.m_pointLightGroup.size();
+    angle += 2 * 3.1415926 / p.m_lightPass->pointLights().size();
   }
   angle = f;
 
-  for (OpenGLSpotLight *instance : p.m_spotLightGroup)
+  for (OpenGLSpotLight *instance : p.m_lightPass->spotLights())
   {
     static const float radius = 5.0f;
     instance->setTranslation(cos(angle) * radius, 5.0f + std::sin(angle * 15.0f) * 5.0f, sin(angle) * radius);
     instance->setDirection(-instance->translation().normalized());
-    angle += 2 * 3.1415926 / p.m_spotLightGroup.size();
+    angle += 2 * 3.1415926 / p.m_lightPass->spotLights().size();
   }
 
   if (KInputManager::keyTriggered(Qt::Key_Plus))
@@ -963,31 +835,39 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   {
     if (KInputManager::keyTriggered(Qt::Key_ParenRight))
     {
-      p.m_buffer = (DeferredData)0;
+      p.m_presentation = PresentComposition;
     }
     if (KInputManager::keyTriggered(Qt::Key_Exclam))
     {
-      p.m_buffer = (DeferredData)1;
+      p.m_presentation = PresentDepth;
     }
     if (KInputManager::keyTriggered(Qt::Key_At))
     {
-      p.m_buffer = (DeferredData)2;
+      p.m_presentation = PresentLinearDepth;
     }
     if (KInputManager::keyTriggered(Qt::Key_NumberSign))
     {
-      p.m_buffer = (DeferredData)3;
+      p.m_presentation = PresentPosition;
     }
     if (KInputManager::keyTriggered(Qt::Key_Dollar))
     {
-      p.m_buffer = (DeferredData)4;
+      p.m_presentation = PresentViewNormal;
     }
     if (KInputManager::keyTriggered(Qt::Key_Percent))
     {
-      p.m_buffer = (DeferredData)5;
+      p.m_presentation = PresentDiffuse;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_AsciiCircum))
+    {
+      p.m_presentation = PresentSpecular;
     }
     if (KInputManager::keyTriggered(Qt::Key_Ampersand))
     {
-      p.m_buffer = (DeferredData)6;
+      p.m_presentation = PresentVelocity;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_Asterisk))
+    {
+      p.m_presentation = PresentLightAccumulation;
     }
   }
   else

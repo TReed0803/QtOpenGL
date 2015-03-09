@@ -28,6 +28,7 @@ enum OpenGLSLToken
   // Language Extensions
   PT_PP_INCLUDE,
   PT_PP_AUTOBIND,
+  PT_PP_AUTOSAMPLE,
 
   // Language Tokens
   PT_CODE
@@ -37,7 +38,8 @@ static KParseMap<OpenGLSLToken> const sg_reserved =
 {
   // Preprocessor
   { "#include", PT_PP_INCLUDE },
-  { "#autobind", PT_PP_AUTOBIND }
+  { "#autobind", PT_PP_AUTOBIND },
+  { "#autosample", PT_PP_AUTOSAMPLE }
 };
 
 typedef KParseToken<OpenGLSLToken> ParseToken;
@@ -54,6 +56,7 @@ public:
   typedef KAbstractLexer<ParseToken>::token_type token_type;
   typedef KAbstractLexer<ParseToken>::char_type char_type;
   typedef OpenGLSLParser::Autoresolver Autoresolver;
+  typedef OpenGLSLParser::Autosampler Autosampler;
 
   // Constructors / Destructor
   OpenGLSLParserPrivate(OpenGLSLParser *parent, KAbstractReader *reader, KAbstractWriter *writer);
@@ -70,6 +73,7 @@ public:
   bool lexTokenIncludeShared(token_type &token);
   bool lexTokenIncludeRelative(token_type &token);
   token_id lexTokenAutoresolve(token_type &token);
+  token_id lexTokenAutosample(token_type &token);
   token_id lexOpenGLSLTokenIdentifier(token_type &token);
   token_id symResolve(token_type &token, token_id t);
 
@@ -77,10 +81,12 @@ public:
   bool parse();
   void parseInclude();
   void autobindIdentifier();
+  void autosampleIdentifier();
 
   // Meta Information
   void setFilePath(char const *filePath);
   void setAutoresolver(Autoresolver *a);
+  void setAutosampler(Autosampler *a);
   void addIncludePath(char const *path);
   static void addSharedIncludePath(char const *path);
 
@@ -93,6 +99,7 @@ private:
   std::vector<std::string> m_includePaths;
   static std::vector<std::string> m_sharedIncludePaths;
   Autoresolver *m_autobinder;
+  Autosampler *m_autosampler;
 };
 
 OpenGLSLParserPrivate::OpenGLSLParserPrivate(OpenGLSLParser *parent, KAbstractReader *reader, KAbstractWriter *writer) :
@@ -178,6 +185,8 @@ OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexPreprocessorIdentifier
     return lexTokenInclude(token);
   case PT_PP_AUTOBIND:
     return lexTokenAutoresolve(token);
+  case PT_PP_AUTOSAMPLE:
+    return lexTokenAutosample(token);
   case PT_PP_UNKNOWN:
     return lexLine(token);
   default:
@@ -312,6 +321,30 @@ OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexTokenAutoresolve(OpenG
   }
 }
 
+OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexTokenAutosample(OpenGLSLParserPrivate::token_type &token)
+{
+  token.m_lexicon.clear();
+  for (;;)
+  {
+    switch (peekChar())
+    {
+    case WHITESPACE:
+      nextChar();
+      continue;
+    case NEWLINE:
+      if (token.m_lexicon.empty())
+      {
+        LEX_ERROR("Expected an identifier for #autobind. Read nothing.");
+        return PT_ERROR;
+      }
+      return PT_PP_AUTOSAMPLE;
+    default:
+      token.m_lexicon += nextChar();
+      break;
+    }
+  }
+}
+
 OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexOpenGLSLTokenIdentifier(token_type &token)
 {
   // Read and resolve symbol
@@ -353,6 +386,9 @@ bool OpenGLSLParserPrivate::parse()
     case PT_PP_AUTOBIND:
       autobindIdentifier();
       break;
+    case PT_PP_AUTOSAMPLE:
+      autosampleIdentifier();
+      break;
     case PT_PP_UNKNOWN:
     case PT_CODE:
       m_writer->append(currToken().m_lexicon.c_str());
@@ -368,6 +404,7 @@ void OpenGLSLParserPrivate::parseInclude()
   OpenGLSLParserPrivate subParse(m_parent, &reader, m_writer);
   subParse.setFilePath(absolutePath);
   subParse.setAutoresolver(m_autobinder);
+  subParse.setAutosampler(m_autosampler);
   subParse.initializeLexer();
   subParse.parse();
 }
@@ -384,6 +421,18 @@ void OpenGLSLParserPrivate::autobindIdentifier()
   }
 }
 
+void OpenGLSLParserPrivate::autosampleIdentifier()
+{
+  if (m_autosampler)
+  {
+    std::string target = currToken().m_lexicon;
+    if (std::find(m_autosampler->begin(), m_autosampler->end(), target) == m_autosampler->end())
+    {
+      m_autosampler->push_back(target);
+    }
+  }
+}
+
 void OpenGLSLParserPrivate::setFilePath(const char *filePath)
 {
   QFileInfo file(filePath);
@@ -393,6 +442,11 @@ void OpenGLSLParserPrivate::setFilePath(const char *filePath)
 void OpenGLSLParserPrivate::setAutoresolver(OpenGLSLParserPrivate::Autoresolver *a)
 {
   m_autobinder = a;
+}
+
+void OpenGLSLParserPrivate::setAutosampler(OpenGLSLParserPrivate::Autosampler *a)
+{
+  m_autosampler = a;
 }
 
 void OpenGLSLParserPrivate::addIncludePath(const char *path)
@@ -434,6 +488,12 @@ void OpenGLSLParser::setAutoresolver(OpenGLSLParser::Autoresolver *a)
 {
   P(OpenGLSLParserPrivate);
   p.setAutoresolver(a);
+}
+
+void OpenGLSLParser::setAutosampler(OpenGLSLParser::Autosampler *a)
+{
+  P(OpenGLSLParserPrivate);
+  p.setAutosampler(a);
 }
 
 void OpenGLSLParser::addIncludePath(const char *path)

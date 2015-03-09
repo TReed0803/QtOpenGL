@@ -6,7 +6,7 @@
 #include <OpenGLFunctions>
 #include <OpenGLUniformBufferObject>
 #include <OpenGLSLParser>
-#include <OpenGLUniformBufferManager>
+#include <OpenGLUniformManager>
 
 #include <string>
 
@@ -29,11 +29,26 @@ OpenGLShaderProgramUniformBufferUpdate::OpenGLShaderProgramUniformBufferUpdate(u
   // Intentionally Empty
 }
 
+struct OpenGLShaderProgramUniformUpdate
+{
+  OpenGLShaderProgramUniformUpdate(unsigned location, unsigned index);
+  unsigned m_bufferLocation;
+  unsigned m_bufferIndex;
+};
+
+OpenGLShaderProgramUniformUpdate::OpenGLShaderProgramUniformUpdate(unsigned location, unsigned index) :
+  m_bufferLocation(location), m_bufferIndex(index)
+{
+  // Intentionally Empty
+}
+
 class OpenGLShaderProgramPrivate : public OpenGLFunctions
 {
 public:
   std::vector<char const*> m_includePaths;
   std::vector<std::string> m_autobinder;
+  std::vector<std::string> m_autosampler;
+  std::vector<OpenGLShaderProgramUniformUpdate> m_uniformUpdate;
   std::vector<OpenGLShaderProgramUniformBufferUpdate> m_bufferUpdate;
   OpenGLShaderProgramPrivate();
 };
@@ -88,6 +103,7 @@ bool OpenGLShaderProgram::addShaderFromSourceFile(QOpenGLShader::ShaderType type
     parser.addIncludePath(path);
   }
   parser.setAutoresolver(&p.m_autobinder);
+  parser.setAutosampler(&p.m_autosampler);
   parser.initialize();
   if (parser.parse())
   {
@@ -113,10 +129,16 @@ unsigned OpenGLShaderProgram::uniformBlockLocation(const char *location)
   return p.glGetUniformBlockIndex(this->programId(), location);
 }
 
-void OpenGLShaderProgram::scheduleUniformUpdate(unsigned location, unsigned index)
+void OpenGLShaderProgram::scheduleUniformBlockUpdate(unsigned location, unsigned index)
 {
   P(OpenGLShaderProgramPrivate);
   p.m_bufferUpdate.emplace_back(location, index);
+}
+
+void OpenGLShaderProgram::scheduleUniformUpdate(unsigned location, unsigned index)
+{
+  P(OpenGLShaderProgramPrivate);
+  p.m_uniformUpdate.emplace_back(location, index);
 }
 
 QString OpenGLShaderProgram::getVersionComment()
@@ -184,13 +206,11 @@ bool OpenGLShaderProgram::link()
   bool ret = OpenGLShaderProgramChecked::link();
   for (std::string const &resolver : p.m_autobinder)
   {
-    unsigned loc = uniformBlockLocation(resolver.c_str());
-    if (loc == OpenGLUniformBufferObject::InvalidLocation)
-    {
-      qFatal("Failed to find the UBO `%s` to for autobind.", resolver.c_str());
-      return false;
-    }
-    OpenGLUniformBufferManager::setBindingProgram(resolver, loc, *this);
+    OpenGLUniformManager::registerUniformBufferCallbacks(resolver, *this);
+  }
+  for (std::string const &resolver : p.m_autosampler)
+  {
+    OpenGLUniformManager::registerTextureSamplerCallbacks(resolver, *this);
   }
   return ret;
 }
@@ -204,5 +224,10 @@ bool OpenGLShaderProgram::bind()
     uniformBlockBinding(update.m_bufferLocation, update.m_bufferIndex);
   }
   p.m_bufferUpdate.clear();
+  for (OpenGLShaderProgramUniformUpdate &update : p.m_uniformUpdate)
+  {
+    setUniformValue(update.m_bufferLocation, update.m_bufferIndex);
+  }
+  p.m_uniformUpdate.clear();
   return ret;
 }

@@ -5,66 +5,180 @@
 #include <OpenGLUniformBufferObject>
 #include <OpenGLShaderProgram>
 
+///////////////////////////////////////////////////////////////////////////
+/// Helper Classes / Structs
+///////////////////////////////////////////////////////////////////////////
+
+template <typename T>
 struct OpenGLShaderProgramPair
 {
-  OpenGLShaderProgramPair(unsigned location, OpenGLShaderProgram *program);
-  unsigned m_uniformLocation;
-  OpenGLShaderProgram *m_program;
+  typedef T ValueType;
+  OpenGLShaderProgramPair(OpenGLShaderProgram *program, unsigned location);
+  OpenGLShaderProgram *program;
+  unsigned location;
 };
 
-OpenGLShaderProgramPair::OpenGLShaderProgramPair(unsigned location, OpenGLShaderProgram *program) :
-  m_uniformLocation(location), m_program(program)
+template <typename T>
+OpenGLShaderProgramPair<T>::OpenGLShaderProgramPair(OpenGLShaderProgram *p, unsigned l) :
+  program(p), location(l)
 {
   // Intentionally Empty
 }
 
-class OpenGLUniformBufferMapping
+template <typename T>
+struct OpenGLUniformMapping
 {
-public:
-  OpenGLUniformBufferMapping();
-  unsigned m_bufferIndex;
-  std::vector<OpenGLShaderProgramPair> m_programs;
+  typedef T ValueType;
+  typedef OpenGLShaderProgramPair<ValueType> PairType;
+  ValueType value;
+  std::vector<PairType> programs;
 };
 
-OpenGLUniformBufferMapping::OpenGLUniformBufferMapping() :
-  m_bufferIndex(0)
+template <typename Mapper>
+class OpenGLUniformMap : public std::unordered_map<std::string, Mapper>
 {
   // Intentionally Empty
+};
+
+template <typename T>
+static OpenGLUniformMapping<T> &resolveMapping(const std::string &name);
+
+template <typename T>
+static void scheduleUpdate(OpenGLShaderProgram *program, unsigned location, const T &value);
+
+template <typename T>
+static unsigned resolveLocation(OpenGLShaderProgram *program, const std::string &name);
+
+template <typename T>
+static bool validLocation(unsigned location);
+
+template <size_t id, typename T>
+struct OpenGLValue
+{
+  T internal;
+  OpenGLValue() {}
+  OpenGLValue(const T &v) : internal(v) {}
+  bool operator==(const T &v) const { return internal == v; }
+  bool operator!=(const T &v) const { return internal != v; }
+  void operator=(const T &v) { internal = v; }
+};
+
+///////////////////////////////////////////////////////////////////////////
+/// Uniform Buffers
+///////////////////////////////////////////////////////////////////////////
+
+typedef OpenGLValue<0, unsigned> OpenGLUniformBufferIndex;
+typedef OpenGLUniformMapping<OpenGLUniformBufferIndex> OpenGLUniformBufferMapping;
+typedef OpenGLUniformMap<OpenGLUniformBufferMapping> OpenGLUniformBufferMap;
+static OpenGLUniformBufferMap sg_uniformBufferMap;
+
+template <>
+static OpenGLUniformMapping<OpenGLUniformBufferIndex> &resolveMapping<OpenGLUniformBufferIndex>(const std::string &name)
+{
+  return sg_uniformBufferMap[name];
 }
 
-typedef std::unordered_map<std::string, OpenGLUniformBufferMapping> UniformBufferMap;
-static UniformBufferMap m_staticUniformBufferMap;
-
-static OpenGLUniformBufferMapping &resolveMapping(const std::string &name)
+template <>
+static void scheduleUpdate<OpenGLUniformBufferIndex>(OpenGLShaderProgram *program, unsigned location, const OpenGLUniformBufferIndex &value)
 {
-  return m_staticUniformBufferMap[name];
+  program->scheduleUniformBlockUpdate(location, value.internal);
 }
 
-void OpenGLUniformBufferManager::setBindingIndex(const std::string &name, unsigned index)
+template <>
+static unsigned resolveLocation<OpenGLUniformBufferIndex>(OpenGLShaderProgram *program, const std::string &name)
 {
-  OpenGLUniformBufferMapping &mapping = resolveMapping(name);
-  if (mapping.m_bufferIndex != index)
+  return program->uniformBlockLocation(name.c_str());
+}
+
+template <>
+static bool validLocation<OpenGLUniformBufferIndex>(unsigned location)
+{
+  return location != OpenGLUniformBufferObject::InvalidLocation;
+}
+
+///////////////////////////////////////////////////////////////////////////
+/// Texture Samplers
+///////////////////////////////////////////////////////////////////////////
+
+typedef OpenGLValue<1, unsigned> OpenGLTextureSampler;
+typedef OpenGLUniformMapping<OpenGLTextureSampler> OpenGLTextureSamplerMapping;
+typedef OpenGLUniformMap<OpenGLTextureSamplerMapping> OpenGLTextureSamplerMap;
+static OpenGLTextureSamplerMap sg_textureSamplerMap;
+
+template <>
+static OpenGLUniformMapping<OpenGLTextureSampler> &resolveMapping<OpenGLTextureSampler>(const std::string &name)
+{
+  return sg_textureSamplerMap[name];
+}
+
+template <>
+static void scheduleUpdate<OpenGLTextureSampler>(OpenGLShaderProgram *program, unsigned location, const OpenGLTextureSampler &value)
+{
+  program->scheduleUniformUpdate(location, value.internal);
+}
+
+template <>
+static unsigned resolveLocation<OpenGLTextureSampler>(OpenGLShaderProgram *program, const std::string &name)
+{
+  return program->uniformLocation(name.c_str());
+}
+
+template <>
+static bool validLocation<OpenGLTextureSampler>(unsigned location)
+{
+  return location != -1;
+}
+
+///////////////////////////////////////////////////////////////////////////
+/// OpenGLUniformManager
+///////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+static void set(const std::string &name, unsigned value)
+{
+  auto &mapping = resolveMapping<T>(name);
+  if (mapping.value != value)
   {
-    mapping.m_bufferIndex = index;
-    for (OpenGLShaderProgramPair &pair : mapping.m_programs)
+    mapping.value = value;
+    for (auto &pair : mapping.programs)
     {
-      pair.m_program->scheduleUniformUpdate(pair.m_uniformLocation, index);
+      scheduleUpdate<T>(pair.program, pair.location, value);
     }
   }
 }
 
-void OpenGLUniformBufferManager::setBindingProgram(const std::string &name, unsigned location, OpenGLShaderProgram &program)
+template <typename T>
+static void registerCallback(const std::string &name, OpenGLShaderProgram &program)
 {
-  OpenGLUniformBufferMapping &mapping = resolveMapping(name);
-  for (OpenGLShaderProgramPair &pair : mapping.m_programs)
+  auto &mapping = resolveMapping<T>(name);
+  for (auto &pair : mapping.programs)
   {
-    if (pair.m_program == &program) return;
+    if (pair.program == &program) return;
   }
-  mapping.m_programs.emplace_back(location, &program);
+  unsigned location = resolveLocation<T>(&program, name);
+  if (validLocation<T>(location))
+  {
+    mapping.programs.emplace_back(&program, location);
+    scheduleUpdate<T>(&program, location, mapping.value);
+  }
+}
 
-  // Only schedule if a uniform is bound to the manager
-  if (mapping.m_bufferIndex)
-  {
-    program.scheduleUniformUpdate(location, mapping.m_bufferIndex);
-  }
+void OpenGLUniformManager::setTextureSampler(const std::string &name, unsigned textureId)
+{
+  set<OpenGLTextureSampler>(name, textureId);
+}
+
+void OpenGLUniformManager::setUniformBufferIndex(const std::string &name, unsigned index)
+{
+  set<OpenGLUniformBufferIndex>(name, index);
+}
+
+void OpenGLUniformManager::registerTextureSamplerCallbacks(const std::string &name, OpenGLShaderProgram &program)
+{
+  registerCallback<OpenGLTextureSampler>(name, program);
+}
+
+void OpenGLUniformManager::registerUniformBufferCallbacks(const std::string &name, OpenGLShaderProgram &program)
+{
+  registerCallback<OpenGLUniformBufferIndex>(name, program);
 }
