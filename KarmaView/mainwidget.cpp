@@ -72,14 +72,24 @@ class MainWidgetPrivate : protected OpenGLFunctions
 {
 public:
   MainWidgetPrivate(MainWidget *parent);
+
+  // GL Methods
   void initializeGL();
+  void resizeGL(int width, int height);
+  void paintGL();
+
+  // GL Paint Steps
+  void commitGL();
+  void renderGL();
+  void buildGBuffer();
+  void renderLights();
+  void composeScene();
+
   void loadObj(const QString &fileName);
   void openObj();
   void drawBoundaries();
-  void resizeGL(int width, int height);
   void drawBackbuffer();
   void constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f);
-  void checkFramebuffer(char const *name, OpenGLFramebufferObject &fbo);
   void linkShader(OpenGLShaderProgram *shader);
   OpenGLRenderBlock &currentRenderBlock();
   OpenGLRenderBlock &previousRenderBlock();
@@ -89,8 +99,11 @@ public:
 
   // Scene Data
   KCamera3D m_camera;
+  OpenGLRenderBlock m_renderBlocks[2];
+  int m_renderBlockIndex[2];
 
   // OpenGL State Information
+  bool m_paused;
   OpenGLMesh m_openGLMesh;
   KHalfEdgeMesh *m_halfEdgeMesh;
   KHalfEdgeMesh *m_quad;
@@ -111,12 +124,9 @@ public:
   OpenGLPointLightGroup m_pointLightGroup;
   OpenGLDirectionLightGroup m_directionLightGroup;
   OpenGLSpotLightGroup m_spotLightGroup;
-  bool m_paused;
   DeferredData m_buffer;
   OpenGLShaderProgram *m_ambientProgram;
   OpenGLShaderProgram *m_deferredPrograms[DeferredDataCount];
-  OpenGLRenderBlock m_renderBlocks[2];
-  int m_renderBlockIndex[2];
 
   // Bounding Volumes
   KAabbBoundingVolume *m_aabbBV;
@@ -137,7 +147,7 @@ public:
   OpenGLTexture m_gGeometry; // normal normal vel vel
   OpenGLTexture m_gMaterial; // diff diff diff spec
   OpenGLTexture m_gSurface;  // exp
-  OpenGLFramebufferObject m_deferredBuffer;
+  OpenGLFramebufferObject m_gFbo;
 
   // Light Accumulation
   OpenGLTexture m_gLighting;
@@ -315,21 +325,20 @@ void MainWidgetPrivate::resizeGL(int width, int height)
   constructDeferredTexture(m_gLighting, OpenGLInternalFormat::Rgba16);
 
   // GBuffer Framebuffer
-  m_deferredBuffer.bind();
-  m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gGeometry);
-  m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, m_gMaterial);
-  m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_gSurface);
-  m_deferredBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  m_gDepth);
-  m_deferredBuffer.drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2);
-  checkFramebuffer("Deferred Buffer", m_deferredBuffer);
-  m_deferredBuffer.release();
+  m_gFbo.bind();
+  m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gGeometry);
+  m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, m_gMaterial);
+  m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, m_gSurface);
+  m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  m_gDepth);
+  m_gFbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2);
+  m_gFbo.validate();
+  m_gFbo.release();
 
   // Light Buffer
   m_lightBuffer.bind();
   m_lightBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_gLighting);
-  m_lightBuffer.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, m_gDepth);
   m_lightBuffer.drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
-  checkFramebuffer("Light Buffer", m_lightBuffer);
+  m_lightBuffer.validate();
   m_lightBuffer.release();
 
   // Activate Backbuffers
@@ -345,37 +354,103 @@ void MainWidgetPrivate::resizeGL(int width, int height)
   m_gDepth.bind();
 }
 
-void MainWidgetPrivate::drawBackbuffer()
+void MainWidgetPrivate::paintGL()
 {
-  OpenGLMarkerScoped _("Present G Buffer");
+  OpenGLProfiler::BeginFrame();
+  {
+    OpenGLMarkerScoped _("Total Render Time");
+    commitGL();
+    renderGL();
+  }
+  OpenGLProfiler::EndFrame();
+  OpenGLDebugDraw::draw();
+}
+
+void MainWidgetPrivate::renderGL()
+{
+  buildGBuffer();
+  renderLights();
+  composeScene();
+
+  // Draw Bounding Volumes
+  for (OpenGLInstance *i : m_instances)
+  {
+    if (b_bv[0]) m_aabbBV->draw(i->currentTransform(), Qt::red);
+    if (b_bv[1]) m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
+    if (b_bv[2]) m_sphereRittersBV->draw(i->currentTransform(), Qt::green);
+    if (b_bv[3]) m_sphereLarssonsBV->draw(i->currentTransform(), Qt::blue);
+    if (b_bv[4]) m_spherePcaBV->draw(i->currentTransform(), Qt::yellow);
+    if (b_bv[5]) m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
+    if (b_bv[6]) m_orientedPcaBV->draw(i->currentTransform(), Qt::red);
+  }
+  if (m_staticGeometry)
+    m_staticGeometry->drawAabbs(KTransform3D(), Qt::red, m_minDraw, m_maxDraw);
+}
+
+void MainWidgetPrivate::renderLights()
+{
+  OpenGLMarkerScoped _("Light Pass");
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE);
-  if (m_buffer == LightPass || m_buffer == MotionBlurPass)
-  {
-    OpenGLMarkerScoped _("Light Pass");
-    m_lightBuffer.bind();
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDepthFunc(GL_GREATER);
-    m_pointLightGroup.draw(m_pointLightProgram, m_pointLightProgram);
-    m_spotLightGroup.draw(m_spotLightProgram, m_shadowSpotLightProgram);
-    m_directionLightGroup.draw(m_directionLightProgram, m_directionLightProgram);
-    m_ambientProgram->bind();
-    m_quadGL.draw();
-    glDepthFunc(GL_LESS);
-    m_lightBuffer.release();
-  }
-  {
-    OpenGLMarkerScoped _("Composition Pass");
-    glClear(GL_COLOR_BUFFER_BIT);
-    m_deferredPrograms[m_buffer]->bind();
-    m_quadGL.draw();
-    m_deferredPrograms[m_buffer]->release();
-  }
+
+  m_lightBuffer.bind();
+  glClear(GL_COLOR_BUFFER_BIT);
+  m_pointLightGroup.draw(m_pointLightProgram, m_pointLightProgram);
+  m_spotLightGroup.draw(m_spotLightProgram, m_shadowSpotLightProgram);
+  m_directionLightGroup.draw(m_directionLightProgram, m_directionLightProgram);
+  m_lightBuffer.release();
+
   glDisable(GL_BLEND);
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
+}
+
+void MainWidgetPrivate::composeScene()
+{
+  OpenGLMarkerScoped _("Composition Pass");
+  m_deferredPrograms[m_buffer]->bind();
+  m_quadGL.draw();
+  m_deferredPrograms[m_buffer]->release();
+}
+
+void MainWidgetPrivate::buildGBuffer()
+{
+  OpenGLMarkerScoped _("Generate G Buffer");
+  m_program->bind();
+  m_gFbo.bind();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  m_floorGroup.draw();
+  m_instanceGroup.draw();
+  m_gFbo.release();
+  m_program->release();
+}
+
+void MainWidgetPrivate::commitGL()
+{
+  OpenGLMarkerScoped _("Prepare Scene");
+
+  // Update the previous/current render block bindings
+  if (m_camera.dirty())
+  {
+    swapRenderBlocks();
+    currentRenderBlock().setViewMatrix(m_camera.toMatrix());
+  }
+  else
+  {
+    fixRenderBlocks();
+  }
+  updateRenderBlocks();
+
+  // Update the GPU instance data
+  OpenGLRenderBlock &currRenderBlock = currentRenderBlock();
+  OpenGLRenderBlock &prevRenderBlock = previousRenderBlock();
+  m_instanceGroup.update(currRenderBlock, prevRenderBlock);
+  m_floorGroup.update(currRenderBlock, prevRenderBlock);
+  m_pointLightGroup.update(currRenderBlock);
+  m_directionLightGroup.update(currRenderBlock);
+  m_spotLightGroup.update(currRenderBlock);
 }
 
 void MainWidgetPrivate::constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f)
@@ -390,30 +465,6 @@ void MainWidgetPrivate::constructDeferredTexture(OpenGLTexture &t, OpenGLInterna
   t.setSize(currentRenderBlock().width(), currentRenderBlock().height());
   t.allocate();
   t.release();
-}
-
-void MainWidgetPrivate::checkFramebuffer(char const *name, OpenGLFramebufferObject &fbo)
-{
-  switch(fbo.status())
-  {
-  case OpenGLFramebufferObject::Complete:
-    break;
-  case OpenGLFramebufferObject::IncompleteAttachment:
-    qFatal("%s: Incomplete Attachment", name);
-    break;
-  case OpenGLFramebufferObject::IncompleteMissingAttachment:
-    qFatal("%s: Incomplete Missing Attachment", name);
-    break;
-  case OpenGLFramebufferObject::IncompleteDrawBuffer:
-    qFatal("%s: Incomplete Draw Buffer", name);
-    break;
-  case OpenGLFramebufferObject::IncompleteReadBuffer:
-    qFatal("%s: Incomplete Read Buffer", name);
-    break;
-  case OpenGLFramebufferObject::Unsupported:
-    qFatal("%s: Unsupported", name);
-    break;
-  }
 }
 
 void MainWidgetPrivate::linkShader(OpenGLShaderProgram *shader)
@@ -599,7 +650,7 @@ void MainWidget::initializeGL()
     }
 
     // Framebuffer Object
-    p.m_deferredBuffer.create();
+    p.m_gFbo.create();
     p.m_lightBuffer.create();
 
     // Initialize the Direction Light Group
@@ -688,64 +739,7 @@ void MainWidget::paintGL()
 
   if (!p.m_paused)
   {
-    OpenGLProfiler::BeginFrame();
-    {
-      OpenGLMarkerScoped _("Total Render Time");
-      {
-        OpenGLMarkerScoped _("Prepare Scene");
-
-        // Update the previous/current render block bindings
-        if (p.m_camera.dirty())
-        {
-          p.swapRenderBlocks();
-          p.currentRenderBlock().setViewMatrix(p.m_camera.toMatrix());
-        }
-        else
-        {
-          p.fixRenderBlocks();
-        }
-        p.updateRenderBlocks();
-
-        // Update the GPU instance data
-        OpenGLRenderBlock &currRenderBlock = p.currentRenderBlock();
-        OpenGLRenderBlock &prevRenderBlock = p.previousRenderBlock();
-        p.m_instanceGroup.update(currRenderBlock, prevRenderBlock);
-        p.m_floorGroup.update(currRenderBlock, prevRenderBlock);
-        p.m_pointLightGroup.update(currRenderBlock);
-        p.m_directionLightGroup.update(currRenderBlock);
-        p.m_spotLightGroup.update(currRenderBlock);
-      }
-      p.m_program->bind();
-      {
-        OpenGLMarkerScoped _("Generate G Buffer");
-        p.m_deferredBuffer.bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        p.m_floorGroup.draw();
-        p.m_instanceGroup.draw();
-        p.m_deferredBuffer.release();
-      }
-      p.m_program->release();
-      p.drawBackbuffer();
-    }
-    OpenGLProfiler::EndFrame();
-
-    // Draw BV
-    for (OpenGLInstance *i : p.m_instances)
-    {
-      //*
-      if (p.b_bv[0]) p.m_aabbBV->draw(i->currentTransform(), Qt::red);
-      if (p.b_bv[1]) p.m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
-      if (p.b_bv[2]) p.m_sphereRittersBV->draw(i->currentTransform(), Qt::green);
-      if (p.b_bv[3]) p.m_sphereLarssonsBV->draw(i->currentTransform(), Qt::blue);
-      if (p.b_bv[4]) p.m_spherePcaBV->draw(i->currentTransform(), Qt::yellow);
-      if (p.b_bv[5]) p.m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
-      if (p.b_bv[6]) p.m_orientedPcaBV->draw(i->currentTransform(), Qt::red);
-      //*/
-    }
-    if (p.m_staticGeometry)
-      p.m_staticGeometry->drawAabbs(KTransform3D(), Qt::red, p.m_minDraw, p.m_maxDraw);
-
-    OpenGLDebugDraw::draw();
+    p.paintGL();
     OpenGLWidget::paintGL();
   }
 }

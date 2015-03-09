@@ -61,6 +61,7 @@ public:
   void attachTexture3D(Target target, Attachment attachment, OpenGLTexture &texture, int level = 0, int layer = 0);
   void attachRenderbuffer(Target target, Attachment attachment, OpenGLRenderbufferObject &rBuffer);
   Status status() const;
+  bool validate() const;
   int objectId();
   void drawBuffers(Attachment a1);
   void drawBuffers(Attachment a1, Attachment a2);

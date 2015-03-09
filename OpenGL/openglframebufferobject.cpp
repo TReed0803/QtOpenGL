@@ -73,6 +73,30 @@ OpenGLFramebufferObject::Status OpenGLFramebufferObject::status() const
   return static_cast<Status>(p.m_functions.glCheckFramebufferStatus(GL_FRAMEBUFFER));
 }
 
+bool OpenGLFramebufferObject::validate() const
+{
+  switch(status())
+  {
+  case OpenGLFramebufferObject::Complete:
+    return true;
+  case OpenGLFramebufferObject::IncompleteAttachment:
+    qFatal("OpenGLFramebufferObject: Incomplete Attachment");
+    return false;
+  case OpenGLFramebufferObject::IncompleteMissingAttachment:
+    qFatal("OpenGLFramebufferObject: Incomplete Missing Attachment");
+    return false;
+  case OpenGLFramebufferObject::IncompleteDrawBuffer:
+    qFatal("OpenGLFramebufferObject: Incomplete Draw Buffer");
+    return false;
+  case OpenGLFramebufferObject::IncompleteReadBuffer:
+    qFatal("OpenGLFramebufferObject: Incomplete Read Buffer");
+    return false;
+  case OpenGLFramebufferObject::Unsupported:
+    qFatal("OpenGLFramebufferObject: Unsupported");
+    return false;
+  }
+}
+
 int OpenGLFramebufferObject::objectId()
 {
   P(OpenGLFramebufferObjectPrivate);
