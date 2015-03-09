@@ -3,6 +3,7 @@
 #include <KMath>
 #include <KTransform3D>
 
+#include <OpenGLRenderBlock>
 #include <OpenGLDynamicBuffer>
 #include <OpenGLInstance>
 #include <OpenGLInstanceData>
@@ -22,7 +23,7 @@ public:
 
   void create();
   void setMesh(const OpenGLMesh &mesh);
-  void update(KMatrix4x4 const &currView, KMatrix4x4 const &prevView);
+  void update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous);
 
   OpenGLMesh m_mesh;
   BufferType m_buffer;
@@ -48,7 +49,7 @@ void OpenGLInstanceGroupPrivate::setMesh(const OpenGLMesh &mesh)
   m_mesh.release();
 }
 
-void OpenGLInstanceGroupPrivate::update(const KMatrix4x4 &currView, const KMatrix4x4 &prevView)
+void OpenGLInstanceGroupPrivate::update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous)
 {
   // Map Dynamic Data
   m_buffer.bind();
@@ -71,10 +72,10 @@ void OpenGLInstanceGroupPrivate::update(const KMatrix4x4 &currView, const KMatri
   {
     instanceDest   = &dest[i];
     instanceSource = m_instances[i];
-    instanceDest->m_currModelView = Karma::ToGlm(currView * instanceSource->currentTransform().toMatrix());
+    instanceDest->m_currModelView = current.worldToView() * Karma::ToGlm(instanceSource->currentTransform().toMatrix());
     instanceDest->m_diffuse = Karma::ToGlm(instanceSource->material().diffuse());
     instanceDest->m_normalTransform = glm::transpose(glm::inverse(instanceDest->m_currModelView));
-    instanceDest->m_prevModelView = Karma::ToGlm(prevView * instanceSource->previousTransform().toMatrix());
+    instanceDest->m_prevModelView = previous.worldToView() * Karma::ToGlm(instanceSource->previousTransform().toMatrix());
     instanceDest->m_specular = Karma::ToGlm(instanceSource->material().specularColor(), instanceSource->material().specularExponent());
     instanceSource->update();
   }
@@ -110,10 +111,10 @@ void OpenGLInstanceGroup::setMesh(const OpenGLMesh &mesh)
   p.setMesh(mesh);
 }
 
-void OpenGLInstanceGroup::update(KMatrix4x4 const &currView, KMatrix4x4 const &prevView)
+void OpenGLInstanceGroup::update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous)
 {
   P(OpenGLInstanceGroupPrivate);
-  p.update(currView, prevView);
+  p.update(current, previous);
 }
 
 void OpenGLInstanceGroup::draw()

@@ -8,27 +8,39 @@ const KVector3D KCamera3D::LocalRight(1.0f, 0.0f, 0.0f);
 // Transform By (Add/Scale)
 void KCamera3D::translate(const KVector3D &dt)
 {
-  m_dirty = true;
-  m_translation += dt;
+  if (!dt.isNull())
+  {
+    m_dirty = true;
+    m_translation += dt;
+  }
 }
 
 void KCamera3D::rotate(const KQuaternion &dr)
 {
-  m_dirty = true;
-  m_rotation = dr * m_rotation;
+  if (!dr.isIdentity())
+  {
+    m_dirty = true;
+    m_rotation = dr * m_rotation;
+  }
 }
 
 // Transform To (Setters)
 void KCamera3D::setTranslation(const KVector3D &t)
 {
-  m_dirty = true;
-  m_translation = t;
+  if (t != m_translation)
+  {
+    m_dirty = true;
+    m_translation = t;
+  }
 }
 
 void KCamera3D::setRotation(const KQuaternion &r)
 {
-  m_dirty = true;
-  m_rotation = r;
+  if (r != m_rotation)
+  {
+    m_dirty = true;
+    m_rotation = r;
+  }
 }
 
 // Accessors

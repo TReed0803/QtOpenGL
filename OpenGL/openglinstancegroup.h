@@ -3,7 +3,7 @@
 
 #include <vector>
 
-class KMatrix4x4;
+class OpenGLRenderBlock;
 class OpenGLInstance;
 class OpenGLMesh;
 
@@ -20,7 +20,7 @@ public:
   // Group Manipulation
   void create();
   void setMesh(const OpenGLMesh &mesh);
-  void update(const KMatrix4x4 &currView, const KMatrix4x4 &prevView);
+  void update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous);
   void draw();
 
   // Group Queries

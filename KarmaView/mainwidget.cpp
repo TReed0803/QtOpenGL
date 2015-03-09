@@ -81,16 +81,14 @@ public:
   void constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f);
   void checkFramebuffer(char const *name, OpenGLFramebufferObject &fbo);
   void linkShader(OpenGLShaderProgram *shader);
+  OpenGLRenderBlock &currentRenderBlock();
+  OpenGLRenderBlock &previousRenderBlock();
+  void swapRenderBlocks();
+  void fixRenderBlocks();
+  void updateRenderBlocks();
 
-  // Transformations
+  // Scene Data
   KCamera3D m_camera;
-  KCamera3D m_cameraPrev;
-  KTransform3D m_transform;
-  KMatrix4x4 m_projection;
-  float m_depthFar;
-  float m_depthNear;
-  float m_depthDiff;
-  int m_updateView;
 
   // OpenGL State Information
   float m_width;
@@ -181,7 +179,6 @@ MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_staticGeometryBottomUp7 = m_staticGeometryBottomUp500 = m_staticGeometryTopDown7 = m_staticGeometryTopDown500 = 0;
   m_renderBlockIndex[0] = 0; // Current Index
   m_renderBlockIndex[1] = 1; // Previous Index
-  m_updateView = 2;
 }
 
 void MainWidgetPrivate::initializeGL()
@@ -292,21 +289,26 @@ void MainWidgetPrivate::openObj()
   }
 }
 
-void MainWidgetPrivate::drawBoundaries()
+void MainWidgetPrivate::updateBackbuffer(int width, int height)
 {
-  KMatrix4x4 const &modelToWorld = m_transform.toMatrix();
-  for (QueryResultType const &line : m_boundaries)
-  {
-    QVector3D origin = modelToWorld * std::get<0>(line);
-    QVector3D to     = modelToWorld * std::get<1>(line);
-    OpenGLDebugDraw::World::drawLine(origin, to, Qt::red);
-  }
-}
+  m_width = width;
+  m_height = height;
 
-void MainWidgetPrivate::updateBackbuffer(int w, int h)
-{
-  m_width = w;
-  m_height = h;
+  // Calculate the new render information
+  float depthNear = 0.1f;
+  float depthFar  = 1000.0f;
+  KMatrix4x4 perspective;
+  perspective.perspective(45.0f, width / float(height), depthNear, depthFar);
+
+  // Update renderblocks
+  OpenGLRenderBlock &currRenderBlock = m_renderBlocks[m_renderBlockIndex[0]];
+  OpenGLRenderBlock &prevRenderBlock = m_renderBlocks[m_renderBlockIndex[1]];
+  currRenderBlock.setNearFar(depthNear, depthFar);
+  currRenderBlock.setPerspectiveMatrix(perspective);
+  currRenderBlock.setDimensions(width, height);
+  prevRenderBlock.setNearFar(depthNear, depthFar);
+  prevRenderBlock.setPerspectiveMatrix(perspective);
+  prevRenderBlock.setDimensions(width, height);
 
   // GBuffer Texture Storage
   constructDeferredTexture(m_gDepth, OpenGLInternalFormat::Depth32F);   // Depth
@@ -433,6 +435,58 @@ void MainWidgetPrivate::linkShader(OpenGLShaderProgram *shader)
   }
 }
 
+OpenGLRenderBlock &MainWidgetPrivate::currentRenderBlock()
+{
+  return m_renderBlocks[m_renderBlockIndex[0]];
+}
+
+OpenGLRenderBlock &MainWidgetPrivate::previousRenderBlock()
+{
+  if (OpenGLUniformBufferObject::boundBufferId(1) != OpenGLUniformBufferObject::boundBufferId(2))
+  {
+    return m_renderBlocks[m_renderBlockIndex[1]];
+  }
+  return m_renderBlocks[m_renderBlockIndex[0]];
+}
+
+void MainWidgetPrivate::swapRenderBlocks()
+{
+  // Get the render blocks in their current state
+  OpenGLRenderBlock &currRenderBlock = m_renderBlocks[m_renderBlockIndex[0]];
+  OpenGLRenderBlock &prevRenderBlock = m_renderBlocks[m_renderBlockIndex[1]];
+
+  // Swap the binding indices of the render blocks
+  std::swap(m_renderBlockIndex[0], m_renderBlockIndex[1]);
+
+  // Update the binding indices of each render block
+  currRenderBlock.bindBase(m_renderBlockIndex[0] + 1);
+  prevRenderBlock.bindBase(m_renderBlockIndex[1] + 1);
+}
+
+void MainWidgetPrivate::fixRenderBlocks()
+{
+  // Current = Previous (No camera motion applied)
+  if (OpenGLUniformBufferObject::boundBufferId(1) != OpenGLUniformBufferObject::boundBufferId(2))
+  {
+    OpenGLRenderBlock &currRenderBlock = m_renderBlocks[m_renderBlockIndex[0]];
+    currRenderBlock.bindBase(m_renderBlockIndex[0] + 1);
+  }
+}
+
+void MainWidgetPrivate::updateRenderBlocks()
+{
+  // Update previous/current render block data (if needed)
+  for (int i = 0; i < 2; ++i)
+  {
+    if (m_renderBlocks[i].dirty())
+    {
+      m_renderBlocks[i].bind();
+      m_renderBlocks[i].update();
+      m_renderBlocks[i].release();
+    }
+  }
+}
+
 /*******************************************************************************
  * MainWidget
  ******************************************************************************/
@@ -458,8 +512,6 @@ void MainWidget::initializeGL()
 {
   m_private = new MainWidgetPrivate(this);
   P(MainWidgetPrivate);
-  p.m_transform.scale(50.0f);
-  p.m_transform.translate(0.0f, 0.0f, -150.0f);
   p.m_dragVelocity = 0.0f;
 
   p.initializeGL();
@@ -630,23 +682,9 @@ void MainWidget::initializeGL()
 void MainWidget::resizeGL(int width, int height)
 {
   P(MainWidgetPrivate);
-  p.m_depthFar = 1000.0f;
-  p.m_depthNear = 0.1f;
-  p.m_projection.setToIdentity();
-  p.m_projection.perspective(45.0f, width / float(height), p.m_depthNear, p.m_depthFar);
+
+  // Update actual backbuffers
   p.updateBackbuffer(width, height);
-  p.m_depthDiff = p.m_depthFar - p.m_depthNear;
-
-  // Update renderblocks
-  OpenGLRenderBlock &currRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
-  OpenGLRenderBlock &prevRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[1]];
-  currRenderBlock.setNearFar(p.m_depthNear, p.m_depthFar);
-  currRenderBlock.setPerspectiveMatrix(p.m_projection);
-  currRenderBlock.setDimensions(p.m_width, p.m_height);
-  prevRenderBlock.setNearFar(p.m_depthNear, p.m_depthFar);
-  prevRenderBlock.setPerspectiveMatrix(p.m_projection);
-  prevRenderBlock.setDimensions(p.m_width, p.m_height);
-
   OpenGLWidget::resizeGL(width, height);
 }
 
@@ -663,41 +701,22 @@ void MainWidget::paintGL()
         OpenGLMarkerScoped _("Prepare Scene");
 
         // Update the previous/current render block bindings
-        OpenGLRenderBlock &currRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[0]];
-        OpenGLRenderBlock &prevRenderBlock = p.m_renderBlocks[p.m_renderBlockIndex[1]];
         if (p.m_camera.dirty())
         {
-          std::swap(p.m_renderBlockIndex[0], p.m_renderBlockIndex[1]);
-          currRenderBlock.bindBase(p.m_renderBlockIndex[0] + 1);
-          prevRenderBlock.bindBase(p.m_renderBlockIndex[1] + 1);
-          currRenderBlock.setViewMatrix(p.m_camera.toMatrix());
+          p.swapRenderBlocks();
+          p.currentRenderBlock().setViewMatrix(p.m_camera.toMatrix());
         }
-        else if (OpenGLUniformBufferObject::boundBufferId(1) != OpenGLUniformBufferObject::boundBufferId(2))
+        else
         {
-          prevRenderBlock.bindBase(p.m_renderBlockIndex[0] + 1);
+          p.fixRenderBlocks();
         }
-
-        // Update previous/current render block data (if needed)
-        for (int i = 0; i < 2; ++i)
-        {
-          if (p.m_renderBlocks[i].dirty())
-          {
-            p.m_renderBlocks[i].bind();
-            p.m_renderBlocks[i].update();
-            p.m_renderBlocks[i].release();
-          }
-        }
-
-        // Test
-        testPerspective = p.m_projection;
-        testView = p.m_camera.toMatrix();
-        KMatrix4x4 woowP = testPerspective;
-        KMatrix4x4 woowV = testView;
-        KMatrix4x4 testBoth = testPerspective * testView;
+        p.updateRenderBlocks();
 
         // Update the GPU instance data
-        p.m_instanceGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
-        p.m_floorGroup.update(p.m_camera.toMatrix(), p.m_cameraPrev.toMatrix());
+        OpenGLRenderBlock &currRenderBlock = p.currentRenderBlock();
+        OpenGLRenderBlock &prevRenderBlock = p.previousRenderBlock();
+        p.m_instanceGroup.update(currRenderBlock, prevRenderBlock);
+        p.m_floorGroup.update(currRenderBlock, prevRenderBlock);
         p.m_pointLightGroup.update(currRenderBlock);
         p.m_directionLightGroup.update(currRenderBlock);
         p.m_spotLightGroup.update(currRenderBlock);
@@ -750,7 +769,6 @@ void MainWidget::updateEvent(KUpdateEvent *event)
 {
   P(MainWidgetPrivate);
   (void)event;
-  p.m_cameraPrev = p.m_camera;
 
   // Update instances
 
@@ -1020,8 +1038,8 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   KPinchGesture pinch;
   if (KInputManager::pinchGesture(&pinch))
   {
-    p.m_transform.scale(pinch.scaleFactor());
-    p.m_transform.rotate(pinch.lastRotationAngle() - pinch.rotationAngle(), 0.0f, 0.0f, 1.0f);
+    //p.m_transform.scale(pinch.scaleFactor());
+    //p.m_transform.rotate(pinch.lastRotationAngle() - pinch.rotationAngle(), 0.0f, 0.0f, 1.0f);
   }
 
   // Panning will translate
@@ -1029,7 +1047,7 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   if (KInputManager::panGesture(&pan))
   {
     KVector3D delta = KVector3D(pan.delta().x(), -pan.delta().y(), 0.0f) * 0.1f;
-    p.m_transform.translate(delta);
+    //p.m_transform.translate(delta);
   }
 
   // Touching will rotate
@@ -1055,5 +1073,5 @@ void MainWidget::updateEvent(KUpdateEvent *event)
 
   // Rotate from drag gesture
   p.m_dragVelocity *= 0.9f;
-  p.m_transform.rotate(p.m_dragVelocity, p.m_dragAxis);
+  //p.m_transform.rotate(p.m_dragVelocity, p.m_dragAxis);
 }
