@@ -5,6 +5,8 @@
 #include <OpenGLTexture>
 #include <OpenGLRenderbufferObject>
 
+static unsigned sg_release = 0;
+
 class OpenGLFramebufferObjectPrivate
 {
 public:
@@ -50,7 +52,7 @@ void OpenGLFramebufferObject::bind()
 void OpenGLFramebufferObject::release()
 {
   P(OpenGLFramebufferObjectPrivate);
-  p.m_functions.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  p.m_functions.glBindFramebuffer(GL_FRAMEBUFFER, sg_release);
 }
 
 void OpenGLFramebufferObject::attachTexture2D(OpenGLFramebufferObject::Target target, OpenGLFramebufferObject::Attachment attachment, OpenGLTexture &texture, int level)
@@ -111,6 +113,11 @@ void OpenGLFramebufferObject::drawBuffers(Attachment a1, Attachment a2, Attachme
   P(OpenGLFramebufferObjectPrivate);
   GLenum buffers[] = { a1, a2, a3, a4, a5 };
   p.m_functions.glDrawBuffers(5, buffers);
+}
+
+void OpenGLFramebufferObject::setRelease(unsigned fbo)
+{
+  sg_release = fbo;
 }
 
 void OpenGLFramebufferObject::removeReference()

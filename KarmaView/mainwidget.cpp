@@ -76,7 +76,7 @@ public:
   void loadObj(const QString &fileName);
   void openObj();
   void drawBoundaries();
-  void updateBackbuffer(int w, int h);
+  void resizeGL(int width, int height);
   void drawBackbuffer();
   void constructDeferredTexture(OpenGLTexture &t, OpenGLInternalFormat f);
   void checkFramebuffer(char const *name, OpenGLFramebufferObject &fbo);
@@ -91,8 +91,6 @@ public:
   KCamera3D m_camera;
 
   // OpenGL State Information
-  float m_width;
-  float m_height;
   OpenGLMesh m_openGLMesh;
   KHalfEdgeMesh *m_halfEdgeMesh;
   KHalfEdgeMesh *m_quad;
@@ -164,7 +162,7 @@ public:
 
 MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
   m_halfEdgeMesh(Q_NULLPTR),
-  m_program(Q_NULLPTR), m_parent(parent), m_width(1), m_height(1),
+  m_program(Q_NULLPTR), m_parent(parent),
   m_buffer(LightPass), m_paused(false), m_staticGeometry(0), m_minDraw(0), m_maxDraw(std::numeric_limits<size_t>::max())
 {
   m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.2f;
@@ -289,11 +287,8 @@ void MainWidgetPrivate::openObj()
   }
 }
 
-void MainWidgetPrivate::updateBackbuffer(int width, int height)
+void MainWidgetPrivate::resizeGL(int width, int height)
 {
-  m_width = width;
-  m_height = height;
-
   // Calculate the new render information
   float depthNear = 0.1f;
   float depthFar  = 1000.0f;
@@ -369,10 +364,10 @@ void MainWidgetPrivate::drawBackbuffer()
     m_ambientProgram->bind();
     m_quadGL.draw();
     glDepthFunc(GL_LESS);
+    m_lightBuffer.release();
   }
   {
     OpenGLMarkerScoped _("Composition Pass");
-    glBindFramebuffer(GL_FRAMEBUFFER, m_parent->defaultFramebufferObject());
     glClear(GL_COLOR_BUFFER_BIT);
     m_deferredPrograms[m_buffer]->bind();
     m_quadGL.draw();
@@ -392,7 +387,7 @@ void MainWidgetPrivate::constructDeferredTexture(OpenGLTexture &t, OpenGLInterna
   t.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
   t.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
   t.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  t.setSize(m_width, m_height);
+  t.setSize(currentRenderBlock().width(), currentRenderBlock().height());
   t.allocate();
   t.release();
 }
@@ -682,10 +677,9 @@ void MainWidget::initializeGL()
 void MainWidget::resizeGL(int width, int height)
 {
   P(MainWidgetPrivate);
-
-  // Update actual backbuffers
-  p.updateBackbuffer(width, height);
+  p.resizeGL(width, height);
   OpenGLWidget::resizeGL(width, height);
+  OpenGLFramebufferObject::setRelease(defaultFramebufferObject());
 }
 
 void MainWidget::paintGL()
@@ -728,7 +722,7 @@ void MainWidget::paintGL()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         p.m_floorGroup.draw();
         p.m_instanceGroup.draw();
-        glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+        p.m_deferredBuffer.release();
       }
       p.m_program->release();
       p.drawBackbuffer();
