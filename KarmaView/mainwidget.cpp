@@ -336,15 +336,15 @@ void MainWidgetPrivate::updateBackbuffer(int w, int h)
   m_lightBuffer.release();
 
   // Activate Backbuffers
-  glActiveTexture(GL_TEXTURE0);
+  glActiveTexture(OpenGLTexture::endTextureUnits() - 1);
   m_gGeometry.bind();
-  glActiveTexture(GL_TEXTURE1);
+  glActiveTexture(OpenGLTexture::endTextureUnits() - 2);
   m_gMaterial.bind();
-  glActiveTexture(GL_TEXTURE2);
+  glActiveTexture(OpenGLTexture::endTextureUnits() - 3);
   m_gSurface.bind();
-  glActiveTexture(GL_TEXTURE4);
+  glActiveTexture(OpenGLTexture::endTextureUnits() - 4);
   m_gLighting.bind();
-  glActiveTexture(GL_TEXTURE5);
+  glActiveTexture(OpenGLTexture::endTextureUnits() - 5);
   m_gDepth.bind();
 }
 
@@ -424,12 +424,11 @@ void MainWidgetPrivate::linkShader(OpenGLShaderProgram *shader)
   if (shader->link())
   {
     shader->bind();
-    shader->setUniformValue("geometryTexture", 0);
-    shader->setUniformValue("materialTexture", 1);
-    shader->setUniformValue("dynamicsTexture", 2);
-    shader->setUniformValue("backbufferTexture", 3);
-    shader->setUniformValue("lightbufferTexture", 4);
-    shader->setUniformValue("depthTexture", 5);
+    shader->setUniformValue("geometryTexture"   , OpenGLTexture::numTextureUnits() - 1);
+    shader->setUniformValue("materialTexture"   , OpenGLTexture::numTextureUnits() - 2);
+    shader->setUniformValue("surfaceTexture"    , OpenGLTexture::numTextureUnits() - 3);
+    shader->setUniformValue("lightbufferTexture", OpenGLTexture::numTextureUnits() - 4);
+    shader->setUniformValue("depthTexture"      , OpenGLTexture::numTextureUnits() - 5);
     shader->release();
   }
 }

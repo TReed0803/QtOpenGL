@@ -61,6 +61,11 @@ public:
   int textureId();
   Target target() const;
 
+  // Texture Properties
+  static int numTextureUnits();
+  static GLenum beginTextureUnits();
+  static GLenum endTextureUnits();
+
 private:
   OpenGLTexturePrivate *m_private;
   void removeReference();

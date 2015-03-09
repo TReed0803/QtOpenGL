@@ -23,7 +23,7 @@ OpenGLRenderBlockPrivate::OpenGLRenderBlockPrivate() :
 void OpenGLRenderBlockPrivate::updateCombinationMatrices()
 {
   m_blockData.m_viewProjection = m_blockData.m_projection * m_blockData.m_view;
-  m_blockData.i_viewProjection = m_blockData.i_projection * m_blockData.i_view;
+  m_blockData.i_viewProjection = m_blockData.i_view * m_blockData.i_projection;
 }
 
 OpenGLRenderBlock::OpenGLRenderBlock() :

@@ -121,6 +121,21 @@ OpenGLTexture::Target OpenGLTexture::target() const
   return p.m_target;
 }
 
+int OpenGLTexture::numTextureUnits()
+{
+  return GL::getInteger<GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS>();
+}
+
+GLenum OpenGLTexture::beginTextureUnits()
+{
+  return GL_TEXTURE0;
+}
+
+GLenum OpenGLTexture::endTextureUnits()
+{
+  return GL_TEXTURE0 + numTextureUnits();
+}
+
 void OpenGLTexture::removeReference()
 {
   if (m_private)

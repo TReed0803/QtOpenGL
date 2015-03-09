@@ -47,6 +47,14 @@ private:
 public:
   static OpenGLFunctions *getInstance();
   static void setInstance(OpenGLFunctions *f);
+  static int getInteger(GLenum property);
+
+  template <GLenum property>
+  static int getInteger()
+  {
+    static int value = getInteger(property);
+    return value;
+  }
 
   // 2.0
   /*
