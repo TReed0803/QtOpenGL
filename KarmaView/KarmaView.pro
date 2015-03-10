@@ -23,12 +23,15 @@ SOURCES += \
     main.cpp \
     mainwidget.cpp \
     gbufferpass.cpp \
-    lightpass.cpp
+    lightpass.cpp \
+    compositionpass.cpp
 
 HEADERS += \
     mainwidget.h \
     gbufferpass.h \
-    lightpass.h
+    lightpass.h \
+    compositionpass.h \
+    renderpasses.h
 
 RESOURCES += \
     ../resources.qrc

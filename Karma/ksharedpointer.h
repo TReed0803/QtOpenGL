@@ -8,9 +8,12 @@ class KSharedPointer
 {
 public:
   typedef uint32_t SizeType;
-  typedef T ValueType;
+  typedef T  ValueType;
   typedef T* PointerType;
   typedef T& ReferenceType;
+  typedef const T  ConstValueType;
+  typedef const T* ConstPointerType;
+  typedef const T& ConstReferenceType;
 
   struct ReferenceContainer
   {
@@ -26,6 +29,8 @@ public:
   ~KSharedPointer();
   PointerType operator->();
   ReferenceType operator*();
+  ConstPointerType operator->() const;
+  ConstReferenceType operator*() const;
   void operator=(const KSharedPointer &rhs);
 
 private:
@@ -90,6 +95,18 @@ auto KSharedPointer<T>::operator->() -> PointerType
 
 template <typename T>
 auto KSharedPointer<T>::operator*() -> ReferenceType
+{
+  return *m_data->m_internal;
+}
+
+template <typename T>
+auto KSharedPointer<T>::operator->() const -> ConstPointerType
+{
+  return m_data->m_internal;
+}
+
+template <typename T>
+auto KSharedPointer<T>::operator*() const -> ConstReferenceType
 {
   return *m_data->m_internal;
 }

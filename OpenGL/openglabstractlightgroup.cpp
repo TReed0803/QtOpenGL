@@ -19,6 +19,7 @@ void OpenGLAbstractLightGroup::setMesh(const KHalfEdgeMesh &mesh)
 
 void OpenGLAbstractLightGroup::setMesh(const char *filepath)
 {
-  KHalfEdgeMesh mesh(filepath);
+  KHalfEdgeMesh mesh;
+  mesh.create(filepath);
   setMesh(mesh);
 }

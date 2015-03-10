@@ -53,134 +53,47 @@
 
 #include <GBufferPass>
 #include <LightPass>
-
-enum PresentType
-{
-  PresentComposition,
-  PresentDepth,
-  PresentLinearDepth,
-  PresentPosition,
-  PresentViewNormal,
-  PresentDiffuse,
-  PresentSpecular,
-  PresentVelocity,
-  PresentLightAccumulation,
-  MaxPresentations
-};
+#include <CompositionPass>
 
 /*******************************************************************************
  * MainWidgetPrivate
  ******************************************************************************/
-class MainWidgetPrivate : protected OpenGLFunctions, public OpenGLRenderer
+class MainWidgetPrivate
 {
 public:
-  MainWidgetPrivate(MainWidget *parent);
 
   // GL Methods
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
+  void teardownGL();
 
-  // GL Paint Steps
-  void commitGL();
-  void renderGL();
-  void buildGBuffer();
-  void renderLights();
-  void composeScene();
-
-  void loadObj(const QString &fileName);
+  // Object Manipulation
   void openObj();
-  void drawBoundaries();
-  void drawBackbuffer();
+  void loadObj(const QString &fileName);
+
+  // Helper Methods
   OpenGLRenderBlock &currentRenderBlock();
   OpenGLRenderBlock &previousRenderBlock();
   void swapRenderBlocks();
   void fixRenderBlocks();
   void updateRenderBlocks();
-  void renderGeometry();
+
+  // Render Data
+  OpenGLRenderBlock m_renderBlocks[2];
+  int m_renderBlockIndex[2];
+  OpenGLRenderer m_renderer;
 
   // Scene Data
   KCamera3D m_camera;
-  OpenGLRenderBlock m_renderBlocks[2];
-  int m_renderBlockIndex[2];
-  LightPass *m_lightPass;
-
-  // OpenGL State Information
-  bool m_paused;
-  OpenGLMesh m_openGLMesh;
-  KHalfEdgeMesh *m_halfEdgeMesh;
-  KHalfEdgeMesh *m_quad;
-  KHalfEdgeMesh *m_floor;
-  OpenGLMesh m_quadGL;
-  OpenGLMesh m_floorGL;
-  typedef std::tuple<KVector3D,KVector3D> QueryResultType;
-  std::vector<QueryResultType> m_boundaries;
-  OpenGLShaderProgram *m_textureDrawer;
-  OpenGLInstanceGroup m_instanceGroup;
-  OpenGLInstanceGroup m_floorGroup;
-  OpenGLInstance *m_floorInstance;
-  PresentType m_presentation;
-  OpenGLShaderProgram *m_deferredPrograms[MaxPresentations];
-
-  // Bounding Volumes
-  KAabbBoundingVolume *m_aabbBV;
-  KSphereBoundingVolume *m_sphereCentroidBV;
-  KSphereBoundingVolume *m_sphereRittersBV;
-  KSphereBoundingVolume *m_sphereLarssonsBV;
-  KSphereBoundingVolume *m_spherePcaBV;
-  KEllipsoidBoundingVolume *m_ellipsoidPcaBV;
-  KOrientedBoundingVolume *m_orientedPcaBV;
-  KStaticGeometry *m_staticGeometryBottomUp7;
-  KStaticGeometry *m_staticGeometryBottomUp500;
-  KStaticGeometry *m_staticGeometryTopDown7;
-  KStaticGeometry *m_staticGeometryTopDown500;
-  KStaticGeometry *m_staticGeometry;
-
-  std::vector<OpenGLInstance*> m_instances;
-  std::vector<OpenGLRenderPass*> m_passes;
-  float m_ambientColor[4];
-  float m_atmosphericColor[4];
-
-  // Touch Information
-  float m_dragVelocity;
-  KVector3D m_dragAxis;
-
-  // Runtime
-  bool b_rX, b_rY, b_rZ;
-  bool b_bv[8];
-  int m_minDraw, m_maxDraw;
-
-  // Parent
-  MainWidget *m_parent;
+  std::vector<OpenGLInstance *> m_instances;
 };
 
-MainWidgetPrivate::MainWidgetPrivate(MainWidget *parent) :
-  m_halfEdgeMesh(Q_NULLPTR), m_parent(parent),
-  m_presentation(PresentComposition), m_paused(false), m_staticGeometry(0), m_minDraw(0), m_maxDraw(std::numeric_limits<size_t>::max())
-{
-  m_ambientColor[0] = m_ambientColor[1] = m_ambientColor[2] = 0.2f;
-  m_ambientColor[3] = 1.0f;
-  m_atmosphericColor[0] = m_atmosphericColor[1] = m_atmosphericColor[2] = 0.0f;
-  m_atmosphericColor[3] = 1.0f;
-  m_camera.setTranslation(0.0f, 3.0f, 10.0f);
-  m_camera.setRotation(-20.0f, 1.0f, 0.0f, 0.0f);
-  b_rX = b_rY = b_rZ = false;
-  for (int i = 0; i < 8; ++i)
-    b_bv[i] = false;
-  m_staticGeometryBottomUp7 = m_staticGeometryBottomUp500 = m_staticGeometryTopDown7 = m_staticGeometryTopDown500 = 0;
-  m_renderBlockIndex[0] = 0; // Current Index
-  m_renderBlockIndex[1] = 1; // Previous Index
-
-  m_lightPass = new LightPass;
-  m_passes.push_back(new GBufferPass);
-  m_passes.push_back(m_lightPass);
-}
-
+/*******************************************************************************
+ * MainWidgetPrivate::OpenGL Methods
+ ******************************************************************************/
 void MainWidgetPrivate::initializeGL()
 {
-  GL::setInstance(this);
-  initializeOpenGLFunctions();
-
   // Set Uniform Buffers
   OpenGLUniformManager::setUniformBufferIndex("CurrentRenderBlock"  , 1);
   OpenGLUniformManager::setUniformBufferIndex("PreviousRenderBlock" , 2);
@@ -193,111 +106,92 @@ void MainWidgetPrivate::initializeGL()
   OpenGLUniformManager::setTextureSampler("surfaceTexture"    , OpenGLTexture::numTextureUnits() - 4);
   OpenGLUniformManager::setTextureSampler("lightbufferTexture", OpenGLTexture::numTextureUnits() - 5);
 
-  for (OpenGLRenderPass *pass : m_passes)
+  // Global Setup (Rarely Changed)
+  GL::glEnable(GL_CULL_FACE);
+  GL::glEnable(GL_DEPTH_TEST);
+  GL::glClearDepthf(1.0f);
+  GL::glDepthFunc(GL_LEQUAL);
+
+  // Create Renderer
+  m_renderer.create();
+  m_renderer.addPass<GBufferPass>();
+  m_renderer.addPass<LightPass>();
+  m_renderer.addPass<CompositionPass>();
+  m_renderer.initialize();
+
+  // Scene Initialization
+  m_camera.setTranslation(0.0f, 3.0f, 10.0f);
+  m_camera.setRotation(-20.0f, 1.0f, 0.0f, 0.0f);
+  m_renderBlockIndex[0] = 0; // Current Index
+  m_renderBlockIndex[1] = 1; // Previous Index
+
+  for (int i = 0; i < 2; ++i)
   {
-    pass->initialize();
+    m_renderBlocks[i].create();
+    m_renderBlocks[i].setUsagePattern(OpenGLBuffer::DynamicDraw);
+    m_renderBlocks[i].bind();
+    m_renderBlocks[i].allocate();
+    m_renderBlocks[i].release();
+    m_renderBlocks[i].setViewMatrix(m_camera.toMatrix());
   }
-}
+  m_renderBlocks[0].bindBase(1);
+  m_renderBlocks[0].bindBase(2);
 
-void MainWidgetPrivate::loadObj(const QString &fileName)
-{
-  // Remove old mesh
-  bool oldValue = m_paused;
-  m_paused = true;
-  delete m_halfEdgeMesh;
-  m_boundaries.clear();
-
-  // Initialize an object
-  quint64 ms;
-  QElapsedTimer timer;
   {
-    {
-      timer.start();
-      m_halfEdgeMesh = new KHalfEdgeMesh(m_parent, fileName);
-      ms = timer.elapsed();
-      qDebug() << "Create HalfEdgeMesh (sec)    :" << float(ms) / 1e3f;
-    }
-    {
-      timer.start();
-      m_halfEdgeMesh->calculateVertexNormals();
-      ms = timer.elapsed();
-      qDebug() << "Calculate Normals (sec)      :" << float(ms) / 1e3f;
-    }
-    {
-      timer.start();
-      m_aabbBV = new KAabbBoundingVolume(*m_halfEdgeMesh, KAabbBoundingVolume::MinMaxMethod);
-      m_sphereCentroidBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::CentroidMethod);
-      m_sphereRittersBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::RittersMethod);
-      m_sphereLarssonsBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::LarssonsMethod);
-      m_spherePcaBV = new KSphereBoundingVolume(*m_halfEdgeMesh, KSphereBoundingVolume::PcaMethod);
-      m_ellipsoidPcaBV = new KEllipsoidBoundingVolume(*m_halfEdgeMesh, KEllipsoidBoundingVolume::PcaMethod);
-      m_orientedPcaBV = new KOrientedBoundingVolume(*m_halfEdgeMesh, KOrientedBoundingVolume::PcaMethod);
-      ms = timer.elapsed();
-      qDebug() << "Create Bounding Volumes (sec):" << float(ms) / 1e3f;
-    }
-    {
-      m_parent->makeCurrent();
-      timer.start();
-      m_openGLMesh.create(*m_halfEdgeMesh);
-      m_instanceGroup.setMesh(m_openGLMesh);
-      ms = timer.elapsed();
-      qDebug() << "Create OpenGLMesh (sec)      :" << float(ms) / 1e3f;
-    }
-    auto query =
-      SELECT
-        FROM ( edge : m_halfEdgeMesh->halfEdges() )
-        WHERE ( edge.face == 0 )
-        JOIN ( m_halfEdgeMesh->vertex(edge.to)->position,
-               m_halfEdgeMesh->vertex(m_halfEdgeMesh->halfEdge(edge.next)->to)->position );
-    {
-      timer.start();
-      m_boundaries = query();
-      ms = timer.elapsed();
-      qDebug() << "Mesh Query Time (sec)        :" << float(ms) / 1e3f;
-    }
-    {
-      delete m_staticGeometryTopDown500;
-      delete m_staticGeometryTopDown7;
-      delete m_staticGeometryBottomUp7;
-      delete m_staticGeometryBottomUp500;
-      m_staticGeometryTopDown500 = new KStaticGeometry();
-      m_staticGeometryTopDown7 = new KStaticGeometry();
-      m_staticGeometryBottomUp7 = new KStaticGeometry();
-      m_staticGeometryBottomUp500 = new KStaticGeometry();
-      KTransform3D geomTrans;
-      for (int i = 0; i < 4; ++i)
-      {
-        const float radius = 10.0f;
-        float radians = i * Karma::TwoPi / 4.0f;
-        geomTrans.setTranslation(std::cos(radians) * radius, 0.0f, std::sin(radians) * radius);
-        m_staticGeometryTopDown500->addGeometry(*m_halfEdgeMesh, geomTrans);
-        m_staticGeometryTopDown7->addGeometry(*m_halfEdgeMesh, geomTrans);
-        m_staticGeometryBottomUp7->addGeometry(*m_halfEdgeMesh, geomTrans);
-        m_staticGeometryBottomUp500->addGeometry(*m_halfEdgeMesh, geomTrans);
-      }
-      m_staticGeometry = 0;
-    }
-    qDebug() << "--------------------------------------";
-    qDebug() << "Mesh Vertexes  :" << m_halfEdgeMesh->vertices().size();
-    qDebug() << "Mesh Faces     :" << m_halfEdgeMesh->faces().size();
-    qDebug() << "Mesh HalfEdges :" << m_halfEdgeMesh->halfEdges().size();
-    qDebug() << "Boundary Edges :" << m_boundaries.size();
-    qDebug() << "Polygons /Frame:" << m_halfEdgeMesh->faces().size() * m_instances.size();
-  }
 
-  m_paused = oldValue;
-}
+    // Initialize the Direction Light Group
+    for (int i = 0; i < 1; ++i)
+    {
+      OpenGLDirectionLight *light = m_renderer.createDirectionLight();
+      light->setDiffuse(0.1f, 0.1f, 0.1f);
+      light->setSpecular(0.1f, 0.1f, 0.1f);
+    }
 
-void MainWidgetPrivate::openObj()
-{
-  QString fileName = QFileDialog::getOpenFileName(
-    m_parent, m_parent->tr("Open Model"),
-    ".",
-    m_parent->tr("Wavefront Object File (*.obj))")
-  );
-  if (!fileName.isNull())
-  {
-    loadObj(fileName);
+    // Initialize the Point Light Group
+    for (int i = 0; i < 5; ++i)
+    {
+      OpenGLPointLight *light = m_renderer.createPointLight();
+      light->setRadius(25.0f);
+    }
+
+    // Initialize the Spot Light Group
+    for (int i = 0; i < 3; ++i)
+    {
+      OpenGLSpotLight *light = m_renderer.createSpotLight();
+      light->setInnerAngle(40.0f);
+      light->setOuterAngle(45.0f);
+      light->setDepth(25.0f);
+    }
+
+    // Note: Currently there is no Material System.
+    //       All material properties are per-instance.
+    OpenGLInstance *floor = m_renderer.createInstance();
+    floor->setMesh(":/resources/objects/floor.obj");
+    floor->material().setDiffuse(0.0f, 0.0f, 1.0f);
+    floor->material().setSpecular(0.25f, 0.25f, 0.25f, 1.0f);
+    floor->transform().setScale(1000.0f);
+    floor->transform().setTranslation(0.0f, -1.0f, 0.0f);
+
+    // Create Instance Data
+    static const int total = 4;
+    static const float arcLength = Karma::TwoPi / float(total);
+    for (int i = 0; i < total; ++i)
+    {
+      const float radius = 10.0f;
+      const float radians = i * arcLength;
+      OpenGLInstance * instance = m_renderer.createInstance();
+      instance->currentTransform().setScale(1.0f);
+      instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
+      instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
+      instance->currentTransform().setTranslation(std::cos(radians) * radius, 0.0f, std::sin(radians) * radius);
+      m_instances.push_back(instance);
+    }
+    OpenGLInstance * instance = m_renderer.createInstance();
+    instance->currentTransform().setScale(1.0f);
+    instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
+    instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
+    m_instances.push_back(instance);
+    loadObj(":/resources/objects/sphere.obj");
   }
 }
 
@@ -319,10 +213,7 @@ void MainWidgetPrivate::resizeGL(int width, int height)
   prevRenderBlock.setPerspectiveMatrix(perspective);
   prevRenderBlock.setDimensions(width, height);
 
-  for (OpenGLRenderPass *pass : m_passes)
-  {
-    pass->resize(width, height);
-  }
+  m_renderer.resize(width, height);
 }
 
 void MainWidgetPrivate::paintGL()
@@ -330,72 +221,100 @@ void MainWidgetPrivate::paintGL()
   OpenGLProfiler::BeginFrame();
   {
     OpenGLMarkerScoped _("Total Render Time");
-    commitGL();
-    renderGL();
+    {
+      OpenGLMarkerScoped _("Prepare Scene");
+
+      // Update the previous/current render block bindings
+      if (m_camera.dirty())
+      {
+        swapRenderBlocks();
+        currentRenderBlock().setViewMatrix(m_camera.toMatrix());
+      }
+      else
+      {
+        fixRenderBlocks();
+      }
+      updateRenderBlocks();
+
+      // Update the GPU instance data
+      m_renderer.update(currentRenderBlock(), previousRenderBlock());
+    }
+    // Render Scene
+    m_renderer.render();
   }
   OpenGLProfiler::EndFrame();
   OpenGLDebugDraw::draw();
 }
 
-void MainWidgetPrivate::renderGL()
+void MainWidgetPrivate::teardownGL()
 {
-  for (OpenGLRenderPass *pass : m_passes)
-  {
-    // Todo: Pass Geometry Manager
-    pass->render(*this);
-  }
-  composeScene();
-
-  // Draw Bounding Volumes
-  for (OpenGLInstance *i : m_instances)
-  {
-    if (b_bv[0]) m_aabbBV->draw(i->currentTransform(), Qt::red);
-    if (b_bv[1]) m_sphereCentroidBV->draw(i->currentTransform(), Qt::red);
-    if (b_bv[2]) m_sphereRittersBV->draw(i->currentTransform(), Qt::green);
-    if (b_bv[3]) m_sphereLarssonsBV->draw(i->currentTransform(), Qt::blue);
-    if (b_bv[4]) m_spherePcaBV->draw(i->currentTransform(), Qt::yellow);
-    if (b_bv[5]) m_ellipsoidPcaBV->draw(i->currentTransform(), Qt::red);
-    if (b_bv[6]) m_orientedPcaBV->draw(i->currentTransform(), Qt::red);
-  }
-  if (m_staticGeometry)
-    m_staticGeometry->drawAabbs(KTransform3D(), Qt::red, m_minDraw, m_maxDraw);
+  m_renderer.teardown();
 }
 
-void MainWidgetPrivate::composeScene()
+/*******************************************************************************
+ * MainWidgetPrivate::Object Manipulation
+ ******************************************************************************/
+void MainWidgetPrivate::loadObj(const QString &fileName)
 {
-  OpenGLMarkerScoped _("Composition Pass");
-  m_deferredPrograms[m_presentation]->bind();
-  m_quadGL.draw();
-  m_deferredPrograms[m_presentation]->release();
+  OpenGLMesh openGLMesh;
+  KHalfEdgeMesh halfEdgeMesh;
+  KCountResult boundaries;
+
+  // Boundary Query
+  auto query =
+    COUNT
+      FROM  ( edge : halfEdgeMesh.halfEdges() )
+      WHERE ( edge.face == 0 )
+      INCREMENT (1);
+
+  // Initialize an object
+  quint64 ms;
+  QElapsedTimer timer;
+  {
+    // Load Half Edge Mesh
+    {
+      timer.start();
+      halfEdgeMesh.create(qPrintable(fileName));
+      ms = timer.elapsed();
+      qDebug() << "Create HalfEdgeMesh (sec)    :" << float(ms) / 1e3f;
+    }
+    // Calculate Normals
+    {
+      timer.start();
+      halfEdgeMesh.calculateVertexNormals();
+      ms = timer.elapsed();
+      qDebug() << "Calculate Normals (sec)      :" << float(ms) / 1e3f;
+    }
+    // Calculate OpenGLMesh
+    {
+      timer.start();
+      openGLMesh.create(halfEdgeMesh);
+      ms = timer.elapsed();
+      qDebug() << "Create OpenGLMesh (sec)      :" << float(ms) / 1e3f;
+    }
+    {
+      timer.start();
+      boundaries = query();
+      ms = timer.elapsed();
+      qDebug() << "Mesh Query Time (sec)        :" << float(ms) / 1e3f;
+    }
+    qDebug() << "--------------------------------------";
+    qDebug() << "Mesh Vertexes  :" << halfEdgeMesh.vertices().size();
+    qDebug() << "Mesh Faces     :" << halfEdgeMesh.faces().size();
+    qDebug() << "Mesh HalfEdges :" << halfEdgeMesh.halfEdges().size();
+    qDebug() << "Boundary Edges :" << boundaries;
+  }
+
+  // Set all instances to have the same mesh
+  for (OpenGLInstance *instance : m_instances)
+  {
+    instance->setMesh(qPrintable(fileName));
+  }
 }
 
-void MainWidgetPrivate::commitGL()
-{
-  OpenGLMarkerScoped _("Prepare Scene");
-
-  // Update the previous/current render block bindings
-  if (m_camera.dirty())
-  {
-    swapRenderBlocks();
-    currentRenderBlock().setViewMatrix(m_camera.toMatrix());
-  }
-  else
-  {
-    fixRenderBlocks();
-  }
-  updateRenderBlocks();
-
-  // Update the GPU instance data
-  OpenGLRenderBlock &currRenderBlock = currentRenderBlock();
-  OpenGLRenderBlock &prevRenderBlock = previousRenderBlock();
-  m_instanceGroup.update(currRenderBlock, prevRenderBlock);
-  m_floorGroup.update(currRenderBlock, prevRenderBlock);
-  for (OpenGLRenderPass *pass : m_passes)
-  {
-    pass->commit(currRenderBlock, prevRenderBlock);
-  }
-}
-
+/*******************************************************************************
+ * MainWidgetPrivate::Helper Methods
+ ******************************************************************************/
 OpenGLRenderBlock &MainWidgetPrivate::currentRenderBlock()
 {
   return m_renderBlocks[m_renderBlockIndex[0]];
@@ -448,12 +367,6 @@ void MainWidgetPrivate::updateRenderBlocks()
   }
 }
 
-void MainWidgetPrivate::renderGeometry()
-{
-  m_instanceGroup.draw();
-  m_floorGroup.draw();
-}
-
 /*******************************************************************************
  * MainWidget
  ******************************************************************************/
@@ -467,8 +380,10 @@ MainWidget::MainWidget(QWidget *parent) :
 
 MainWidget::~MainWidget()
 {
+  P(MainWidgetPrivate);
   makeCurrent();
-  teardownGL();
+  p.teardownGL();
+  OpenGLWidget::teardownGL();
   delete m_private;
 }
 
@@ -477,124 +392,10 @@ MainWidget::~MainWidget()
  ******************************************************************************/
 void MainWidget::initializeGL()
 {
-  m_private = new MainWidgetPrivate(this);
-  P(MainWidgetPrivate);
-  p.m_dragVelocity = 0.0f;
-
-  p.initializeGL();
   OpenGLWidget::initializeGL();
-  printVersionInformation();
-
-  // Set global information
-  glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
-  glClearDepth(1.0f);
-  glDepthFunc(GL_LEQUAL);
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-  p.m_quad = new KHalfEdgeMesh(this, ":/resources/objects/quad.obj");
-  p.m_quadGL.create(*p.m_quad);
-
-  // Application-specific initialization
-  {
-    // Uniform Block Object
-    for (int i = 0; i < 2; ++i)
-    {
-      p.m_renderBlocks[i].create();
-      p.m_renderBlocks[i].setUsagePattern(OpenGLBuffer::DynamicDraw);
-      p.m_renderBlocks[i].bind();
-      p.m_renderBlocks[i].allocate();
-      p.m_renderBlocks[i].release();
-      p.m_renderBlocks[i].setViewMatrix(p.m_camera.toMatrix());
-    }
-    p.m_renderBlocks[0].bindBase(1);
-    p.m_renderBlocks[0].bindBase(2);
-
-    char const* fragFiles[] = {
-      ":/resources/shaders/gbuffer/backbuffer.frag",
-      ":/resources/shaders/gbuffer/depth.frag",
-      ":/resources/shaders/gbuffer/linearDepth.frag",
-      ":/resources/shaders/gbuffer/position.frag",
-      ":/resources/shaders/gbuffer/normal.frag",
-      ":/resources/shaders/gbuffer/diffuse.frag",
-      ":/resources/shaders/gbuffer/specular.frag",
-      ":/resources/shaders/gbuffer/velocity.frag",
-      ":/resources/shaders/gbuffer/lightbuffer.frag"
-    };
-
-    if (sizeof(fragFiles) / sizeof(char const*) != MaxPresentations)
-    {
-      qFatal("Fatal: Must be able to present screen data for every presentation type!");
-    }
-
-    for (int i = 0; i < MaxPresentations; ++i)
-    {
-      p.m_deferredPrograms[i] = new OpenGLShaderProgram(this);
-      p.m_deferredPrograms[i]->addIncludePath(":/resources/shaders");
-      p.m_deferredPrograms[i]->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/gbuffer/main.vert");
-      p.m_deferredPrograms[i]->addShaderFromSourceFile(QOpenGLShader::Fragment, fragFiles[i]);
-      p.m_deferredPrograms[i]->link();
-    }
-
-    // Initialize the Direction Light Group
-    for (int i = 0; i < 1; ++i)
-    {
-      OpenGLDirectionLight *light = p.m_lightPass->createDirectionLight();
-      light->setDiffuse(0.1f, 0.1f, 0.1f);
-      light->setSpecular(0.1f, 0.1f, 0.1f);
-    }
-
-    // Initialize the Point Light Group
-    for (int i = 0; i < 5; ++i)
-    {
-      OpenGLPointLight *light = p.m_lightPass->createPointLight();
-      light->setRadius(25.0f);
-    }
-
-    // Initialize the Spot Light Group
-    for (int i = 0; i < 3; ++i)
-    {
-      OpenGLSpotLight *light = p.m_lightPass->createSpotLight();
-      light->setInnerAngle(40.0f);
-      light->setOuterAngle(45.0f);
-      light->setDepth(25.0f);
-    }
-
-    p.m_floorGroup.create();
-    p.m_instanceGroup.create();
-    // Open OBJ
-    KHalfEdgeMesh *mesh = new KHalfEdgeMesh(this, ":/resources/objects/floor.obj");
-    mesh->calculateVertexNormals();
-    p.m_floorGL.create(*mesh);
-    p.m_floorGroup.setMesh(p.m_floorGL);
-    p.m_floorInstance = p.m_floorGroup.createInstance();
-    p.m_floorInstance->material().setDiffuse(0.0f, 0.0f, 1.0f);
-    p.m_floorInstance->material().setSpecular(0.25f, 0.25f, 0.25f, 1.0f);
-    p.m_floorInstance->transform().setScale(1000.0f);
-    p.m_floorInstance->transform().setTranslation(0.0f, -1.0f, 0.0f);
-    p.loadObj(":/resources/objects/sphere.obj");
-
-    // Initialize instances
-    //*
-    for (int i = 0; i < 4; ++i)
-    {
-      const float radius = 10.0f;
-      float radians = i * Karma::TwoPi / 4.0f;
-      OpenGLInstance * instance = p.m_instanceGroup.createInstance();
-      instance->currentTransform().setScale(1.0f);
-      instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
-      instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
-      instance->currentTransform().setTranslation(std::cos(radians) * radius, 0.0f, std::sin(radians) * radius);
-    }
-    OpenGLInstance * instance = p.m_instanceGroup.createInstance();
-    instance->currentTransform().setScale(1.0f);
-    instance->material().setDiffuse(0.0f, 1.0f, 0.0f);
-    instance->material().setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
-    p.m_instances.push_back(instance);
-    //*/
-  }
-
-  OpenGLDebugDraw::initialize();
+  m_private = new MainWidgetPrivate;
+  P(MainWidgetPrivate);
+  p.initializeGL();
 }
 
 void MainWidget::resizeGL(int width, int height)
@@ -608,18 +409,11 @@ void MainWidget::resizeGL(int width, int height)
 void MainWidget::paintGL()
 {
   P(MainWidgetPrivate);
-
-  if (!p.m_paused)
+  if (!p.m_renderer.isPaused())
   {
     p.paintGL();
     OpenGLWidget::paintGL();
   }
-}
-
-void MainWidget::teardownGL()
-{
-  OpenGLDebugDraw::teardown();
-  OpenGLWidget::teardownGL();
 }
 
 /*******************************************************************************
@@ -630,113 +424,28 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   P(MainWidgetPrivate);
   (void)event;
 
-  // Update instances
-
+  // Update Lights (Scene update)
   static float f = 0.0f;
   f += 0.0016f;
   float angle = f;
-  for (OpenGLDirectionLight *light : p.m_lightPass->directionLights())
+  for (OpenGLDirectionLight *light : p.m_renderer.directionLights())
   {
     light->setDirection(std::cos(angle), -1, std::sin(angle));
   }
-  for (OpenGLPointLight *instance : p.m_lightPass->pointLights())
+  for (OpenGLPointLight *instance : p.m_renderer.pointLights())
   {
     static const float radius = 5.0f;
     instance->setTranslation(cos(angle) * radius, 0.0f, sin(angle) * radius);
-    angle += 2 * 3.1415926 / p.m_lightPass->pointLights().size();
+    angle += 2 * 3.1415926 / p.m_renderer.pointLights().size();
   }
   angle = f;
 
-  for (OpenGLSpotLight *instance : p.m_lightPass->spotLights())
+  for (OpenGLSpotLight *instance : p.m_renderer.spotLights())
   {
     static const float radius = 5.0f;
     instance->setTranslation(cos(angle) * radius, 5.0f + std::sin(angle * 15.0f) * 5.0f, sin(angle) * radius);
     instance->setDirection(-instance->translation().normalized());
-    angle += 2 * 3.1415926 / p.m_lightPass->spotLights().size();
-  }
-
-  if (KInputManager::keyTriggered(Qt::Key_Plus))
-  {
-    for (OpenGLInstance *instance : p.m_instances)
-    {
-      instance->currentTransform().grow(1.0f);
-    }
-  }
-
-  if (KInputManager::keyTriggered(Qt::Key_Underscore))
-  {
-    for (OpenGLInstance *instance : p.m_instances)
-    {
-      instance->currentTransform().grow(-1.0f);
-    }
-  }
-
-  bool triggered = false;
-  if (KInputManager::keyTriggered(Qt::Key_BracketLeft))
-  {
-    --p.m_maxDraw;
-    triggered = true;
-  }
-
-  if (KInputManager::keyTriggered(Qt::Key_BracketRight))
-  {
-    ++p.m_maxDraw;
-    triggered = true;
-  }
-
-
-  if (KInputManager::keyTriggered(Qt::Key_BraceLeft))
-  {
-    --p.m_minDraw;
-    triggered = true;
-  }
-
-  if (KInputManager::keyTriggered(Qt::Key_BraceRight))
-  {
-    ++p.m_minDraw;
-    triggered = true;
-  }
-
-  if (p.m_staticGeometry)
-  {
-    if (p.m_minDraw < 0)
-    {
-      p.m_minDraw = 0;
-    }
-    if (p.m_minDraw > p.m_staticGeometry->depth())
-    {
-      p.m_minDraw = static_cast<int>(p.m_staticGeometry->depth());
-    }
-    if (p.m_maxDraw < p.m_minDraw)
-    {
-      p.m_maxDraw = p.m_minDraw;
-    }
-    if (p.m_maxDraw > p.m_staticGeometry->depth())
-    {
-      p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
-    }
-
-    if (triggered)
-    {
-      QString format("MinMaxBounds [%1,%2]");
-      QMainWindow* window = NULL;
-      foreach(QWidget *widget, qApp->topLevelWidgets())
-      {
-        if(widget->inherits("QMainWindow"))
-        {
-          window = static_cast<QMainWindow*>(widget);
-          window->setWindowTitle( format.arg(p.m_minDraw).arg(p.m_maxDraw) );
-          break;
-        }
-      }
-    }
-  }
-
-  for (OpenGLInstance *instance : p.m_instances)
-  {
-    if (p.b_rZ) instance->currentTransform().rotate(0.5f, 0.0f, 0.0f, 1.0f);
-    if (p.b_rY) instance->currentTransform().rotate(0.25f, 0.0f, 1.0f, 0.0f);
-    if (p.b_rX) instance->currentTransform().rotate(-1.25f, 1.0f, 0.0f, 0.0f);
+    angle += 2 * 3.1415926 / p.m_renderer.spotLights().size();
   }
 
   // Camera Transformation
@@ -782,164 +491,23 @@ void MainWidget::updateEvent(KUpdateEvent *event)
     }
     p.m_camera.translate(transSpeed * translation);
   }
-  else
-  {
-    if (KInputManager::keyTriggered(Qt::Key_X)) p.b_rX = !p.b_rX;
-    if (KInputManager::keyTriggered(Qt::Key_Y)) p.b_rY = !p.b_rY;
-    if (KInputManager::keyTriggered(Qt::Key_Z)) p.b_rZ = !p.b_rZ;
-  }
 
   if (KInputManager::keyPressed(Qt::Key_Control))
   {
     if (KInputManager::keyTriggered(Qt::Key_O))
     {
-      p.openObj();
+      p.m_renderer.pause(true);
+      QString fileName = QFileDialog::getOpenFileName(
+        this, tr("Open Model"),
+        ".",
+        tr("Wavefront Object File (*.obj))")
+      );
+      if (!fileName.isNull())
+      {
+        makeCurrent();
+        p.loadObj(fileName);
+      }
+      p.m_renderer.pause(false);
     }
   }
-
-  if (KInputManager::keyPressed(Qt::Key_Shift))
-  {
-    auto depthPred = [](size_t numTriangles, size_t depth)->bool { (void)numTriangles; return depth >= 7; };
-    if (KInputManager::keyTriggered(Qt::Key_B))
-    {
-      p.m_staticGeometry = p.m_staticGeometryBottomUp7;
-      p.m_staticGeometryBottomUp7->build(KStaticGeometry::BottomUpMethod, depthPred);
-      p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
-    }
-    if (KInputManager::keyTriggered(Qt::Key_T))
-    {
-      p.m_staticGeometry = p.m_staticGeometryTopDown7;
-      p.m_staticGeometryTopDown7->build(KStaticGeometry::TopDownMethod, depthPred);
-      p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
-    }
-  }
-  else
-  {
-    auto trianglePred = [](size_t numTriangles, size_t depth)->bool { (void)depth; return numTriangles < 500; };
-    if (KInputManager::keyTriggered(Qt::Key_B))
-    {
-      p.m_staticGeometry = p.m_staticGeometryBottomUp500;
-      p.m_staticGeometryBottomUp500->build(KStaticGeometry::BottomUpMethod, trianglePred);
-      p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
-    }
-    if (KInputManager::keyTriggered(Qt::Key_T))
-    {
-      p.m_staticGeometry = p.m_staticGeometryTopDown500;
-      p.m_staticGeometryTopDown500->build(KStaticGeometry::TopDownMethod, trianglePred);
-      p.m_maxDraw = static_cast<int>(p.m_staticGeometry->depth());
-    }
-  }
-
-  // Change Buffer
-  if (KInputManager::keyPressed(Qt::Key_Shift))
-  {
-    if (KInputManager::keyTriggered(Qt::Key_ParenRight))
-    {
-      p.m_presentation = PresentComposition;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_Exclam))
-    {
-      p.m_presentation = PresentDepth;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_At))
-    {
-      p.m_presentation = PresentLinearDepth;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_NumberSign))
-    {
-      p.m_presentation = PresentPosition;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_Dollar))
-    {
-      p.m_presentation = PresentViewNormal;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_Percent))
-    {
-      p.m_presentation = PresentDiffuse;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_AsciiCircum))
-    {
-      p.m_presentation = PresentSpecular;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_Ampersand))
-    {
-      p.m_presentation = PresentVelocity;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_Asterisk))
-    {
-      p.m_presentation = PresentLightAccumulation;
-    }
-  }
-  else
-  {
-    if (KInputManager::keyTriggered(Qt::Key_0))
-    {
-      p.b_bv[0] = !p.b_bv[0];
-    }
-    if (KInputManager::keyTriggered(Qt::Key_1))
-    {
-      p.b_bv[1] = !p.b_bv[1];
-    }
-    if (KInputManager::keyTriggered(Qt::Key_2))
-    {
-      p.b_bv[2] = !p.b_bv[2];
-    }
-    if (KInputManager::keyTriggered(Qt::Key_3))
-    {
-      p.b_bv[3] = !p.b_bv[3];
-    }
-    if (KInputManager::keyTriggered(Qt::Key_4))
-    {
-      p.b_bv[4] = !p.b_bv[4];
-    }
-    if (KInputManager::keyTriggered(Qt::Key_5))
-    {
-      p.b_bv[5] = !p.b_bv[5];
-    }
-    if (KInputManager::keyTriggered(Qt::Key_6))
-    {
-      p.b_bv[6] = !p.b_bv[6];
-    }
-  }
-
-  // Pinching will grow/shrink
-  KPinchGesture pinch;
-  if (KInputManager::pinchGesture(&pinch))
-  {
-    //p.m_transform.scale(pinch.scaleFactor());
-    //p.m_transform.rotate(pinch.lastRotationAngle() - pinch.rotationAngle(), 0.0f, 0.0f, 1.0f);
-  }
-
-  // Panning will translate
-  KPanGesture pan;
-  if (KInputManager::panGesture(&pan))
-  {
-    KVector3D delta = KVector3D(pan.delta().x(), -pan.delta().y(), 0.0f) * 0.1f;
-    //p.m_transform.translate(delta);
-  }
-
-  // Touching will rotate
-  if (KInputManager::touchCount() == 1)
-  {
-    KTouchPoint touch = KInputManager::touchPoint(0);
-    KPointF delta = touch.pos() - touch.lastPos();
-    KVector3D axis(delta.y(), delta.x(), 0.0f);
-    switch (touch.state())
-    {
-    case Qt::TouchPointPressed:
-      p.m_dragVelocity = 0.0f;
-      break;
-    case Qt::TouchPointMoved:
-      p.m_dragAxis = p.m_camera.rotation().rotatedVector(axis);
-      p.m_dragVelocity = axis.length() * 0.1f;
-      p.m_dragAxis.normalize();
-      break;
-    default:
-      break;
-    }
-  }
-
-  // Rotate from drag gesture
-  p.m_dragVelocity *= 0.9f;
-  //p.m_transform.rotate(p.m_dragVelocity, p.m_dragAxis);
 }

@@ -1,21 +1,21 @@
-#ifndef GBUFFERPASS_H
-#define GBUFFERPASS_H GBufferPass
+#ifndef COMPOSITIONPASS_H
+#define COMPOSITIONPASS_H CompositionPass
 
 #include <RenderPasses>
 #include <OpenGLRenderPass>
 
-class GBufferPassPrivate;
-class GBufferPass : public OpenGLRenderPassImpl<GBufferPassId>
+class CompositionPassPrivate;
+class CompositionPass : public OpenGLRenderPassImpl<CompositionPassId>
 {
 public:
-  GBufferPass();
   virtual void initialize();
   virtual void resize(int width, int height);
+  virtual void stage();
   virtual void commit(OpenGLRenderBlock &current, OpenGLRenderBlock &previous);
   virtual void render(OpenGLRenderer &renderer);
   virtual void teardown();
 private:
-  GBufferPassPrivate *m_private;
+  CompositionPassPrivate *m_private;
 };
 
-#endif // GBUFFERPASS_H
+#endif // COMPOSITIONPASS_H

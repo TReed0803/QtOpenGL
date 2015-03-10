@@ -143,6 +143,13 @@ void OpenGLMesh::setUsagePattern(OpenGLMesh::UsagePattern pattern)
   p.m_vertexBuffer.setUsagePattern(pattern);
 }
 
+void OpenGLMesh::create(const char *filename)
+{
+  KHalfEdgeMesh mesh;
+  mesh.create(filename);
+  create(mesh);
+}
+
 void OpenGLMesh::create(const KHalfEdgeMesh &mesh)
 {
   P(OpenGLMeshPrivate);

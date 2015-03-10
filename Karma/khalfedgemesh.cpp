@@ -551,39 +551,27 @@ KHalfEdgeMesh::KHalfEdgeMesh(QObject *parent) :
   // Intentionally Empty
 }
 
-KHalfEdgeMesh::KHalfEdgeMesh(const QString &fileName) :
-  KAbstractMesh(0), m_private(new KHalfEdgeMeshPrivate)
-{
-  P(KHalfEdgeMeshPrivate);
-  KBufferedFileReader reader(fileName, 2048);
-  if (!reader.valid())
-  {
-    qFatal("Failed to open file: `%s`", qPrintable(fileName));
-  }
-  KHalfEdgeObjParser parser(this, &reader);
-  parser.initialize();
-  parser.parse();
-  p.connectBoundaries();
-}
-
-KHalfEdgeMesh::KHalfEdgeMesh(QObject *parent, const QString &fileName) :
-  KAbstractMesh(parent), m_private(new KHalfEdgeMeshPrivate)
-{
-  P(KHalfEdgeMeshPrivate);
-  KBufferedFileReader reader(fileName, 2048);
-  if (!reader.valid())
-  {
-    qFatal("Failed to open file: `%s`", qPrintable(fileName));
-  }
-  KHalfEdgeObjParser parser(this, &reader);
-  parser.initialize();
-  parser.parse();
-  p.connectBoundaries();
-}
-
 KHalfEdgeMesh::~KHalfEdgeMesh()
 {
-  delete m_private;
+  // Intentionally Empty
+}
+
+bool KHalfEdgeMesh::create(const char *fileName)
+{
+  P(KHalfEdgeMeshPrivate);
+  KBufferedFileReader reader(fileName, 2048);
+  if (!reader.valid())
+  {
+    qFatal("Failed to open file: `%s`", qPrintable(fileName));
+  }
+  KHalfEdgeObjParser parser(this, &reader);
+  parser.initialize();
+  if (parser.parse())
+  {
+    p.connectBoundaries();
+    return true;
+  }
+  return false;
 }
 
 KHalfEdgeMesh::VertexIndex KHalfEdgeMesh::addVertex(const KVector3D &v)
@@ -601,74 +589,74 @@ KHalfEdgeMesh::FaceIndex KHalfEdgeMesh::addFace(index_array &a, index_array &b, 
 // Query Commands (start from 1)
 KHalfEdgeMesh::Vertex const *KHalfEdgeMesh::vertex(VertexIndex idx) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.vertex(idx);
 }
 
 const KHalfEdgeMesh::HalfEdge *KHalfEdgeMesh::halfEdge(KHalfEdgeMesh::HalfEdgeIndex idx) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.halfEdge(idx);
 }
 
 KHalfEdgeMesh::Face const *KHalfEdgeMesh::face(FaceIndex idx) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.face(idx);
 }
 
 KHalfEdgeMesh::VertexContainer const &KHalfEdgeMesh::vertices() const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.vertices();
 }
 
 const KHalfEdgeMesh::HalfEdgeContainer &KHalfEdgeMesh::halfEdges() const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.halfEdges();
 }
 
 
 KHalfEdgeMesh::FaceContainer const &KHalfEdgeMesh::faces() const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.faces();
 }
 
 KHalfEdgeMesh::VertexIndex KHalfEdgeMesh::index(Vertex const *v) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.index(v);
 }
 
 KHalfEdgeMesh::HalfEdgeIndex KHalfEdgeMesh::index(const KHalfEdgeMesh::HalfEdge *he) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.index(he);
 }
 
 KHalfEdgeMesh::FaceIndex KHalfEdgeMesh::index(Face const *f) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.index(f);
 }
 
 const KHalfEdgeMesh::HalfEdge *KHalfEdgeMesh::twin(const KHalfEdgeMesh::HalfEdge *he) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.twin(he);
 }
 
 KHalfEdgeMesh::HalfEdge const *KHalfEdgeMesh::twin(HalfEdgeIndex const &idx) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.twin(idx);
 }
 
 KHalfEdgeMesh::HalfEdgeIndex KHalfEdgeMesh::twinIndex(const KHalfEdgeMesh::HalfEdgeIndex &idx) const
 {
-  P(KHalfEdgeMeshPrivate);
+  P(const KHalfEdgeMeshPrivate);
   return p.twinIndex(idx);
 }
 

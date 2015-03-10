@@ -10,6 +10,7 @@ public:
   KTransform3D m_currTransform;
   KTransform3D m_prevTransform;
   OpenGLMaterial m_material;
+  std::string m_meshFile;
 };
 
 
@@ -40,6 +41,18 @@ KTransform3D &OpenGLInstance::previousTransform()
 {
   P(OpenGLInstancePrivate);
   return p.m_prevTransform;
+}
+
+void OpenGLInstance::setMesh(const std::string &fileName)
+{
+  P(OpenGLInstancePrivate);
+  p.m_meshFile = fileName;
+}
+
+const std::string &OpenGLInstance::mesh() const
+{
+  P(const OpenGLInstancePrivate);
+  return p.m_meshFile;
 }
 
 void OpenGLInstance::setMaterial(const OpenGLMaterial &mat)

@@ -1,5 +1,6 @@
 #include "openglinstancegroup.h"
 
+#include <KHalfEdgeMesh>
 #include <KMath>
 #include <KTransform3D>
 
@@ -51,6 +52,8 @@ void OpenGLInstanceGroupPrivate::setMesh(const OpenGLMesh &mesh)
 
 void OpenGLInstanceGroupPrivate::update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous)
 {
+  if (m_instances.empty()) return;
+
   // Map Dynamic Data
   m_buffer.bind();
   m_buffer.reserve(m_instances.size());
@@ -105,6 +108,16 @@ void OpenGLInstanceGroup::create()
   p.create();
 }
 
+void OpenGLInstanceGroup::setMesh(const std::string &fileName)
+{
+  KHalfEdgeMesh mesh;
+  OpenGLMesh glMesh;
+  mesh.create(fileName.c_str());
+  mesh.calculateVertexNormals();
+  glMesh.create(mesh);
+  setMesh(glMesh);
+}
+
 void OpenGLInstanceGroup::setMesh(const OpenGLMesh &mesh)
 {
   P(OpenGLInstanceGroupPrivate);
@@ -120,9 +133,22 @@ void OpenGLInstanceGroup::update(const OpenGLRenderBlock &current, const OpenGLR
 void OpenGLInstanceGroup::draw()
 {
   P(OpenGLInstanceGroupPrivate);
+  if (p.m_instances.empty()) return;
   p.m_mesh.bind();
   p.m_mesh.drawInstanced(0, p.m_instances.size());
   p.m_mesh.release();
+}
+
+void OpenGLInstanceGroup::clear()
+{
+  P(OpenGLInstanceGroupPrivate);
+  p.m_instances.clear();
+}
+
+void OpenGLInstanceGroup::addInstance(OpenGLInstance *instance)
+{
+  P(OpenGLInstanceGroupPrivate);
+  p.m_instances.emplace_back(instance);
 }
 
 OpenGLInstance *OpenGLInstanceGroup::createInstance()

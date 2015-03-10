@@ -1,6 +1,7 @@
 #ifndef KHALFEDGEMESH_H
 #define KHALFEDGEMESH_H KHalfEdgeMesh
 
+#include <KSharedPointer>
 #include <KAbstractMesh>
 #include <KVector3D>
 
@@ -89,10 +90,9 @@ public:
 public:
 
   // Constructors / Destructor
-  explicit KHalfEdgeMesh(QObject *parent = 0);
-  explicit KHalfEdgeMesh(const QString &fileName);
-  KHalfEdgeMesh(QObject *parent, const QString &fileName);
+  KHalfEdgeMesh(QObject *parent = 0);
   ~KHalfEdgeMesh();
+  bool create(char const *fileName);
 
   // Add Commands (Does not check if value already exists!)
   VertexIndex addVertex(const KVector3D &v);
@@ -119,7 +119,7 @@ public:
   void calculateVertexNormals();
 
 private:
-  KHalfEdgeMeshPrivate *m_private;
+  KSharedPointer<KHalfEdgeMeshPrivate> m_private;
 };
 
 inline KHalfEdgeMesh::IndexType::IndexType(index_type value) :

@@ -19,9 +19,12 @@ public:
 
   // Group Manipulation
   void create();
+  void setMesh(const std::string &fileName);
   void setMesh(const OpenGLMesh &mesh);
   void update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous);
   void draw();
+  void clear();
+  void addInstance(OpenGLInstance *instance);
 
   // Group Queries
   OpenGLInstance *createInstance();

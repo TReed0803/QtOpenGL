@@ -5,6 +5,7 @@
 #include <tuple>
 #include <type_traits>
 #include <cstdio>
+#include <cstdint>
 
 // Caches the reenter variable so it can be modified
 // if the container is empty. (Fixes `select from` empty container).
@@ -85,6 +86,8 @@ const QueryContainer<Container> &operator<<(const Container &c, QueryValidator c
   return static_cast<const QueryContainer<Container>&>(c);
 }
 
+typedef std::int64_t KCountResult;
+
 // Note: Multiple from queries are allowed, it acts as a nested for-loop.
 // auto query = select from(variable : container)+ where(condition) [join,exclude](value);
 #define DECLVEC(...) static std::vector<decltype(std::make_tuple(__VA_ARGS__))> _results; if (reenter) goto returnResults
@@ -94,5 +97,10 @@ const QueryContainer<Container> &operator<<(const Container &c, QueryValidator c
 #define WHERE(test) ) { _where = (test);
 #define JOIN(...) { DECLVEC(__VA_ARGS__); if (_where) _results.emplace_back(__VA_ARGS__); DECLRET(); }
 #define EXCLUDE(...) { DECLVEC(__VA_ARGS__); if (!_where) _results.emplace_back(__VA_ARGS__); DECLRET(); }
+
+#define COUNT [&]() { bool _where; KCountResult _num = 0; for (bool reenter = false;;reenter = true
+#define INCREMENT(k) if (reenter) return _num; if (_where) _num += k; } return _num; }
+#define DECREMENT(k) if (reenter) return _num; if (_where) _num -= k; } return _num; }
+
 
 #endif // KLINQ_H

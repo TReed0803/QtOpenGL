@@ -107,6 +107,7 @@ void OpenGLWidget::initializeGL()
 
   // Add a debug messanger if running in debug mode.
 #ifdef    GL_DEBUG
+  printVersionInformation();
   p.m_debugLogger = new QOpenGLDebugLogger(this);
   if (p.m_debugLogger->initialize())
   {
@@ -123,6 +124,8 @@ void OpenGLWidget::initializeGL()
 
   connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), this, SLOT(frameResultAvailable(OpenGLFrameResults)));
   QOpenGLWidget::initializeGL();
+  OpenGLDebugDraw::initialize();
+  GL::setInstance(this);
 }
 
 void OpenGLWidget::resizeGL(int width, int height)
@@ -141,7 +144,7 @@ void OpenGLWidget::paintGL()
 
 void OpenGLWidget::teardownGL()
 {
-  // Intentionally Empty
+  OpenGLDebugDraw::teardown();
 }
 
 /*******************************************************************************

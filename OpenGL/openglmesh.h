@@ -22,6 +22,7 @@ public:
   // Public Methods
   void bind();
   void setUsagePattern(UsagePattern pattern);
+  void create(const char *filename);
   void create(const KHalfEdgeMesh &mesh);
   void draw();
   void drawInstanced(size_t begin, size_t end);

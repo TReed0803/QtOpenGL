@@ -8,16 +8,12 @@
 #include <OpenGLTexture>
 #include <OpenGLFramebufferObject>
 #include <OpenGLRenderBlock>
+#include <OpenGLRenderer>
 
 class LightPassPrivate
 {
 public:
   void constructTexture(OpenGLTexture &t, OpenGLInternalFormat f, int width, int height);
-
-  // Light Types
-  OpenGLSpotLightGroup m_spotLights;
-  OpenGLPointLightGroup m_pointLights;
-  OpenGLDirectionLightGroup m_directionLights;
 
   // Light Accumulation
   OpenGLTexture m_lLighting;
@@ -51,14 +47,6 @@ void LightPass::initialize()
 
   // Create Framebuffer Object
   p.m_lFbo.create();
-
-  // Create Light Groups
-  p.m_spotLights.create();
-  p.m_spotLights.setMesh(":/resources/objects/spotLight.obj");
-  p.m_pointLights.create();
-  p.m_pointLights.setMesh(":/resources/objects/pointLight.obj");
-  p.m_directionLights.create();
-  p.m_directionLights.setMesh(":/resources/objects/quad.obj");
 }
 
 void LightPass::resize(int width, int height)
@@ -81,24 +69,17 @@ void LightPass::resize(int width, int height)
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 
-void LightPass::stage()
-{
-  // Unused
-}
-
 void LightPass::commit(OpenGLRenderBlock &current, OpenGLRenderBlock &previous)
 {
-  P(LightPassPrivate);
+  // Unused
+  (void)current;
   (void)previous;
-
-  p.m_spotLights.update(current);
-  p.m_pointLights.update(current);
-  p.m_directionLights.update(current);
 }
 
 void LightPass::render(OpenGLRenderer &renderer)
 {
   P(LightPassPrivate);
+  (void)renderer;
   OpenGLMarkerScoped _("Light Pass");
 
   GL::glDisable(GL_DEPTH_TEST);
@@ -108,9 +89,7 @@ void LightPass::render(OpenGLRenderer &renderer)
 
   p.m_lFbo.bind();
   GL::glClear(GL_COLOR_BUFFER_BIT);
-  p.m_pointLights.draw();
-  p.m_spotLights.draw();
-  p.m_directionLights.draw();
+  renderer.renderLights();
   p.m_lFbo.release();
 
   GL::glDisable(GL_BLEND);
@@ -122,40 +101,3 @@ void LightPass::teardown()
 {
   delete m_private;
 }
-
-OpenGLSpotLightGroup &LightPass::spotLights()
-{
-  P(LightPassPrivate);
-  return p.m_spotLights;
-}
-
-OpenGLPointLightGroup &LightPass::pointLights()
-{
-  P(LightPassPrivate);
-  return p.m_pointLights;
-}
-
-OpenGLDirectionLightGroup &LightPass::directionLights()
-{
-  P(LightPassPrivate);
-  return p.m_directionLights;
-}
-
-OpenGLSpotLight *LightPass::createSpotLight()
-{
-  P(LightPassPrivate);
-  return p.m_spotLights.createLight();
-}
-
-OpenGLPointLight *LightPass::createPointLight()
-{
-  P(LightPassPrivate);
-  return p.m_pointLights.createLight();
-}
-
-OpenGLDirectionLight *LightPass::createDirectionLight()
-{
-  P(LightPassPrivate);
-  return p.m_directionLights.createLight();
-}
-

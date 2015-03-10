@@ -6,6 +6,7 @@
 #include <OpenGLShaderProgram>
 #include <OpenGLFramebufferObject>
 #include <OpenGLRenderer>
+#include <OpenGLRenderBlock>
 
 class GBufferPassPrivate
 {
@@ -91,14 +92,11 @@ void GBufferPass::resize(int width, int height)
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 
-void GBufferPass::stage()
-{
-  // Unused
-}
-
 void GBufferPass::commit(OpenGLRenderBlock &current, OpenGLRenderBlock &previous)
 {
   // Unused
+  (void)current;
+  (void)previous;
 }
 
 void GBufferPass::render(OpenGLRenderer &renderer)

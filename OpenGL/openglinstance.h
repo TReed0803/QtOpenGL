@@ -3,6 +3,9 @@
 
 class KTransform3D;
 class OpenGLMaterial;
+class KHalfEdgeMesh;
+class OpenGLMesh;
+#include <string>
 
 class OpenGLInstancePrivate;
 class OpenGLInstance
@@ -14,6 +17,8 @@ public:
   KTransform3D &transform();
   KTransform3D &currentTransform();
   KTransform3D &previousTransform();
+  void setMesh(const std::string &fileName);
+  const std::string &mesh() const;
   void setMaterial(OpenGLMaterial const &mat);
   OpenGLMaterial &material();
   OpenGLMaterial const &material() const;

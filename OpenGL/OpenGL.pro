@@ -40,7 +40,10 @@ SOURCES += \
     openglspotlight.cpp \
     openglrenderblock.cpp \
     opengllight.cpp \
-    openglfunctions.cpp
+    openglfunctions.cpp \
+    openglrenderer.cpp \
+    openglinstancemanager.cpp \
+    opengllightmanager.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -89,4 +92,6 @@ HEADERS += \
     opengllight.h \
     opengltranslationlight.h \
     openglrenderpass.h \
-    openglrenderer.h
+    openglrenderer.h \
+    openglinstancemanager.h \
+    opengllightmanager.h
