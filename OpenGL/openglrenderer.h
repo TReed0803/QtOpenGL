@@ -1,15 +1,10 @@
 #ifndef OPENGLRENDERER_H
-#define OPENGLRENDERER_H
+#define OPENGLRENDERER_H OpenGLRenderer
 
+class KScene;
 class OpenGLRenderBlock;
 class OpenGLRenderPass;
-class OpenGLInstance;
-class OpenGLPointLight;
-class OpenGLSpotLight;
-class OpenGLDirectionLight;
-class OpenGLPointLightGroup;
-class OpenGLSpotLightGroup;
-class OpenGLDirectionLightGroup;
+class OpenGLViewport;
 
 class OpenGLRendererPrivate;
 class OpenGLRenderer
@@ -21,22 +16,11 @@ public:
   void create();
   void initialize();
   void resize(int width, int height);
-  void update(OpenGLRenderBlock &current, OpenGLRenderBlock &previous);
-  void render();
+  void commit(const OpenGLViewport &view);
+  void render(const KScene &scene);
   void teardown();
 
-  // Object Creation
-  OpenGLInstance *createInstance();
-  OpenGLPointLight *createPointLight();
-  OpenGLSpotLight *createSpotLight();
-  OpenGLDirectionLight *createDirectionLight();
-  OpenGLPointLightGroup &pointLights();
-  OpenGLSpotLightGroup &spotLights();
-  OpenGLDirectionLightGroup &directionLights();
-
   // Object Manipulation
-  void renderGeometry();
-  void renderLights();
   void pause(bool p);
   bool isPaused() const;
 

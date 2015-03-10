@@ -1,14 +1,14 @@
 #include "lightpass.h"
 
 #include <KMacros>
+#include <KScene>
 
 #include <OpenGLSpotLightGroup>
 #include <OpenGLPointLightGroup>
 #include <OpenGLDirectionLightGroup>
 #include <OpenGLTexture>
 #include <OpenGLFramebufferObject>
-#include <OpenGLRenderBlock>
-#include <OpenGLRenderer>
+#include <OpenGLViewport>
 
 class LightPassPrivate
 {
@@ -69,17 +69,16 @@ void LightPass::resize(int width, int height)
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 
-void LightPass::commit(OpenGLRenderBlock &current, OpenGLRenderBlock &previous)
+void LightPass::commit(const OpenGLViewport &view)
 {
   // Unused
-  (void)current;
-  (void)previous;
+  (void)view;
 }
 
-void LightPass::render(OpenGLRenderer &renderer)
+void LightPass::render(const KScene &scene)
 {
   P(LightPassPrivate);
-  (void)renderer;
+  (void)scene;
   OpenGLMarkerScoped _("Light Pass");
 
   GL::glDisable(GL_DEPTH_TEST);
@@ -89,7 +88,7 @@ void LightPass::render(OpenGLRenderer &renderer)
 
   p.m_lFbo.bind();
   GL::glClear(GL_COLOR_BUFFER_BIT);
-  renderer.renderLights();
+  scene.renderLights();
   p.m_lFbo.release();
 
   GL::glDisable(GL_BLEND);

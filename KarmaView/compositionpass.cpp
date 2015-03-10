@@ -2,10 +2,12 @@
 
 #include <KMacros>
 #include <KInputManager>
+#include <KScene>
 #include <OpenGLMesh>
 #include <OpenGLShaderProgram>
 #include <OpenGLRenderBlock>
 #include <OpenGLRenderer>
+#include <OpenGLViewport>
 
 enum PresentType
 {
@@ -82,11 +84,10 @@ void CompositionPass::stage()
   // Unused
 }
 
-void CompositionPass::commit(OpenGLRenderBlock &current, OpenGLRenderBlock &previous)
+void CompositionPass::commit(const OpenGLViewport &view)
 {
   P(CompositionPassPrivate);
-  (void)current;
-  (void)previous;
+  (void)view;
 
   // Change Buffer (Note: Shouldn't happen in a render pass)
   if (KInputManager::keyTriggered(Qt::Key_ParenRight))
@@ -127,10 +128,10 @@ void CompositionPass::commit(OpenGLRenderBlock &current, OpenGLRenderBlock &prev
   }
 }
 
-void CompositionPass::render(OpenGLRenderer &renderer)
+void CompositionPass::render(const KScene &scene)
 {
   P(CompositionPassPrivate);
-  (void)renderer;
+  (void)scene;
   p.m_presentationProgram[p.m_present]->bind();
   p.m_quadGL.draw();
   p.m_presentationProgram[p.m_present]->release();

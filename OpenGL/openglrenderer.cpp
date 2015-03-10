@@ -3,8 +3,6 @@
 #include <vector>
 #include <KMacros>
 #include <OpenGLRenderPass>
-#include <OpenGLInstanceManager>
-#include <OpenGLLightManager>
 
 class OpenGLRendererPrivate
 {
@@ -15,8 +13,6 @@ public:
 
   bool m_paused;
   RenderPassContainer m_passes;
-  OpenGLInstanceManager m_instanceManager;
-  OpenGLLightManager m_lightManager;
 };
 
 OpenGLRendererPrivate::OpenGLRendererPrivate() :
@@ -34,9 +30,6 @@ OpenGLRenderer::OpenGLRenderer() :
 void OpenGLRenderer::create()
 {
   m_private = new OpenGLRendererPrivate;
-  P(OpenGLRendererPrivate);
-  p.m_lightManager.create();
-  p.m_instanceManager.create();
 }
 
 void OpenGLRenderer::initialize()
@@ -57,23 +50,21 @@ void OpenGLRenderer::resize(int width, int height)
   }
 }
 
-void OpenGLRenderer::update(OpenGLRenderBlock &current, OpenGLRenderBlock &previous)
+void OpenGLRenderer::commit(const OpenGLViewport &view)
 {
   P(OpenGLRendererPrivate);
-  p.m_lightManager.update(current, previous);
-  p.m_instanceManager.update(current, previous);
   for (OpenGLRenderPass *pass : p.m_passes)
   {
-    pass->commit(current, previous);
+    pass->commit(view);
   }
 }
 
-void OpenGLRenderer::render()
+void OpenGLRenderer::render(const KScene &scene)
 {
   P(OpenGLRendererPrivate);
   for (OpenGLRenderPass *pass : p.m_passes)
   {
-    pass->render(*this);
+    pass->render(scene);
   }
 }
 
@@ -85,60 +76,6 @@ void OpenGLRenderer::teardown()
     pass->teardown();
   }
   delete m_private;
-}
-
-OpenGLInstance *OpenGLRenderer::createInstance()
-{
-  P(OpenGLRendererPrivate);
-  return p.m_instanceManager.createInstance();
-}
-
-OpenGLPointLight *OpenGLRenderer::createPointLight()
-{
-  P(OpenGLRendererPrivate);
-  return p.m_lightManager.createPointLight();
-}
-
-OpenGLSpotLight *OpenGLRenderer::createSpotLight()
-{
-  P(OpenGLRendererPrivate);
-  return p.m_lightManager.createSpotLight();
-}
-
-OpenGLDirectionLight *OpenGLRenderer::createDirectionLight()
-{
-  P(OpenGLRendererPrivate);
-  return p.m_lightManager.createDirectionLight();
-}
-
-OpenGLPointLightGroup &OpenGLRenderer::pointLights()
-{
-  P(OpenGLRendererPrivate);
-  return p.m_lightManager.pointLights();
-}
-
-OpenGLSpotLightGroup &OpenGLRenderer::spotLights()
-{
-  P(OpenGLRendererPrivate);
-  return p.m_lightManager.spotLights();
-}
-
-OpenGLDirectionLightGroup &OpenGLRenderer::directionLights()
-{
-  P(OpenGLRendererPrivate);
-  return p.m_lightManager.directionLights();
-}
-
-void OpenGLRenderer::renderGeometry()
-{
-  P(OpenGLRendererPrivate);
-  p.m_instanceManager.render();
-}
-
-void OpenGLRenderer::renderLights()
-{
-  P(OpenGLRendererPrivate);
-  p.m_lightManager.render();
 }
 
 void OpenGLRenderer::pause(bool _p)

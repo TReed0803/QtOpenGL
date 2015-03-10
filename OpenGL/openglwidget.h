@@ -3,6 +3,7 @@
 
 #include <OpenGLFunctions>
 #include <QOpenGLWidget>
+#include <KString>
 
 class KUpdateEvent;
 class OpenGLError;
@@ -29,6 +30,10 @@ public:
 
   // Public Methods
   void printVersionInformation();
+
+  // Static Widget functions
+  static void sMakeCurrent();
+  static KString openFileName(char const *title, char const *dir, char const *fileTypes);
 
 protected:
 

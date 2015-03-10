@@ -8,6 +8,7 @@
 #include <OpenGLLight>
 #include <OpenGLUniformBufferObject>
 #include <OpenGLShaderProgram>
+#include <OpenGLViewport>
 
 class OpenGLRenderBlock;
 
@@ -36,7 +37,7 @@ public:
   typedef typename LightContainer::size_type SizeType;
 
   void prepMesh(OpenGLMesh &mesh);
-  void update(const OpenGLRenderBlock &stats);
+  void commit(const OpenGLViewport &view);
   void draw();
   virtual void initializeMesh(OpenGLMesh &mesh) = 0;
   virtual void translateBuffer(const OpenGLRenderBlock &stats, DataPointer data, ConstLightIterator begin, ConstLightIterator end) = 0;
@@ -80,7 +81,7 @@ void OpenGLLightGroup<T, D>::prepMesh(OpenGLMesh &mesh)
 }
 
 template <typename T, typename D>
-void OpenGLLightGroup<T, D>::update(const OpenGLRenderBlock &stats)
+void OpenGLLightGroup<T, D>::commit(const OpenGLViewport &view)
 {
   if (m_lights.empty()) return;
 
@@ -106,7 +107,7 @@ void OpenGLLightGroup<T, D>::update(const OpenGLRenderBlock &stats)
       qFatal("Failed to map the buffer range!");
     }
 
-    translateBuffer(stats, data, regularLights, m_lights.end());
+    translateBuffer(view.current(), data, regularLights, m_lights.end());
 
     m_buffer.unmap();
     m_buffer.release();
@@ -126,7 +127,7 @@ void OpenGLLightGroup<T, D>::update(const OpenGLRenderBlock &stats)
       qFatal("Failed to map the buffer range!");
     }
 
-    translateUniforms(stats, data, m_uniformOffset, m_lights.begin(), regularLights);
+    translateUniforms(view.current(), data, m_uniformOffset, m_lights.begin(), regularLights);
 
     m_uniforms.unmap();
     m_uniforms.release();

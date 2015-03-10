@@ -7,7 +7,7 @@ class OpenGLDirectionLight;
 class OpenGLPointLightGroup;
 class OpenGLSpotLightGroup;
 class OpenGLDirectionLightGroup;
-class OpenGLRenderBlock;
+class OpenGLViewport;
 #include <KUniquePointer>
 
 class OpenGLLightManagerPrivate;
@@ -17,7 +17,7 @@ public:
   OpenGLLightManager();
   ~OpenGLLightManager();
   void create();
-  void update(OpenGLRenderBlock &current, OpenGLRenderBlock &previous);
+  void commit(const OpenGLViewport &view);
   void render();
   OpenGLPointLight *createPointLight();
   OpenGLSpotLight *createSpotLight();

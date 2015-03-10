@@ -3,8 +3,8 @@
 
 class KHalfEdgeMesh;
 class KMatrix4x4;
-class OpenGLRenderBlock;
 class OpenGLShaderProgram;
+class OpenGLViewport;
 
 #include <OpenGLMesh>
 
@@ -20,7 +20,7 @@ public:
 
   // Virtual
   virtual void prepMesh(OpenGLMesh &mesh) = 0;
-  virtual void update(const OpenGLRenderBlock &stats) = 0;
+  virtual void commit(const OpenGLViewport &view) = 0;
   virtual void draw() = 0;
 
 protected:

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-class OpenGLRenderBlock;
+class OpenGLViewport;
 class OpenGLInstance;
 class OpenGLMesh;
 
@@ -21,7 +21,7 @@ public:
   void create();
   void setMesh(const std::string &fileName);
   void setMesh(const OpenGLMesh &mesh);
-  void update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous);
+  void commit(const OpenGLViewport &view);
   void draw();
   void clear();
   void addInstance(OpenGLInstance *instance);

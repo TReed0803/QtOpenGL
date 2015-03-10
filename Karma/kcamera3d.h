@@ -34,19 +34,21 @@ public:
   // Accessors
   const KVector3D& translation() const;
   const KQuaternion& rotation() const;
-  const KMatrix4x4& toMatrix();
+  const KMatrix4x4& toMatrix() const;
   bool dirty() const;
 
   // Queries
   KVector3D forward() const;
   KVector3D up() const;
   KVector3D right() const;
+  float fieldOfView() const;
 
 private:
-  bool m_dirty;
+  mutable bool m_dirty;
+  float m_fovy;
   KVector3D m_translation;
   KQuaternion m_rotation;
-  KMatrix4x4 m_world;
+  mutable KMatrix4x4 m_world;
 
 #ifndef QT_NO_DATASTREAM
   friend QDataStream &operator<<(QDataStream &out, const KCamera3D &transform);
@@ -57,7 +59,7 @@ private:
 Q_DECLARE_TYPEINFO(KCamera3D, Q_MOVABLE_TYPE);
 
 // Constructors
-inline KCamera3D::KCamera3D() : m_dirty(true) {}
+inline KCamera3D::KCamera3D() : m_dirty(true), m_fovy(45.0f) {}
 
 // Transform By (Add/Scale)
 inline void KCamera3D::translate(float dx, float dy,float dz) { translate(KVector3D(dx, dy, dz)); }

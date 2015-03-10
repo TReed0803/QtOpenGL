@@ -44,7 +44,7 @@ void KCamera3D::setRotation(const KQuaternion &r)
 }
 
 // Accessors
-const KMatrix4x4 &KCamera3D::toMatrix()
+const KMatrix4x4 &KCamera3D::toMatrix() const
 {
   if (m_dirty)
   {
@@ -75,6 +75,11 @@ KVector3D KCamera3D::up() const
 KVector3D KCamera3D::right() const
 {
   return m_rotation.rotatedVector(LocalRight);
+}
+
+float KCamera3D::fieldOfView() const
+{
+  return m_fovy;
 }
 
 // Qt Streams

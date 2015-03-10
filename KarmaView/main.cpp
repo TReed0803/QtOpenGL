@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QSurfaceFormat>
 #include <QMainWindow>
+#include <SampleScene>
 
 static bool checkVersion(QOpenGLContext &context, QSurfaceFormat &format)
 {
@@ -68,6 +69,7 @@ int main(int argc, char *argv[])
   // Set the widget up
   MainWidget *widget = new MainWidget;
   widget->setFormat(*format);
+  //widget->setScene(new SampleScene);
 
   // Set the window up
   QMainWindow window;

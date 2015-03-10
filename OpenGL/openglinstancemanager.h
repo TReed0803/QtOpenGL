@@ -2,7 +2,7 @@
 #define OPENGLINSTANCEMANAGER_H OpenGLInstanceManager
 
 class OpenGLInstance;
-class OpenGLRenderBlock;
+class OpenGLViewport;
 #include <KUniquePointer>
 
 class OpenGLInstanceManagerPrivate;
@@ -12,7 +12,7 @@ public:
   OpenGLInstanceManager();
   ~OpenGLInstanceManager();
   void create();
-  void update(OpenGLRenderBlock &current, OpenGLRenderBlock &previous);
+  void commit(const OpenGLViewport &view);
   void render();
   OpenGLInstance *createInstance();
 private:

@@ -1,12 +1,14 @@
 #include "gbufferpass.h"
 
 #include <KMacros>
+#include <KScene>
 #include <OpenGLMesh>
 #include <OpenGLTexture>
 #include <OpenGLShaderProgram>
 #include <OpenGLFramebufferObject>
 #include <OpenGLRenderer>
 #include <OpenGLRenderBlock>
+#include <OpenGLViewport>
 
 class GBufferPassPrivate
 {
@@ -92,14 +94,13 @@ void GBufferPass::resize(int width, int height)
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 
-void GBufferPass::commit(OpenGLRenderBlock &current, OpenGLRenderBlock &previous)
+void GBufferPass::commit(const OpenGLViewport &view)
 {
   // Unused
-  (void)current;
-  (void)previous;
+  (void)view;
 }
 
-void GBufferPass::render(OpenGLRenderer &renderer)
+void GBufferPass::render(const KScene &scene)
 {
   P(GBufferPassPrivate);
 
@@ -107,7 +108,7 @@ void GBufferPass::render(OpenGLRenderer &renderer)
   p.m_program->bind();
   p.m_gFbo.bind();
   GL::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  renderer.renderGeometry();
+  scene.renderGeometry();
   p.m_gFbo.release();
   p.m_program->release();
 }

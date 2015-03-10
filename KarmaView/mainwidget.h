@@ -3,6 +3,7 @@
 #include <QtOpenGL/qgl.h>
 #include <OpenGLWidget>
 
+class KScene;
 class KUpdateEvent;
 
 class MainWidgetPrivate;
@@ -13,6 +14,7 @@ class MainWidget : public OpenGLWidget
 public:
   MainWidget(QWidget *parent = 0);
   ~MainWidget();
+  void setScene(KScene *scene);
 
 protected:
 

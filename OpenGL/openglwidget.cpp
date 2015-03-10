@@ -5,6 +5,7 @@
 #include "openglprofilervisualizer.h"
 
 #include <QApplication>
+#include <QFileDialog>
 #include <QGestureEvent>
 #include <QKeyEvent>
 #include <QMainWindow>
@@ -16,6 +17,8 @@
 #include <KCommon>
 #include <KInputManager>
 #include <KUpdateEvent>
+
+static OpenGLWidget *sg_widget;
 
 /*******************************************************************************
  * OpenGLWidgetPrivate
@@ -46,6 +49,7 @@ OpenGLWidgetPrivate::OpenGLWidgetPrivate(QObject *parent) :
 OpenGLWidget::OpenGLWidget(QWidget *parent) :
   QOpenGLWidget(parent), m_private(new OpenGLWidgetPrivate(this))
 {
+  sg_widget = this;
   P(OpenGLWidgetPrivate);
   connect(&p.m_frameTimer, SIGNAL(timeout(float)), this, SLOT(frameTimeout(float)));
   OpenGLError::pushErrorHandler(this);
@@ -262,6 +266,16 @@ void OpenGLWidget::gestureEvent(QGestureEvent *event)
 void OpenGLWidget::updateEvent(KUpdateEvent *event)
 {
   (void)event;
+}
+
+void OpenGLWidget::sMakeCurrent()
+{
+  sg_widget->makeCurrent();
+}
+
+KString OpenGLWidget::openFileName(const char *title, const char *dir, const char *fileTypes)
+{
+  return QFileDialog::getOpenFileName(sg_widget, title, dir, fileTypes);
 }
 
 /*******************************************************************************

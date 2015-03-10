@@ -77,6 +77,9 @@ public:
   typedef std::vector<HalfEdge> HalfEdgeContainer;
   typedef std::vector<Face> FaceContainer;
 
+  // Misc. Typedefs
+  typedef size_t SizeType;
+
 public:
 
   struct VertexPositionPred : public std::unary_function<KVector3D const&, Vertex const&>
@@ -105,6 +108,9 @@ public:
   VertexContainer const &vertices() const;
   HalfEdgeContainer const &halfEdges() const;
   FaceContainer const &faces() const;
+  SizeType numVertices() const;
+  SizeType numHalfEdges() const;
+  SizeType numFaces() const;
 
   // Query Commands (element -> index)
   VertexIndex index(Vertex const *v) const;

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <KMacros>
+#include <OpenGLMeshManager>
 #include <OpenGLInstance>
 #include <OpenGLInstanceGroup>
 #include <string>
@@ -35,7 +36,7 @@ void OpenGLInstanceManager::create()
   // Do nothing
 }
 
-void OpenGLInstanceManager::update(OpenGLRenderBlock &current, OpenGLRenderBlock &previous)
+void OpenGLInstanceManager::commit(const OpenGLViewport &view)
 {
   P(OpenGLInstanceManagerPrivate);
 
@@ -67,7 +68,7 @@ void OpenGLInstanceManager::update(OpenGLRenderBlock &current, OpenGLRenderBlock
       OpenGLInstanceGroupPair *pair = new OpenGLInstanceGroupPair;
       pair->meshFile = instance->mesh();
       pair->group.create();
-      pair->group.setMesh(pair->meshFile);
+      pair->group.setMesh(OpenGLMeshManager::mesh(pair->meshFile));
       pair->group.addInstance(instance);
       p.m_groups.push_back(pair);
     }
@@ -80,7 +81,7 @@ void OpenGLInstanceManager::update(OpenGLRenderBlock &current, OpenGLRenderBlock
   // Update all GPU data
   for (OpenGLInstanceGroupPair *pair : p.m_groups)
   {
-    pair->group.update(current, previous);
+    pair->group.commit(view);
   }
 }
 

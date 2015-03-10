@@ -36,13 +36,12 @@ void OpenGLLightManager::create()
   p.m_directionLights.setMesh(":/resources/objects/quad.obj");
 }
 
-void OpenGLLightManager::update(OpenGLRenderBlock &current, OpenGLRenderBlock &previous)
+void OpenGLLightManager::commit(const OpenGLViewport &view)
 {
   P(OpenGLLightManagerPrivate);
-  (void)previous;
-  p.m_spotLights.update(current);
-  p.m_pointLights.update(current);
-  p.m_directionLights.update(current);
+  p.m_spotLights.commit(view);
+  p.m_pointLights.commit(view);
+  p.m_directionLights.commit(view);
 }
 
 void OpenGLLightManager::render()

@@ -3,6 +3,7 @@
 #include <KMacros>
 #include <KMath>
 #include <KMatrix4x4>
+#include <KSize>
 #include <OpenGLRenderBlockData>
 
 class OpenGLRenderBlockPrivate
@@ -46,6 +47,13 @@ void OpenGLRenderBlock::setViewMatrix(const KMatrix4x4 &view)
   p.updateCombinationMatrices();
 }
 
+void OpenGLRenderBlock::setPerspective(float fovy, float aspectRatio, float nearPlane, float farPlane)
+{
+  KMatrix4x4 persp;
+  persp.perspective(fovy, aspectRatio, nearPlane, farPlane);
+  setPerspectiveMatrix(persp);
+}
+
 void OpenGLRenderBlock::setPerspectiveMatrix(const KMatrix4x4 &perspective)
 {
   P(OpenGLRenderBlockPrivate);
@@ -70,6 +78,11 @@ void OpenGLRenderBlock::setDimensions(int width, int height)
   P(OpenGLRenderBlockPrivate);
   p.m_dirty = true;
   p.m_blockData.v_dimensions = glm::vec2(float(width), float(height));
+}
+
+void OpenGLRenderBlock::setDimensions(const KSize &size)
+{
+  setDimensions(size.width(), size.height());
 }
 
 const glm::mat4 &OpenGLRenderBlock::worldToView() const

@@ -52,7 +52,7 @@ KSharedPointer<T>::ReferenceContainer::~ReferenceContainer()
 
 template <typename T>
 KSharedPointer<T>::KSharedPointer() :
-  m_data(NULL)
+  m_data(0)
 {
   // Intentionally Empty
 }

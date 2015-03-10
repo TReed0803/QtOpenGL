@@ -10,6 +10,7 @@
 #include <OpenGLInstanceData>
 #include <OpenGLMaterial>
 #include <OpenGLMesh>
+#include <OpenGLViewport>
 
 /*******************************************************************************
  * OpenGLInstanceGroupPrivate
@@ -24,7 +25,7 @@ public:
 
   void create();
   void setMesh(const OpenGLMesh &mesh);
-  void update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous);
+  void commit(const OpenGLViewport &view);
 
   OpenGLMesh m_mesh;
   BufferType m_buffer;
@@ -50,7 +51,7 @@ void OpenGLInstanceGroupPrivate::setMesh(const OpenGLMesh &mesh)
   m_mesh.release();
 }
 
-void OpenGLInstanceGroupPrivate::update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous)
+void OpenGLInstanceGroupPrivate::commit(const OpenGLViewport &view)
 {
   if (m_instances.empty()) return;
 
@@ -75,10 +76,10 @@ void OpenGLInstanceGroupPrivate::update(const OpenGLRenderBlock &current, const 
   {
     instanceDest   = &dest[i];
     instanceSource = m_instances[i];
-    instanceDest->m_currModelView = current.worldToView() * Karma::ToGlm(instanceSource->currentTransform().toMatrix());
+    instanceDest->m_currModelView = view.current().worldToView() * Karma::ToGlm(instanceSource->currentTransform().toMatrix());
     instanceDest->m_diffuse = Karma::ToGlm(instanceSource->material().diffuse());
     instanceDest->m_normalTransform = glm::transpose(glm::inverse(instanceDest->m_currModelView));
-    instanceDest->m_prevModelView = previous.worldToView() * Karma::ToGlm(instanceSource->previousTransform().toMatrix());
+    instanceDest->m_prevModelView = view.previous().worldToView() * Karma::ToGlm(instanceSource->previousTransform().toMatrix());
     instanceDest->m_specular = Karma::ToGlm(instanceSource->material().specularColor(), instanceSource->material().specularExponent());
     instanceSource->update();
   }
@@ -124,10 +125,10 @@ void OpenGLInstanceGroup::setMesh(const OpenGLMesh &mesh)
   p.setMesh(mesh);
 }
 
-void OpenGLInstanceGroup::update(const OpenGLRenderBlock &current, const OpenGLRenderBlock &previous)
+void OpenGLInstanceGroup::commit(const OpenGLViewport &view)
 {
   P(OpenGLInstanceGroupPrivate);
-  p.update(current, previous);
+  p.commit(view);
 }
 
 void OpenGLInstanceGroup::draw()

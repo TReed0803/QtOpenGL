@@ -6,6 +6,7 @@
 #include <glm/mat4x4.hpp>
 
 class KMatrix4x4;
+class KSize;
 
 class OpenGLRenderBlockPrivate;
 class OpenGLRenderBlock : public OpenGLUniformBufferObject
@@ -18,9 +19,11 @@ public:
 
   // Render Block Properties
   void setViewMatrix(const KMatrix4x4 &view);
+  void setPerspective(float fovy, float aspectRatio, float nearPlane, float farPlane);
   void setPerspectiveMatrix(const KMatrix4x4 &perspective);
   void setNearFar(float nearPlane, float farPlane);
   void setDimensions(int width, int height);
+  void setDimensions(const KSize &size);
 
   // Access Render Block Properties
   const glm::mat4 &worldToView() const;

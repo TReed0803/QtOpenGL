@@ -11,8 +11,8 @@ public:
   virtual void initialize();
   virtual void resize(int width, int height);
   virtual void stage();
-  virtual void commit(OpenGLRenderBlock &current, OpenGLRenderBlock &previous);
-  virtual void render(OpenGLRenderer &renderer);
+  virtual void commit(const OpenGLViewport &view);
+  virtual void render(const KScene &scene);
   virtual void teardown();
 private:
   CompositionPassPrivate *m_private;

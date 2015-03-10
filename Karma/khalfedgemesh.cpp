@@ -624,6 +624,24 @@ KHalfEdgeMesh::FaceContainer const &KHalfEdgeMesh::faces() const
   return p.faces();
 }
 
+KHalfEdgeMesh::SizeType KHalfEdgeMesh::numVertices() const
+{
+  P(const KHalfEdgeMeshPrivate);
+  return p.vertices().size();
+}
+
+KHalfEdgeMesh::SizeType KHalfEdgeMesh::numHalfEdges() const
+{
+  P(const KHalfEdgeMeshPrivate);
+  return p.halfEdges().size();
+}
+
+KHalfEdgeMesh::SizeType KHalfEdgeMesh::numFaces() const
+{
+  P(const KHalfEdgeMeshPrivate);
+  return p.faces().size();
+}
+
 KHalfEdgeMesh::VertexIndex KHalfEdgeMesh::index(Vertex const *v) const
 {
   P(const KHalfEdgeMeshPrivate);
