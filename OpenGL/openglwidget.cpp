@@ -11,6 +11,7 @@
 #include <QOpenGLDebugLogger>
 #include <QOpenGLDebugMessage>
 #include <OpenGLDebugDraw>
+#include <OpenGLFramebufferObject>
 
 #include <KCommon>
 #include <KInputManager>
@@ -133,12 +134,14 @@ void OpenGLWidget::resizeGL(int width, int height)
   P(OpenGLWidgetPrivate);
   p.m_profilerVisualizer.resizeGL(width, height);
   QOpenGLWidget::resizeGL(width, height);
+  OpenGLFramebufferObject::setRelease(defaultFramebufferObject());
 }
 
 void OpenGLWidget::paintGL()
 {
   P(OpenGLWidgetPrivate);
   p.m_profilerVisualizer.paintGL();
+  OpenGLDebugDraw::draw();
   QOpenGLWidget::paintGL();
 }
 

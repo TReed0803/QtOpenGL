@@ -1,56 +1,34 @@
 #include "mainwidget.h"
 
-#include <cmath>
-
-#include <OpenGLBuffer>
-#include <OpenGLFunctions>
-#include <OpenGLInstanceGroup>
-#include <OpenGLShaderProgram>
-#include <OpenGLUniformBufferObject>
-#include <OpenGLVertexArrayObject>
-#include <OpenGLFramebufferObject>
-#include <OpenGLRenderbufferObject>
-#include <OpenGLTexture>
-#include <OpenGLInstance>
-#include <OpenGLMaterial>
-#include <OpenGLPointLightGroup>
-#include <OpenGLSpotLightGroup>
-#include <OpenGLDirectionLightGroup>
-#include <OpenGLRenderBlock>
-#include <OpenGLPointLight>
-#include <OpenGLSpotLight>
-#include <OpenGLDirectionLight>
-#include <OpenGLRenderer>
-
-#include <KCamera3D>
-#include <OpenGLDebugDraw>
-#include <KInputManager>
-#include <KMatrix4x4>
-#include <KPanGesture>
-#include <KPinchGesture>
-#include <KPointF>
-#include <KTransform3D>
-#include <KVector2D>
-#include <KVertex>
-#include <KStaticGeometry>
-
-// Bounding Volumes
-#include <KAabbBoundingVolume>
-#include <KSphereBoundingVolume>
-#include <KEllipsoidBoundingVolume>
-#include <KOrientedBoundingVolume>
-
-#include <Qt>
+// Qt Helpers
 #include <QElapsedTimer>
 #include <QFileDialog>
-#include <QOpenGLFramebufferObject>
-#include <OpenGLMesh>
-#include <KHalfEdgeMesh>
-#include <KLinq>
-#include <OpenGLUniformManager>
-#include <QMainWindow>
-#include <QApplication>
 
+// Karma Abstractions
+#include <KMath>
+#include <KLinq>
+#include <KMacros>
+#include <KCamera3D>
+#include <KInputManager>
+#include <KHalfEdgeMesh>
+
+// OpenGL Functionality
+#include <OpenGLRenderBlock>
+#include <OpenGLRenderer>
+#include <OpenGLUniformManager>
+#include <OpenGLTexture>
+#include <OpenGLSpotLight>
+#include <OpenGLPointLight>
+#include <OpenGLDirectionLight>
+#include <OpenGLSpotLightGroup>
+#include <OpenGLPointLightGroup>
+#include <OpenGLDirectionLightGroup>
+#include <OpenGLInstance>
+#include <OpenGLMaterial>
+#include <OpenGLMesh>
+#include <OpenGLShaderProgram>
+
+// Render Passes
 #include <GBufferPass>
 #include <LightPass>
 #include <CompositionPass>
@@ -243,7 +221,6 @@ void MainWidgetPrivate::paintGL()
     m_renderer.render();
   }
   OpenGLProfiler::EndFrame();
-  OpenGLDebugDraw::draw();
 }
 
 void MainWidgetPrivate::teardownGL()
@@ -403,7 +380,6 @@ void MainWidget::resizeGL(int width, int height)
   P(MainWidgetPrivate);
   p.resizeGL(width, height);
   OpenGLWidget::resizeGL(width, height);
-  OpenGLFramebufferObject::setRelease(defaultFramebufferObject());
 }
 
 void MainWidget::paintGL()
