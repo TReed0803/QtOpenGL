@@ -1,5 +1,6 @@
 #include "opengluniformbuffermanager.h"
 
+#include <KNullable>
 #include <algorithm>
 #include <unordered_map>
 #include <OpenGLUniformBufferObject>
@@ -30,7 +31,7 @@ struct OpenGLUniformMapping
 {
   typedef T ValueType;
   typedef OpenGLShaderProgramPair<ValueType> PairType;
-  ValueType value;
+  KNullable<ValueType> value;
   std::vector<PairType> programs;
 };
 
@@ -137,7 +138,7 @@ template <typename T>
 static void set(const std::string &name, unsigned value)
 {
   auto &mapping = resolveMapping<T>(name);
-  if (mapping.value != value)
+  if (*mapping.value != value)
   {
     mapping.value = value;
     for (auto &pair : mapping.programs)
@@ -159,7 +160,10 @@ static void registerCallback(const std::string &name, OpenGLShaderProgram &progr
   if (validLocation<T>(location))
   {
     mapping.programs.emplace_back(&program, location);
-    scheduleUpdate<T>(&program, location, mapping.value);
+    if (mapping.value)
+    {
+      scheduleUpdate<T>(&program, location, mapping.value);
+    }
   }
 }
 

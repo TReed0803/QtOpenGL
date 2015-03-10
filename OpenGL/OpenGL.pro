@@ -94,4 +94,5 @@ HEADERS += \
     openglrenderpass.h \
     openglrenderer.h \
     openglinstancemanager.h \
-    opengllightmanager.h
+    opengllightmanager.h \
+    knullable.h
