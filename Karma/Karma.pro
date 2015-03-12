@@ -29,8 +29,7 @@ SOURCES += \
     kmath.cpp \
     kmatrix3x3.cpp \
     kstaticgeometry.cpp \
-    kepossphere.cpp \
-    kscene.cpp
+    kepossphere.cpp
 
 HEADERS += \
     kcolor.h \
@@ -78,8 +77,7 @@ HEADERS += \
     ksharedpointer.h \
     kdebugvertex.h \
     kuniquepointer.h \
-    kabstractscene.h \
-    kscene.h \
     kelapsedtimer.h \
     kdebug.h \
-    knullable.h
+    knullable.h \
+    kstack.h

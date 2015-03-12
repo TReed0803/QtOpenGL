@@ -5,6 +5,7 @@
 #include <OpenGLMeshManager>
 #include <OpenGLInstance>
 #include <OpenGLInstanceGroup>
+#include <OpenGLMesh>
 #include <string>
 
 struct OpenGLInstanceGroupPair
@@ -66,11 +67,19 @@ void OpenGLInstanceManager::commit(const OpenGLViewport &view)
     // Add the new instance group
     {
       OpenGLInstanceGroupPair *pair = new OpenGLInstanceGroupPair;
-      pair->meshFile = instance->mesh();
-      pair->group.create();
-      pair->group.setMesh(OpenGLMeshManager::mesh(pair->meshFile));
-      pair->group.addInstance(instance);
-      p.m_groups.push_back(pair);
+      const OpenGLMesh &mesh = OpenGLMeshManager::mesh(instance->mesh());
+      if (mesh.isCreated())
+      {
+        pair->meshFile = instance->mesh();
+        pair->group.create();
+        pair->group.setMesh(mesh);
+        pair->group.addInstance(instance);
+        p.m_groups.push_back(pair);
+      }
+      else
+      {
+        qFatal("Attempted to activate mesh which has not been created!");
+      }
     }
 
     // Continue since the instance was already found
@@ -85,9 +94,9 @@ void OpenGLInstanceManager::commit(const OpenGLViewport &view)
   }
 }
 
-void OpenGLInstanceManager::render()
+void OpenGLInstanceManager::render() const
 {
-  P(OpenGLInstanceManagerPrivate);
+  P(const OpenGLInstanceManagerPrivate);
   for (OpenGLInstanceGroupPair *pair : p.m_groups)
   {
     pair->group.draw();

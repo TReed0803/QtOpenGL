@@ -1,7 +1,7 @@
 #ifndef OPENGLRENDERPASS_H
 #define OPENGLRENDERPASS_H OpenGLRenderPass
 
-class KScene;
+class OpenGLScene;
 class OpenGLViewport;
 class OpenGLRenderer;
 
@@ -11,8 +11,8 @@ public:
   virtual unsigned id() const = 0;
   virtual void initialize() = 0;
   virtual void resize(int width, int height) = 0;
-  virtual void commit(const OpenGLViewport &view) = 0;
-  virtual void render(const KScene &scene) = 0;
+  virtual void commit(OpenGLViewport &view) = 0;
+  virtual void render(OpenGLScene &scene) = 0;
   virtual void teardown() = 0;
 };
 

@@ -108,8 +108,14 @@ SampleScene::SampleScene() :
   // Intentionally Empty
 }
 
+SampleScene::~SampleScene()
+{
+  // Intentionally Empty
+}
+
 void SampleScene::start()
 {
+  OpenGLScene::start();
   P(SampleScenePrivate);
 
   // Initialize the camera
@@ -117,6 +123,7 @@ void SampleScene::start()
   p.m_camera.setRotation(-20.0f, 1.0f, 0.0f, 0.0f);
   p.m_viewport.create();
   p.m_viewport.setCamera(p.m_camera);
+  p.m_viewport.activate();
 
   // Initialize the Direction Light Group
   for (int i = 0; i < 1; ++i)
@@ -281,5 +288,5 @@ void SampleScene::update(KUpdateEvent *event)
 
 void SampleScene::end()
 {
-  // Intentionally Empty
+  OpenGLScene::end();
 }

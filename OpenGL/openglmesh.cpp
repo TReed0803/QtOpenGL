@@ -205,3 +205,9 @@ void OpenGLMesh::release()
   P(OpenGLMeshPrivate);
   p.m_vertexArrayObject.release();
 }
+
+bool OpenGLMesh::isCreated() const
+{
+  P(const OpenGLMeshPrivate);
+  return p.m_indexBuffer.isCreated() && p.m_vertexBuffer.isCreated() && p.m_vertexArrayObject.isCreated();
+}

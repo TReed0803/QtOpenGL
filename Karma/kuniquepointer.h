@@ -18,6 +18,7 @@ public:
   ConstValueReference operator*() const;
   ValueReference operator->();
   ConstValueReference operator->() const;
+  void operator=(ValuePointer value);
 private:
   ValuePointer m_data;
 };
@@ -64,6 +65,13 @@ template <typename T>
 auto KUniquePointer<T>::operator->() const -> ConstValueReference
 {
   return *m_data;
+}
+
+template <typename T>
+void KUniquePointer<T>::operator=(ValuePointer value)
+{
+  delete m_data;
+  m_data = value;
 }
 
 #endif // KUNIQUEPOINTER_H

@@ -1,9 +1,12 @@
 #include "openglviewport.h"
 
 #include <KMacros>
+#include <KVector2D>
 #include <KCamera3D>
 #include <KSize>
+#include <KSizeF>
 #include <OpenGLRenderBlock>
+#include <OpenGLRenderer>
 
 class OpenGLViewportPrivate
 {
@@ -22,14 +25,17 @@ public:
   float m_nearPlane;
   float m_farPlane;
   bool m_dirty;
-  KSize m_dimensions;
+  KVector2D m_origin;
+  KSizeF m_dimensions;
+  KSize m_pixelDimensions;
   const KCamera3D *m_camera;
   OpenGLRenderBlock m_renderBlocks[2];
   int m_renderBlockIndex[2];
   int m_renderBlockBindings[2];
 };
 
-OpenGLViewportPrivate::OpenGLViewportPrivate()
+OpenGLViewportPrivate::OpenGLViewportPrivate() :
+  m_nearPlane(0.1f), m_farPlane(1000.0f), m_origin(0.0f, 0.0f), m_dimensions(1.0f, 1.0f)
 {
   m_renderBlockIndex[0] = 0;    // Current Index
   m_renderBlockIndex[1] = 1;    // Previous Index
@@ -86,7 +92,7 @@ void OpenGLViewportPrivate::updateRenderBlocks()
 }
 
 OpenGLViewport::OpenGLViewport() :
-  m_private(new OpenGLViewportPrivate)
+  m_private(0)
 {
   // Intentionally Empty
 }
@@ -98,6 +104,7 @@ OpenGLViewport::~OpenGLViewport()
 
 void OpenGLViewport::create()
 {
+  m_private = new OpenGLViewportPrivate;
   P(OpenGLViewportPrivate);
   for (int i = 0; i < 2; ++i)
   {
@@ -125,9 +132,9 @@ void OpenGLViewport::release()
 void OpenGLViewport::resize(int width, int height)
 {
   P(OpenGLViewportPrivate);
-  p.m_dimensions.setWidth(width);
-  p.m_dimensions.setHeight(height);
-  p.m_aspectRatio = width / float(height);
+  p.m_pixelDimensions.setWidth(width * p.m_dimensions.width());
+  p.m_pixelDimensions.setHeight(height * p.m_dimensions.height());
+  p.m_aspectRatio = p.m_pixelDimensions.width() / float(p.m_pixelDimensions.height());
   p.m_dirty = true;
 }
 
@@ -146,15 +153,17 @@ void OpenGLViewport::setNearFar(float nearPlane, float farPlane)
   p.m_dirty = true;
 }
 
-void OpenGLViewport::setWidthHeight(int width, int height)
+void OpenGLViewport::setRegion(float x, float y, float w, float h)
 {
   P(OpenGLViewportPrivate);
-  p.m_dimensions.setWidth(width);
-  p.m_dimensions.setHeight(height);
+  p.m_origin.setX(x);
+  p.m_origin.setY(y);
+  p.m_dimensions.setWidth(w);
+  p.m_dimensions.setHeight(h);
   p.m_dirty = true;
 }
 
-void OpenGLViewport::update()
+void OpenGLViewport::commit()
 {
   P(OpenGLViewportPrivate);
   if (!p.m_camera) return;
@@ -164,7 +173,7 @@ void OpenGLViewport::update()
   {
     p.swapRenderBlocks();
     p.currentRenderBlock().setNearFar(p.m_nearPlane, p.m_farPlane);
-    p.currentRenderBlock().setDimensions(p.m_dimensions);
+    p.currentRenderBlock().setDimensions(p.m_pixelDimensions);
     p.currentRenderBlock().setPerspective(p.m_camera->fieldOfView(), p.m_aspectRatio, p.m_nearPlane, p.m_farPlane);
     p.currentRenderBlock().setViewMatrix(p.m_camera->toMatrix());
   }
@@ -173,6 +182,11 @@ void OpenGLViewport::update()
     p.fixRenderBlocks();
   }
   p.updateRenderBlocks();
+}
+
+void OpenGLViewport::activate()
+{
+  OpenGLRenderer::activateViewport(this);
 }
 
 const OpenGLRenderBlock &OpenGLViewport::previous() const

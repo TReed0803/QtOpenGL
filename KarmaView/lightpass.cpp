@@ -1,7 +1,7 @@
 #include "lightpass.h"
 
 #include <KMacros>
-#include <KScene>
+#include <OpenGLScene>
 
 #include <OpenGLSpotLightGroup>
 #include <OpenGLPointLightGroup>
@@ -69,13 +69,13 @@ void LightPass::resize(int width, int height)
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 
-void LightPass::commit(const OpenGLViewport &view)
+void LightPass::commit(OpenGLViewport &view)
 {
   // Unused
   (void)view;
 }
 
-void LightPass::render(const KScene &scene)
+void LightPass::render(OpenGLScene &scene)
 {
   P(LightPassPrivate);
   (void)scene;

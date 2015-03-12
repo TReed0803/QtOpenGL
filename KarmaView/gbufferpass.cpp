@@ -1,7 +1,7 @@
 #include "gbufferpass.h"
 
 #include <KMacros>
-#include <KScene>
+#include <OpenGLScene>
 #include <OpenGLMesh>
 #include <OpenGLTexture>
 #include <OpenGLShaderProgram>
@@ -94,13 +94,13 @@ void GBufferPass::resize(int width, int height)
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 
-void GBufferPass::commit(const OpenGLViewport &view)
+void GBufferPass::commit(OpenGLViewport &view)
 {
   // Unused
   (void)view;
 }
 
-void GBufferPass::render(const KScene &scene)
+void GBufferPass::render(OpenGLScene &scene)
 {
   P(GBufferPassPrivate);
 

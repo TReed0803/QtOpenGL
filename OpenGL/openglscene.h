@@ -1,5 +1,5 @@
-#ifndef KSCENE_H
-#define KSCENE_H KScene
+#ifndef OPENGLSCENE_H
+#define OPENGLSCENE_H OpenGLScene
 
 class KUpdateEvent;
 class OpenGLInstance;
@@ -10,12 +10,18 @@ class OpenGLPointLightGroup;
 class OpenGLSpotLightGroup;
 class OpenGLDirectionLightGroup;
 class OpenGLViewport;
-#include <KAbstractScene>
+#include <KUniquePointer>
 
-class KScenePrivate;
-class KScene : public KAbstractScene
+class OpenGLScenePrivate;
+class OpenGLScene
 {
 public:
+
+  // Constructors / Destructor
+  OpenGLScene();
+  ~OpenGLScene();
+
+  // Virtual Scene functions
   virtual void start();
   virtual void update(KUpdateEvent *event);
   virtual void end();
@@ -28,12 +34,12 @@ public:
   OpenGLPointLightGroup &pointLights();
   OpenGLSpotLightGroup &spotLights();
   OpenGLDirectionLightGroup &directionLights();
-  void renderGeometry() const;
-  void renderLights() const;
+  void renderGeometry();
+  void renderLights();
   void commit(const OpenGLViewport &view);
 
 private:
-  KScenePrivate *m_private;
+  KUniquePointer<OpenGLScenePrivate> m_private;
 };
 
-#endif // KSCENE_H
+#endif // OPENGLSCENE_H

@@ -18,8 +18,8 @@ public:
   LightPass();
   virtual void initialize();
   virtual void resize(int width, int height);
-  virtual void commit(const OpenGLViewport &view);
-  virtual void render(const KScene &scene);
+  virtual void commit(OpenGLViewport &view);
+  virtual void render(OpenGLScene &scene);
   virtual void teardown();
 private:
   LightPassPrivate *m_private;

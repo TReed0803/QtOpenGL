@@ -31,6 +31,7 @@ public:
   void vertexAttribPointerDivisor(int location, int elements, OpenGLElementType type, bool normalized, int stride, int offset, int divisor);
   void vertexAttribPointerDivisor(int location, int elements, int count, OpenGLElementType type, bool normalized, int stride, int offset, int divisor);
   void release();
+  bool isCreated() const;
 
 private:
   KSharedPointer<OpenGLMeshPrivate> m_private;

@@ -17,8 +17,9 @@ public:
   void resize(int width, int height);
   void setCamera(const KCamera3D &camera);
   void setNearFar(float nearPlane, float farPlane);
-  void setWidthHeight(int width, int height);
-  void update();
+  void setRegion(float x, float y, float w, float h);
+  void commit();
+  void activate();
   const OpenGLRenderBlock &current() const;
   const OpenGLRenderBlock &previous() const;
 private:

@@ -2,7 +2,7 @@
 
 #include <KMacros>
 #include <KInputManager>
-#include <KScene>
+#include <OpenGLScene>
 #include <OpenGLMesh>
 #include <OpenGLShaderProgram>
 #include <OpenGLRenderBlock>
@@ -84,7 +84,7 @@ void CompositionPass::stage()
   // Unused
 }
 
-void CompositionPass::commit(const OpenGLViewport &view)
+void CompositionPass::commit(OpenGLViewport &view)
 {
   P(CompositionPassPrivate);
   (void)view;
@@ -128,7 +128,7 @@ void CompositionPass::commit(const OpenGLViewport &view)
   }
 }
 
-void CompositionPass::render(const KScene &scene)
+void CompositionPass::render(OpenGLScene &scene)
 {
   P(CompositionPassPrivate);
   (void)scene;

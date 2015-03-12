@@ -1,7 +1,7 @@
 #ifndef OPENGLRENDERER_H
 #define OPENGLRENDERER_H OpenGLRenderer
 
-class KScene;
+class OpenGLScene;
 class OpenGLRenderBlock;
 class OpenGLRenderPass;
 class OpenGLViewport;
@@ -13,12 +13,14 @@ public:
   OpenGLRenderer();
 
   // Render Passes
+  void bind();
   void create();
   void initialize();
   void resize(int width, int height);
-  void commit(const OpenGLViewport &view);
-  void render(const KScene &scene);
+  void commit(OpenGLViewport &view);
+  void render(OpenGLScene &scene);
   void teardown();
+  void release();
 
   // Object Manipulation
   void pause(bool p);
@@ -29,6 +31,9 @@ public:
   T *addPass();
   template <typename T>
   T *pass();
+
+  void registerViewport(OpenGLViewport *view);
+  static void activateViewport(OpenGLViewport *view);
 
 private:
   OpenGLRenderPass *getPass(unsigned id);

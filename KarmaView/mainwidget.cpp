@@ -1,16 +1,20 @@
 #include "mainwidget.h"
 
-#include <KScene> // Note: OpenGLScene?
+// OpenGL Framework
 #include <OpenGLRenderer>
 #include <OpenGLViewport>
 #include <OpenGLShaderProgram>
 #include <OpenGLTexture>
 #include <OpenGLUniformManager>
+#include <OpenGLSceneManager>
 
 // Render Passes
 #include <GBufferPass>
 #include <LightPass>
 #include <CompositionPass>
+
+// Scenes
+#include <SampleScene>
 
 /*******************************************************************************
  * MainWidgetPrivate
@@ -18,7 +22,6 @@
 class MainWidgetPrivate
 {
 public:
-  MainWidgetPrivate();
 
   // GL Methods
   void initializeGL();
@@ -35,15 +38,8 @@ public:
 
   // Render Data
   OpenGLRenderer m_renderer;
-  KScene *m_scene;
-  OpenGLViewport *m_view;
+  OpenGLSceneManager m_sceneManager;
 };
-
-MainWidgetPrivate::MainWidgetPrivate() :
-  m_scene(0), m_view(0)
-{
-  // Intentionally Empty
-}
 
 /*******************************************************************************
  * MainWidgetPrivate::OpenGL Methods
@@ -70,6 +66,7 @@ void MainWidgetPrivate::initializeGL()
 
   // Create Renderer
   m_renderer.create();
+  m_renderer.bind();
   m_renderer.addPass<GBufferPass>();
   m_renderer.addPass<LightPass>();
   m_renderer.addPass<CompositionPass>();
@@ -78,28 +75,15 @@ void MainWidgetPrivate::initializeGL()
 
 void MainWidgetPrivate::resizeGL(int width, int height)
 {
-  if (m_view)
-  {
-    m_view->setWidthHeight(width, height);
-  }
   m_renderer.resize(width, height);
 }
 
 void MainWidgetPrivate::paintGL()
 {
   OpenGLProfiler::BeginFrame();
-  if (m_view && m_scene)
+  if (m_sceneManager.activeScene())
   {
-    OpenGLMarkerScoped _("Total Render Time");
-    {
-      OpenGLMarkerScoped _("Prepare Scene");
-      m_renderer.commit(*m_view);
-      m_scene->commit(*m_view);
-    }
-    {
-      OpenGLMarkerScoped _("Render Scene");
-      m_renderer.render(*m_scene);
-    }
+    m_renderer.render(*m_sceneManager.currentScene());
   }
   OpenGLProfiler::EndFrame();
 }
@@ -129,12 +113,6 @@ MainWidget::~MainWidget()
   delete m_private;
 }
 
-void MainWidget::setScene(KScene *scene)
-{
-  P(MainWidgetPrivate);
-  p.m_scene = scene;
-}
-
 /*******************************************************************************
  * OpenGL Methods
  ******************************************************************************/
@@ -144,6 +122,7 @@ void MainWidget::initializeGL()
   m_private = new MainWidgetPrivate;
   P(MainWidgetPrivate);
   p.initializeGL();
+  p.m_sceneManager.pushScene(new SampleScene);
 }
 
 void MainWidget::resizeGL(int width, int height)
@@ -169,8 +148,6 @@ void MainWidget::paintGL()
 void MainWidget::updateEvent(KUpdateEvent *event)
 {
   P(MainWidgetPrivate);
-  if (p.m_scene)
-  {
-    p.m_scene->update(event);
-  }
+  makeCurrent();
+  p.m_sceneManager.update(event);
 }

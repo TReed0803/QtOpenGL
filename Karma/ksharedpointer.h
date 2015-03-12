@@ -32,6 +32,7 @@ public:
   ConstPointerType operator->() const;
   ConstReferenceType operator*() const;
   void operator=(const KSharedPointer &rhs);
+  void operator=(PointerType rhs);
 
 private:
   ReferenceContainer *m_data;
@@ -117,6 +118,13 @@ void KSharedPointer<T>::operator=(const KSharedPointer &rhs)
   if (m_data) --m_data->m_references;
   m_data = rhs.m_data;
   if (m_data) ++m_data->m_references;
+}
+
+template <typename T>
+void KSharedPointer<T>::operator=(PointerType rhs)
+{
+  if (m_data) --m_data->m_references;
+  m_data = new ReferenceContainer(rhs);
 }
 
 #endif // KSHAREDPOINTER_H

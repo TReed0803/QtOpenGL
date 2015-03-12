@@ -45,7 +45,9 @@ SOURCES += \
     openglinstancemanager.cpp \
     opengllightmanager.cpp \
     openglmeshmanager.cpp \
-    openglviewport.cpp
+    openglviewport.cpp \
+    openglscenemanager.cpp \
+    openglscene.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -99,4 +101,6 @@ HEADERS += \
     opengllightmanager.h \
     openglmeshmanager.h \
     openglcontext.h \
-    openglviewport.h
+    openglviewport.h \
+    openglscenemanager.h \
+    openglscene.h
