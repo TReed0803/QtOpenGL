@@ -17,6 +17,7 @@ uniform CurrentRenderBlock
   highp mat4 ViewToPersp;
   highp mat4 PerspToView;
   highp vec2 Dimensions;
+  highp vec2 ViewportOffset;
   highp float NearPlane;
   highp float FarPlane;
   highp float DiffPlane;
@@ -33,6 +34,7 @@ uniform PreviousRenderBlock
   highp mat4 ViewToPersp;
   highp mat4 PerspToView;
   highp vec2 Dimensions;
+  highp vec2 ViewportOffset;
   highp float NearPlane;
   highp float FarPlane;
   highp float DiffPlane;

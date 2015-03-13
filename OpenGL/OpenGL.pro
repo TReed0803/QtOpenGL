@@ -47,7 +47,9 @@ SOURCES += \
     openglmeshmanager.cpp \
     openglviewport.cpp \
     openglscenemanager.cpp \
-    openglscene.cpp
+    openglscene.cpp \
+    openglrenderview.cpp \
+    openglrenderpassqueue.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -103,4 +105,6 @@ HEADERS += \
     openglcontext.h \
     openglviewport.h \
     openglscenemanager.h \
-    openglscene.h
+    openglscene.h \
+    openglrenderview.h \
+    openglrenderpassqueue.h

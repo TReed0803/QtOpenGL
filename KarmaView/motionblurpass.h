@@ -1,21 +1,21 @@
-#ifndef GBUFFERPASS_H
-#define GBUFFERPASS_H GBufferPass
+#ifndef MOTIONBLURPASS_H
+#define MOTIONBLURPASS_H MotionBlurPass
 
 #include <RenderPasses>
 #include <OpenGLRenderPass>
 
-class GBufferPassPrivate;
-class GBufferPass : public OpenGLRenderPassImpl<GBufferPass, GBufferPassId>
+class MotionBlurPassPrivate;
+class MotionBlurPass : public OpenGLRenderPassImpl<MotionBlurPass, MotionBlurPassId>
 {
 public:
-  GBufferPass();
+  MotionBlurPass();
   virtual void initialize();
   virtual void resize(int width, int height);
   virtual void commit(OpenGLViewport &view);
   virtual void render(OpenGLScene &scene);
   virtual void teardown();
 private:
-  GBufferPassPrivate *m_private;
+  MotionBlurPassPrivate *m_private;
 };
 
-#endif // GBUFFERPASS_H
+#endif // MOTIONBLURPASS_H

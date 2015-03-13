@@ -14,26 +14,34 @@ public:
   virtual void commit(OpenGLViewport &view) = 0;
   virtual void render(OpenGLScene &scene) = 0;
   virtual void teardown() = 0;
+  virtual OpenGLRenderPass *clone() const = 0;
 };
 
-template <unsigned ID>
+template <typename PASS, unsigned ID>
 class OpenGLRenderPassImpl : public OpenGLRenderPass
 {
 public:
   virtual unsigned id() const;
+  virtual OpenGLRenderPass *clone() const;
   static unsigned passId();
 };
 
-template <unsigned ID>
-unsigned OpenGLRenderPassImpl<ID>::id() const
+template <typename PASS, unsigned ID>
+unsigned OpenGLRenderPassImpl<PASS, ID>::id() const
 {
   return ID;
 }
 
-template <unsigned ID>
-unsigned OpenGLRenderPassImpl<ID>::passId()
+template <typename PASS, unsigned ID>
+unsigned OpenGLRenderPassImpl<PASS, ID>::passId()
 {
   return ID;
+}
+
+template <typename PASS, unsigned ID>
+OpenGLRenderPass *OpenGLRenderPassImpl<PASS, ID>::clone() const
+{
+  return new PASS();
 }
 
 #endif // OPENGLRENDERPASS_H

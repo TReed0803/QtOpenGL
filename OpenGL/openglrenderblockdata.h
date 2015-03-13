@@ -20,6 +20,7 @@ public:
 
   // Render Settings
   glm::vec2 v_dimensions;
+  glm::vec2 v_offset;
   float f_nearPlane;
   float f_farPlane;
   float f_diffPlane;

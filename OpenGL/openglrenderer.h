@@ -15,9 +15,7 @@ public:
   // Render Passes
   void bind();
   void create();
-  void initialize();
   void resize(int width, int height);
-  void commit(OpenGLViewport &view);
   void render(OpenGLScene &scene);
   void teardown();
   void release();
@@ -29,14 +27,11 @@ public:
   // Pass Manipulation
   template <typename T>
   T *addPass();
-  template <typename T>
-  T *pass();
 
   void registerViewport(OpenGLViewport *view);
   static void activateViewport(OpenGLViewport *view);
 
 private:
-  OpenGLRenderPass *getPass(unsigned id);
   void addPass(OpenGLRenderPass *pass);
   OpenGLRendererPrivate *m_private;
 };
@@ -47,12 +42,6 @@ T *OpenGLRenderer::addPass()
   T *pass = new T;
   addPass(pass);
   return pass;
-}
-
-template <typename T>
-T *OpenGLRenderer::pass()
-{
-  return getPass(T::passIdentifier());
 }
 
 #endif // OPENGLRENDERER_H

@@ -1,5 +1,5 @@
-#ifndef LIGHTPASS_H
-#define LIGHTPASS_H LightPass
+#ifndef LIGHTACCUMULATIONPASS_H
+#define LIGHTACCUMULATIONPASS_H LightAccumulationPass
 
 #include <RenderPasses>
 #include <OpenGLRenderPass>
@@ -11,18 +11,18 @@ class OpenGLSpotLightGroup;
 class OpenGLPointLightGroup;
 class OpenGLDirectionLightGroup;
 
-class LightPassPrivate;
-class LightPass : public OpenGLRenderPassImpl<LightAccumulationPassId>
+class LightAccumulationPassPrivate;
+class LightAccumulationPass : public OpenGLRenderPassImpl<LightAccumulationPass, LightAccumulationPassId>
 {
 public:
-  LightPass();
+  LightAccumulationPass();
   virtual void initialize();
   virtual void resize(int width, int height);
   virtual void commit(OpenGLViewport &view);
   virtual void render(OpenGLScene &scene);
   virtual void teardown();
 private:
-  LightPassPrivate *m_private;
+  LightAccumulationPassPrivate *m_private;
 };
 
-#endif // LIGHTPASS_H
+#endif // LIGHTACCUMULATIONPASS_H

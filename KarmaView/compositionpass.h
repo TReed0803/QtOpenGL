@@ -5,7 +5,7 @@
 #include <OpenGLRenderPass>
 
 class CompositionPassPrivate;
-class CompositionPass : public OpenGLRenderPassImpl<CompositionPassId>
+class CompositionPass : public OpenGLRenderPassImpl<CompositionPass, CompositionPassId>
 {
 public:
   virtual void initialize();

@@ -28,6 +28,9 @@
         <file>resources/shaders/gbuffer/specular.frag</file>
         <file>resources/shaders/gbuffer/velocity.frag</file>
         <file>resources/shaders/gbuffer/lightbuffer.frag</file>
+        <file>resources/shaders/gbuffer/motionBlur.frag</file>
+        <file>resources/shaders/gbuffer/viewport.vert</file>
+        <file>resources/shaders/gbuffer/viewport.frag</file>
         <file>resources/shaders/lighting/ambient.frag</file>
         <file>resources/shaders/lighting/ambient.vert</file>
         <file>resources/shaders/lighting/pointLight.frag</file>

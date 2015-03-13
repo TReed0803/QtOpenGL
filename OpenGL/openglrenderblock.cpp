@@ -4,6 +4,7 @@
 #include <KMath>
 #include <KMatrix4x4>
 #include <KSize>
+#include <KVector2D>
 #include <OpenGLRenderBlockData>
 
 class OpenGLRenderBlockPrivate
@@ -61,6 +62,12 @@ void OpenGLRenderBlock::setPerspectiveMatrix(const KMatrix4x4 &perspective)
   p.m_blockData.m_projection = Karma::ToGlm(perspective);
   p.m_blockData.i_projection = glm::inverse(p.m_blockData.m_projection);
   p.updateCombinationMatrices();
+}
+
+void OpenGLRenderBlock::setOrigin(const KVector2D &origin)
+{
+  P(OpenGLRenderBlockPrivate);
+  p.m_blockData.v_offset = Karma::ToGlm(origin.x(), origin.y());
 }
 
 void OpenGLRenderBlock::setNearFar(float nearPlane, float farPlane)

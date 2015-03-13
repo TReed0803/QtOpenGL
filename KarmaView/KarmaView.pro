@@ -23,17 +23,23 @@ SOURCES += \
     main.cpp \
     mainwidget.cpp \
     gbufferpass.cpp \
-    lightpass.cpp \
     compositionpass.cpp \
-    samplescene.cpp
+    samplescene.cpp \
+    lightaccumulationpass.cpp \
+    viewportpresentationpass.cpp \
+    motionblurpass.cpp \
+    preparepresentationpass.cpp
 
 HEADERS += \
     mainwidget.h \
     gbufferpass.h \
-    lightpass.h \
     compositionpass.h \
     renderpasses.h \
-    samplescene.h
+    samplescene.h \
+    lightaccumulationpass.h \
+    viewportpresentationpass.h \
+    motionblurpass.h \
+    preparepresentationpass.h
 
 RESOURCES += \
     ../resources.qrc

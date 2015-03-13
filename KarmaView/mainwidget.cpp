@@ -10,8 +10,10 @@
 
 // Render Passes
 #include <GBufferPass>
-#include <LightPass>
-#include <CompositionPass>
+#include <PreparePresentationPass>
+#include <LightAccumulationPass>
+#include <MotionBlurPass>
+#include <ViewportPresentationPass>
 
 // Scenes
 #include <SampleScene>
@@ -67,10 +69,11 @@ void MainWidgetPrivate::initializeGL()
   // Create Renderer
   m_renderer.create();
   m_renderer.bind();
-  m_renderer.addPass<GBufferPass>();
-  m_renderer.addPass<LightPass>();
-  m_renderer.addPass<CompositionPass>();
-  m_renderer.initialize();
+  m_renderer.addPass<GBufferPass>();              // => Nothing (Constructs Globals)
+  m_renderer.addPass<PreparePresentationPass>();  // => RenderBuffer
+  m_renderer.addPass<LightAccumulationPass>();    // => RenderBuffer
+  m_renderer.addPass<MotionBlurPass>();           // => RenderBuffer
+  m_renderer.addPass<ViewportPresentationPass>(); // => Nothing (Displays RenderBuffer)
 }
 
 void MainWidgetPrivate::resizeGL(int width, int height)

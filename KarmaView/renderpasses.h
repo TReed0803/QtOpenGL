@@ -4,8 +4,11 @@
 enum RenderPassId
 {
   GBufferPassId,
+  PreparePresentationPassId,
   LightAccumulationPassId,
-  CompositionPassId
+  CompositionPassId,
+  MotionBlurPassId,
+  ViewportPresentationPassId
 };
 
 #endif // RENDERPASSES_H

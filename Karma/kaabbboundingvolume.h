@@ -19,6 +19,7 @@ public:
   };
 
   // Constructors & Destructor
+  KAabbBoundingVolume();
   template <typename It, typename Accessor = Karma::DefaultAccessor<KVector3D const>>
   KAabbBoundingVolume(It begin, It end, Accessor accessor = Karma::DefaultAccessor<KVector3D const>());
   KAabbBoundingVolume(KAabbBoundingVolume const &a, KAabbBoundingVolume const &b);
@@ -32,6 +33,8 @@ public:
   KVector3D maxAxis() const;
   KVector3D minAxis() const;
   KVector3D center() const;
+  void shiftCenter(const KVector3D &tr);
+  void encompassPoint(const KVector3D &vector);
   void setMinMaxBounds(Karma::MinMaxKVector3D const &minMax);
   void draw(KTransform3D &t, const KColor &color) const;
 

@@ -20,6 +20,8 @@ namespace Karma
   {
     T max;
     T min;
+    MinMax();
+    MinMax(float kmax, float kmin);
   };
   typedef MinMax<KVector3D> MinMaxKVector3D;
   typedef std::vector<MinMaxKVector3D> MinMaxKVector3DContainer;
@@ -119,6 +121,19 @@ namespace Karma
   KVector3D calculateCentroid(It begin, It end, Func f, KVector3D axes[N], float extents[N]);
   template <typename It1, typename It2, typename Func1>
   std::vector<KVector3D> findExtremalPoints(It1 beginPoints, It1 endPoints, It2 beginNorms, It2 endNorms, Func1 pointAccessor);
+}
+
+template <typename T>
+Karma::MinMax<T>::MinMax()
+{
+  // Intentionally Empty
+}
+
+template <typename T>
+Karma::MinMax<T>::MinMax(float kmax, float kmin) :
+  max(kmax), min(kmin)
+{
+  // Intentionally Empty
 }
 
 template <typename It, typename Accessor>

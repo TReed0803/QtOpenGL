@@ -2,6 +2,7 @@
 #include "kbufferedfilereader.h"
 #include "khalfedgeobjparser.h"
 #include "kvertex.h"
+#include "kaabbboundingvolume.h"
 
 #include <algorithm>
 #include <functional>
@@ -155,12 +156,15 @@ public:
   void connectEdges(HalfEdge *edge);
   void calculateFaceNormals();
   void calculateVertexNormals();
+  void normalizeVertices();
+  void fixToCenter();
 
 private:
   VertexContainer m_vertices;
   HalfEdgeContainer m_halfEdges;
   FaceContainer m_faces;
   HalfEdgeLookup m_halfEdgeLookup;
+  KAabbBoundingVolume m_aabb;
 };
 
 /*******************************************************************************
@@ -169,6 +173,7 @@ private:
 inline KHalfEdgeMeshPrivate::VertexIndex KHalfEdgeMeshPrivate::addVertex(const KVector3D &v)
 {
   m_vertices.emplace_back(v, 0);
+  m_aabb.encompassPoint(v);
   return VertexIndex(static_cast<index_type>(m_vertices.size()));
 }
 
@@ -540,6 +545,32 @@ void KHalfEdgeMeshPrivate::calculateVertexNormals()
   }
 }
 
+void KHalfEdgeMeshPrivate::normalizeVertices()
+{
+  const KVector3D &max = m_aabb.maxExtent();
+  const KVector3D &min = m_aabb.minExtent();
+  float maxAbsValue = std::abs(max.x());
+  if (std::abs(max.y()) > maxAbsValue) maxAbsValue = std::abs(max.y());
+  if (std::abs(max.z()) > maxAbsValue) maxAbsValue = std::abs(max.z());
+  if (std::abs(min.x()) > maxAbsValue) maxAbsValue = std::abs(min.x());
+  if (std::abs(min.y()) > maxAbsValue) maxAbsValue = std::abs(min.y());
+  if (std::abs(min.z()) > maxAbsValue) maxAbsValue = std::abs(min.z());
+  for (Vertex &v : m_vertices)
+  {
+    v.position /= maxAbsValue;
+  }
+}
+
+void KHalfEdgeMeshPrivate::fixToCenter()
+{
+  const KVector3D &shift = -m_aabb.center();
+  for (Vertex &v : m_vertices)
+  {
+    v.position += shift;
+  }
+  m_aabb.shiftCenter(shift);
+}
+
 /*******************************************************************************
  * Half Edge Mesh Public
  ******************************************************************************/
@@ -688,4 +719,16 @@ void KHalfEdgeMesh::calculateVertexNormals()
 {
   P(KHalfEdgeMeshPrivate);
   p.calculateVertexNormals();
+}
+
+void KHalfEdgeMesh::normalizeVertices()
+{
+  P(KHalfEdgeMeshPrivate);
+  p.normalizeVertices();
+}
+
+void KHalfEdgeMesh::fixToCenter()
+{
+  P(KHalfEdgeMeshPrivate);
+  p.fixToCenter();
 }

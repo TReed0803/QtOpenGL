@@ -87,6 +87,12 @@ void OpenGLInstanceManager::commit(const OpenGLViewport &view)
     continue;
   }
 
+  // Make sure all meshes are up-to-date
+  for (OpenGLInstanceGroupPair *pair : p.m_groups)
+  {
+    pair->group.setMesh(OpenGLMeshManager::mesh(pair->meshFile));
+  }
+
   // Update all GPU data
   for (OpenGLInstanceGroupPair *pair : p.m_groups)
   {

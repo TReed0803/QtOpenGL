@@ -77,6 +77,20 @@ void SampleScenePrivate::loadObj(const KString &fileName)
       ms = timer.elapsed();
       kDebug() << "Calculate Normals (sec)      :" << float(ms) / 1e3f;
     }
+    // Center the mesh
+    {
+      timer.start();
+      halfEdgeMesh.fixToCenter();
+      ms = timer.elapsed();
+      kDebug() << "Center Volume (sec)          :" << float(ms) / 1e3f;
+    }
+    // Normalize the mesh
+    {
+      timer.start();
+      halfEdgeMesh.normalizeVertices();
+      ms = timer.elapsed();
+      kDebug() << "Normalization (sec)          :" << float(ms) / 1e3f;
+    }
     // Calculate OpenGLMesh
     {
       timer.start();
@@ -84,6 +98,7 @@ void SampleScenePrivate::loadObj(const KString &fileName)
       ms = timer.elapsed();
       kDebug() << "Create OpenGLMesh (sec)      :" << float(ms) / 1e3f;
     }
+    // Query Boundaries
     {
       timer.start();
       boundaries = query();
@@ -177,7 +192,7 @@ void SampleScene::start()
 
   // Create Instance Data
   OpenGLInstance * instance;
-  static const int total = 4;
+  static const int total = 0;
   static const float arcLength = Karma::TwoPi / float(total);
   for (int i = 0; i < total; ++i)
   {
@@ -227,8 +242,15 @@ void SampleScene::update(KUpdateEvent *event)
     angle += 2 * 3.1415926 / spotLights().size();
   }
 
-  // Camera Transformation
+  // Camera Selection
+  KCamera3D *camera = 0;
   if (KInputManager::buttonPressed(Qt::RightButton))
+  {
+    camera = &p.m_camera;
+  }
+
+  // Camera Transformation
+  if (camera)
   {
     float transSpeed = 3.0f;
     float rotSpeed   = 0.5f;
@@ -239,36 +261,36 @@ void SampleScene::update(KUpdateEvent *event)
     }
 
     // Handle rotations
-    p.m_camera.rotate(-rotSpeed * KInputManager::mouseDelta().x(), KCamera3D::LocalUp);
-    p.m_camera.rotate(-rotSpeed * KInputManager::mouseDelta().y(), p.m_camera.right());
+    camera->rotate(-rotSpeed * KInputManager::mouseDelta().x(), KCamera3D::LocalUp);
+    camera->rotate(-rotSpeed * KInputManager::mouseDelta().y(), camera->right());
 
     // Handle translations
     KVector3D translation;
     if (KInputManager::keyPressed(Qt::Key_W))
     {
-      translation += p.m_camera.forward();
+      translation += camera->forward();
     }
     if (KInputManager::keyPressed(Qt::Key_S))
     {
-      translation -= p.m_camera.forward();
+      translation -= camera->forward();
     }
     if (KInputManager::keyPressed(Qt::Key_A))
     {
-      translation -= p.m_camera.right();
+      translation -= camera->right();
     }
     if (KInputManager::keyPressed(Qt::Key_D))
     {
-      translation += p.m_camera.right();
+      translation += camera->right();
     }
     if (KInputManager::keyPressed(Qt::Key_E))
     {
-      translation -= p.m_camera.up();
+      translation -= camera->up();
     }
     if (KInputManager::keyPressed(Qt::Key_Q))
     {
-      translation += p.m_camera.up();
+      translation += camera->up();
     }
-    p.m_camera.translate(transSpeed * translation);
+    camera->translate(transSpeed * translation);
   }
 
   if (KInputManager::keyPressed(Qt::Key_Control))

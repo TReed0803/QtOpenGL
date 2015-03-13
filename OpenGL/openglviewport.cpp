@@ -20,6 +20,7 @@ public:
   void swapRenderBlocks();
   void fixRenderBlocks();
   void updateRenderBlocks();
+  bool viewportDirty();
 
   float m_aspectRatio;
   float m_nearPlane;
@@ -28,6 +29,7 @@ public:
   KVector2D m_origin;
   KSizeF m_dimensions;
   KSize m_pixelDimensions;
+  KSize m_screenSize;
   const KCamera3D *m_camera;
   OpenGLRenderBlock m_renderBlocks[2];
   int m_renderBlockIndex[2];
@@ -91,6 +93,13 @@ void OpenGLViewportPrivate::updateRenderBlocks()
   }
 }
 
+bool OpenGLViewportPrivate::viewportDirty()
+{
+  // Note: Viewport is dirty if the camera is NOT dirty,
+  //       but the values of the camera transform do not match.
+  return true;
+}
+
 OpenGLViewport::OpenGLViewport() :
   m_private(0)
 {
@@ -132,10 +141,17 @@ void OpenGLViewport::release()
 void OpenGLViewport::resize(int width, int height)
 {
   P(OpenGLViewportPrivate);
+  p.m_screenSize.setWidth(width);
+  p.m_screenSize.setHeight(height);
   p.m_pixelDimensions.setWidth(width * p.m_dimensions.width());
   p.m_pixelDimensions.setHeight(height * p.m_dimensions.height());
   p.m_aspectRatio = p.m_pixelDimensions.width() / float(p.m_pixelDimensions.height());
   p.m_dirty = true;
+}
+
+void OpenGLViewport::resize(const KSize &size)
+{
+  resize(size.width(), size.height());
 }
 
 void OpenGLViewport::setCamera(const KCamera3D &camera)
@@ -163,16 +179,42 @@ void OpenGLViewport::setRegion(float x, float y, float w, float h)
   p.m_dirty = true;
 }
 
+const KSize &OpenGLViewport::size() const
+{
+  P(const OpenGLViewportPrivate);
+  return p.m_pixelDimensions;
+}
+
+const KSize &OpenGLViewport::screenSize() const
+{
+  P(const OpenGLViewportPrivate);
+  return p.m_screenSize;
+}
+
+const KVector2D &OpenGLViewport::origin() const
+{
+  P(const OpenGLViewportPrivate);
+  return p.m_origin;
+}
+
+const KSizeF &OpenGLViewport::region() const
+{
+  P(const OpenGLViewportPrivate);
+  return p.m_dimensions;
+}
+
 void OpenGLViewport::commit()
 {
   P(OpenGLViewportPrivate);
   if (!p.m_camera) return;
 
   // Update GPU Data for camera view
-  if (p.m_camera->dirty())
+  if (p.m_camera->dirty() || p.viewportDirty())
   {
     p.swapRenderBlocks();
+    KVector2D offset(0.0f, p.m_pixelDimensions.height());
     p.currentRenderBlock().setNearFar(p.m_nearPlane, p.m_farPlane);
+    p.currentRenderBlock().setOrigin(offset);
     p.currentRenderBlock().setDimensions(p.m_pixelDimensions);
     p.currentRenderBlock().setPerspective(p.m_camera->fieldOfView(), p.m_aspectRatio, p.m_nearPlane, p.m_farPlane);
     p.currentRenderBlock().setViewMatrix(p.m_camera->toMatrix());

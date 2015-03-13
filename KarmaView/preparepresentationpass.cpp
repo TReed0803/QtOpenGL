@@ -1,26 +1,21 @@
-#include "lightpass.h"
+#include "preparepresentationpass.h"
 
 #include <KMacros>
-#include <OpenGLScene>
-
-#include <OpenGLSpotLightGroup>
-#include <OpenGLPointLightGroup>
-#include <OpenGLDirectionLightGroup>
 #include <OpenGLTexture>
 #include <OpenGLFramebufferObject>
-#include <OpenGLViewport>
+#include <OpenGLFunctions>
+#include <OpenGLScene>
 
-class LightPassPrivate
+class PreparePresentationPassPrivate
 {
 public:
   void constructTexture(OpenGLTexture &t, OpenGLInternalFormat f, int width, int height);
 
-  // Light Accumulation
   OpenGLTexture m_lLighting;
   OpenGLFramebufferObject m_lFbo;
 };
 
-void LightPassPrivate::constructTexture(OpenGLTexture &t, OpenGLInternalFormat f, int width, int height)
+void PreparePresentationPassPrivate::constructTexture(OpenGLTexture &t, OpenGLInternalFormat f, int width, int height)
 {
   t.create(OpenGLTexture::Texture2D);
   t.bind();
@@ -34,24 +29,23 @@ void LightPassPrivate::constructTexture(OpenGLTexture &t, OpenGLInternalFormat f
   t.release();
 }
 
-LightPass::LightPass() :
+PreparePresentationPass::PreparePresentationPass() :
   m_private(0)
 {
   // Intentionally Empty
 }
 
-void LightPass::initialize()
+void PreparePresentationPass::initialize()
 {
-  m_private = new LightPassPrivate;
-  P(LightPassPrivate);
-
+  m_private = new PreparePresentationPassPrivate;
+  P(PreparePresentationPassPrivate);
   // Create Framebuffer Object
   p.m_lFbo.create();
 }
 
-void LightPass::resize(int width, int height)
+void PreparePresentationPass::resize(int width, int height)
 {
-  P(LightPassPrivate);
+  P(PreparePresentationPassPrivate);
 
   // Other Texture Storage
   p.constructTexture(p.m_lLighting, OpenGLInternalFormat::Rgba16, width, height);
@@ -62,41 +56,28 @@ void LightPass::resize(int width, int height)
   p.m_lFbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
   p.m_lFbo.validate();
   p.m_lFbo.release();
+}
 
+void PreparePresentationPass::commit(OpenGLViewport &view)
+{
+  P(PreparePresentationPassPrivate);
   // Bind Lightbuffer
   GL::glActiveTexture(OpenGLTexture::endTextureUnits() - 5);
   p.m_lLighting.bind();
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 
-void LightPass::commit(OpenGLViewport &view)
+void PreparePresentationPass::render(OpenGLScene &scene)
 {
-  // Unused
-  (void)view;
-}
-
-void LightPass::render(OpenGLScene &scene)
-{
-  P(LightPassPrivate);
   (void)scene;
-  OpenGLMarkerScoped _("Light Pass");
-
-  GL::glDisable(GL_DEPTH_TEST);
-  GL::glDepthMask(GL_FALSE);
-  GL::glEnable(GL_BLEND);
-  GL::glBlendFunc(GL_ONE, GL_ONE);
+  P(PreparePresentationPassPrivate);
+  OpenGLMarkerScoped _("Presentation Preparation Pass");
 
   p.m_lFbo.bind();
   GL::glClear(GL_COLOR_BUFFER_BIT);
-  scene.renderLights();
-  p.m_lFbo.release();
-
-  GL::glDisable(GL_BLEND);
-  GL::glDepthMask(GL_TRUE);
-  GL::glEnable(GL_DEPTH_TEST);
 }
 
-void LightPass::teardown()
+void PreparePresentationPass::teardown()
 {
   delete m_private;
 }

@@ -2,6 +2,9 @@
 #define OPENGLVIEWPORT_H OpenGLViewport
 
 class KCamera3D;
+class KSize;
+class KSizeF;
+class KVector2D;
 class OpenGLRenderBlock;
 #include <KSharedPointer>
 
@@ -15,9 +18,14 @@ public:
   void bind();
   void release();
   void resize(int width, int height);
+  void resize(const KSize &size);
   void setCamera(const KCamera3D &camera);
   void setNearFar(float nearPlane, float farPlane);
   void setRegion(float x, float y, float w, float h);
+  const KSize &size() const;
+  const KSize &screenSize() const;
+  const KVector2D &origin() const;
+  const KSizeF &region() const;
   void commit();
   void activate();
   const OpenGLRenderBlock &current() const;

@@ -8,21 +8,22 @@
 #include <OpenGLRenderPass>
 #include <OpenGLScene>
 #include <OpenGLViewport>
+#include <OpenGLRenderPassQueue>
+#include <OpenGLRenderView>
+#include <OpenGLFunctions>
 
 static OpenGLRenderer *sg_renderer = 0;
 
 class OpenGLRendererPrivate
 {
 public:
-  typedef std::vector<OpenGLRenderPass*> RenderPassContainer;
-  typedef std::vector<OpenGLViewport*> ViewportContainer;
-
+  typedef std::vector<OpenGLRenderView> OpenGLRenderViewList;
   OpenGLRendererPrivate();
 
   bool m_paused;
   KSize m_screenDimensions;
-  RenderPassContainer m_passes;
-  ViewportContainer m_viewports;
+  OpenGLRenderViewList m_renderViews;
+  OpenGLRenderPassQueue m_masterQueue;
 };
 
 OpenGLRendererPrivate::OpenGLRendererPrivate() :
@@ -45,15 +46,8 @@ void OpenGLRenderer::bind()
 void OpenGLRenderer::create()
 {
   m_private = new OpenGLRendererPrivate;
-}
-
-void OpenGLRenderer::initialize()
-{
   P(OpenGLRendererPrivate);
-  for (OpenGLRenderPass *pass : p.m_passes)
-  {
-    pass->initialize();
-  }
+  p.m_masterQueue.create();
 }
 
 void OpenGLRenderer::resize(int width, int height)
@@ -61,26 +55,9 @@ void OpenGLRenderer::resize(int width, int height)
   P(OpenGLRendererPrivate);
   p.m_screenDimensions.setWidth(width);
   p.m_screenDimensions.setHeight(height);
-  for (OpenGLViewport *view : p.m_viewports)
+  for (OpenGLRenderView &renderView: p.m_renderViews)
   {
-    view->resize(width, height);
-  }
-  for (OpenGLRenderPass *pass : p.m_passes)
-  {
-    pass->resize(width, height);
-  }
-}
-
-void OpenGLRenderer::commit(OpenGLViewport &view)
-{
-  P(OpenGLRendererPrivate);
-  for (OpenGLViewport *view : p.m_viewports)
-  {
-    view->commit();
-  }
-  for (OpenGLRenderPass *pass : p.m_passes)
-  {
-    pass->commit(view);
+    renderView.resize(width, height);
   }
 }
 
@@ -89,33 +66,24 @@ void OpenGLRenderer::render(OpenGLScene &scene)
   P(OpenGLRendererPrivate);
   unsigned int currViewport = 1;
   OpenGLMarkerScoped _("Total Render Time");
-  for (OpenGLViewport *view : p.m_viewports)
+  for (OpenGLRenderView &renderView: p.m_renderViews)
   {
     OpenGLMarkerScoped _(KString("Viewport %1").arg(currViewport));
-    view->bind();
-    {
-      OpenGLMarkerScoped _("Prepare Scene");
-      commit(*view);
-      scene.commit(*view);
-    }
-    {
-      OpenGLMarkerScoped _("Render Scene");
-      for (OpenGLRenderPass *pass : p.m_passes)
-      {
-        pass->render(scene);
-      }
-    }
-    view->release();
+    renderView.bind();
+    renderView.commit(scene);
+    renderView.render(scene);
+    renderView.release();
     ++currViewport;
   }
+  GL::glViewport(0, 0, p.m_screenDimensions.width(), p.m_screenDimensions.height());
 }
 
 void OpenGLRenderer::teardown()
 {
   P(OpenGLRendererPrivate);
-  for (OpenGLRenderPass *pass : p.m_passes)
+  for (OpenGLRenderView &renderView: p.m_renderViews)
   {
-    pass->teardown();
+    renderView.teardown();
   }
   delete m_private;
 }
@@ -140,8 +108,10 @@ bool OpenGLRenderer::isPaused() const
 void OpenGLRenderer::registerViewport(OpenGLViewport *view)
 {
   P(OpenGLRendererPrivate);
-  view->resize(p.m_screenDimensions.width(), p.m_screenDimensions.height());
-  p.m_viewports.push_back(view);
+  OpenGLRenderView renderView;
+  renderView.create(p.m_masterQueue, *view);
+  renderView.resize(p.m_screenDimensions);
+  p.m_renderViews.push_back(renderView);
 }
 
 void OpenGLRenderer::activateViewport(OpenGLViewport *view)
@@ -149,22 +119,9 @@ void OpenGLRenderer::activateViewport(OpenGLViewport *view)
   sg_renderer->registerViewport(view);
 }
 
-OpenGLRenderPass *OpenGLRenderer::getPass(unsigned id)
-{
-  P(OpenGLRendererPrivate);
-  for (OpenGLRenderPass *pass : p.m_passes)
-  {
-    if (pass->id() == id)
-    {
-      return pass;
-    }
-  }
-  return nullptr;
-}
-
 void OpenGLRenderer::addPass(OpenGLRenderPass *pass)
 {
   P(OpenGLRendererPrivate);
-  p.m_passes.emplace_back(pass);
+  p.m_masterQueue.addPass(pass);
 }
 

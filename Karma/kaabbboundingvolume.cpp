@@ -9,14 +9,27 @@
 class KAabbBoundingVolumePrivate
 {
 public:
+  KAabbBoundingVolumePrivate();
   void calculateMinMaxMethod(KHalfEdgeMesh const &mesh);
   Karma::MinMaxKVector3D maxMin;
 };
+
+KAabbBoundingVolumePrivate::KAabbBoundingVolumePrivate() :
+  maxMin(std::numeric_limits<float>::min(), std::numeric_limits<float>::max())
+{
+  // Intentionally Empty
+}
 
 void KAabbBoundingVolumePrivate::calculateMinMaxMethod(const KHalfEdgeMesh &mesh)
 {
   KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
   maxMin = Karma::findMinMaxBounds(vertices.begin(), vertices.end(), KHalfEdgeMesh::VertexPositionPred());
+}
+
+KAabbBoundingVolume::KAabbBoundingVolume() :
+  m_private(new KAabbBoundingVolumePrivate)
+{
+  // Intentionally Empty
 }
 
 KAabbBoundingVolume::KAabbBoundingVolume(const KAabbBoundingVolume &a, const KAabbBoundingVolume &b) :
@@ -136,6 +149,24 @@ KVector3D KAabbBoundingVolume::center() const
 {
   P(KAabbBoundingVolumePrivate);
   return (p.maxMin.max + p.maxMin.min) / 2.0f;
+}
+
+void KAabbBoundingVolume::shiftCenter(const KVector3D &tr)
+{
+  P(KAabbBoundingVolumePrivate);
+  p.maxMin.max += tr;
+  p.maxMin.min += tr;
+}
+
+void KAabbBoundingVolume::encompassPoint(const KVector3D &vector)
+{
+  P(KAabbBoundingVolumePrivate);
+  if (p.maxMin.min.x() > vector.x()) p.maxMin.min.setX(vector.x());
+  if (p.maxMin.min.y() > vector.y()) p.maxMin.min.setY(vector.y());
+  if (p.maxMin.min.z() > vector.z()) p.maxMin.min.setZ(vector.z());
+  if (p.maxMin.max.x() < vector.x()) p.maxMin.max.setX(vector.x());
+  if (p.maxMin.max.y() < vector.y()) p.maxMin.max.setY(vector.y());
+  if (p.maxMin.max.z() < vector.z()) p.maxMin.max.setZ(vector.z());
 }
 
 void KAabbBoundingVolume::setMinMaxBounds(const Karma::MinMaxKVector3D &minMax)

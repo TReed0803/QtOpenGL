@@ -123,6 +123,8 @@ public:
   // Mutation Commands
   void calculateFaceNormals();
   void calculateVertexNormals();
+  void normalizeVertices();
+  void fixToCenter();
 
 private:
   KSharedPointer<KHalfEdgeMeshPrivate> m_private;

@@ -56,7 +56,7 @@ public:
 
   void create();
   void bind();
-  void release();
+  static void release();
   void attachTexture2D(Target target, Attachment attachment, OpenGLTexture &texture, int level = 0);
   void attachTexture3D(Target target, Attachment attachment, OpenGLTexture &texture, int level = 0, int layer = 0);
   void attachRenderbuffer(Target target, Attachment attachment, OpenGLRenderbufferObject &rBuffer);

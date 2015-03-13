@@ -19,6 +19,7 @@ public:
   OpenGLMesh m_quad;
   OpenGLShaderProgram *m_program;
   OpenGLFramebufferObject m_gFbo;
+  int m_width, m_height;
 
   // GBuffer
   OpenGLTexture m_gDepth;    // depth
@@ -65,6 +66,8 @@ void GBufferPass::initialize()
 void GBufferPass::resize(int width, int height)
 {
   P(GBufferPassPrivate);
+  p.m_width = width;
+  p.m_height = height;
 
   // GBuffer Texture Storage
   p.constructTexture(p.m_gDepth, OpenGLInternalFormat::Depth32F, width, height);   // Depth
@@ -81,6 +84,11 @@ void GBufferPass::resize(int width, int height)
   p.m_gFbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2);
   p.m_gFbo.validate();
   p.m_gFbo.release();
+}
+
+void GBufferPass::commit(OpenGLViewport &view)
+{
+  P(GBufferPassPrivate);
 
   // Activate Backbuffers
   GL::glActiveTexture(OpenGLTexture::endTextureUnits() - 1);
@@ -94,19 +102,14 @@ void GBufferPass::resize(int width, int height)
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 
-void GBufferPass::commit(OpenGLViewport &view)
-{
-  // Unused
-  (void)view;
-}
-
 void GBufferPass::render(OpenGLScene &scene)
 {
   P(GBufferPassPrivate);
-
   OpenGLMarkerScoped _("Generate G Buffer");
+
   p.m_program->bind();
   p.m_gFbo.bind();
+  GL::glViewport(0, 0, p.m_width, p.m_height);
   GL::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   scene.renderGeometry();
   p.m_gFbo.release();

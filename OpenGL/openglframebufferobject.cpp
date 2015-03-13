@@ -51,8 +51,7 @@ void OpenGLFramebufferObject::bind()
 
 void OpenGLFramebufferObject::release()
 {
-  P(OpenGLFramebufferObjectPrivate);
-  p.m_functions.glBindFramebuffer(GL_FRAMEBUFFER, sg_release);
+  GL::glBindFramebuffer(GL_FRAMEBUFFER, sg_release);
 }
 
 void OpenGLFramebufferObject::attachTexture2D(OpenGLFramebufferObject::Target target, OpenGLFramebufferObject::Attachment attachment, OpenGLTexture &texture, int level)
