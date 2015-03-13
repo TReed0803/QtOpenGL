@@ -107,4 +107,5 @@ HEADERS += \
     openglscenemanager.h \
     openglscene.h \
     openglrenderview.h \
-    openglrenderpassqueue.h
+    openglrenderpassqueue.h \
+    opengllightdata.h

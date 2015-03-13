@@ -2,7 +2,7 @@
 #define OPENGLPOINTLIGHTGROUP_H OpenGLPointLightGroup
 
 #include <OpenGLPointLight>
-#include <OpenGLPointLightData>
+#include <OpenGLLightData>
 #include <OpenGLLightGroup>
 
 #include <KMatrix4x4>
@@ -14,7 +14,7 @@ class OpenGLMesh;
 class OpenGLRenderBlock;
 
 class OpenGLPointLightGroupPrivate;
-class OpenGLPointLightGroup : public OpenGLLightGroup<OpenGLPointLight, OpenGLPointLightData>
+class OpenGLPointLightGroup : public OpenGLLightGroup<OpenGLPointLight, OpenGLLightData>
 {
 public:
   bool create();

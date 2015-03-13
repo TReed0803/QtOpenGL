@@ -6,7 +6,7 @@ enum RenderPassId
   GBufferPassId,
   PreparePresentationPassId,
   LightAccumulationPassId,
-  CompositionPassId,
+  ShadowedLightAccumulationPassId,
   MotionBlurPassId,
   ViewportPresentationPassId
 };

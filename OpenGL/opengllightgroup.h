@@ -9,6 +9,7 @@
 #include <OpenGLUniformBufferObject>
 #include <OpenGLShaderProgram>
 #include <OpenGLViewport>
+#include <OpenGLLightData>
 
 class OpenGLRenderBlock;
 
@@ -39,6 +40,7 @@ public:
   void prepMesh(OpenGLMesh &mesh);
   void commit(const OpenGLViewport &view);
   void draw();
+  void drawShadowed();
   virtual void initializeMesh(OpenGLMesh &mesh) = 0;
   virtual void translateBuffer(const OpenGLRenderBlock &stats, DataPointer data, ConstLightIterator begin, ConstLightIterator end) = 0;
   virtual void translateUniforms(const OpenGLRenderBlock &stats, Byte *data, SizeType step, ConstLightIterator begin, ConstLightIterator end) = 0;
@@ -145,15 +147,22 @@ void OpenGLLightGroup<T, D>::draw()
   m_regularLight->bind();
   m_mesh.drawInstanced(0, m_numRegularLights);
 
+  m_mesh.release();
+}
+
+template <typename T, typename D>
+void OpenGLLightGroup<T, D>::drawShadowed()
+{
+  if (m_lights.empty()) return;
+
+  m_mesh.bind();
+
   // Render each shadow light
-  if (m_shadowCastingLight)
+  m_shadowCastingLight->bind();
+  for (size_t i = 0; i < m_numShadowLights; ++i)
   {
-    m_shadowCastingLight->bind();
-    for (size_t i = 0; i < m_numShadowLights; ++i)
-    {
-      m_uniforms.bindRange(BufferType::UniformBuffer, 3, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
-      m_mesh.draw();
-    }
+    m_uniforms.bindRange(BufferType::UniformBuffer, 3, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
+    m_mesh.draw();
   }
 
   m_mesh.release();

@@ -39,8 +39,8 @@ void LightAccumulationPass::commit(OpenGLViewport &view)
 
 void LightAccumulationPass::render(OpenGLScene &scene)
 {
-  P(LightAccumulationPassPrivate);
   (void)scene;
+  P(LightAccumulationPassPrivate);
   OpenGLMarkerScoped _("Light Accumulation Pass");
 
   GL::glDisable(GL_DEPTH_TEST);

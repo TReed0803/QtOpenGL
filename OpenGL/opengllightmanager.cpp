@@ -52,6 +52,14 @@ void OpenGLLightManager::render()
   p.m_directionLights.draw();
 }
 
+void OpenGLLightManager::renderShadowed()
+{
+  P(OpenGLLightManagerPrivate);
+  p.m_spotLights.drawShadowed();
+  p.m_pointLights.drawShadowed();
+  p.m_directionLights.drawShadowed();
+}
+
 OpenGLPointLight *OpenGLLightManager::createPointLight()
 {
   P(OpenGLLightManagerPrivate);

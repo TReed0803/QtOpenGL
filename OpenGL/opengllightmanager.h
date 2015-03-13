@@ -19,6 +19,7 @@ public:
   void create();
   void commit(const OpenGLViewport &view);
   void render();
+  void renderShadowed();
   OpenGLPointLight *createPointLight();
   OpenGLSpotLight *createSpotLight();
   OpenGLDirectionLight *createDirectionLight();

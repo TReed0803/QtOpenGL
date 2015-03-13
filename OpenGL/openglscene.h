@@ -36,6 +36,7 @@ public:
   OpenGLDirectionLightGroup &directionLights();
   void renderGeometry();
   void renderLights();
+  void renderShadowedLights();
   void commit(const OpenGLViewport &view);
 
 private:

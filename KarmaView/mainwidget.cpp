@@ -12,6 +12,7 @@
 #include <GBufferPass>
 #include <PreparePresentationPass>
 #include <LightAccumulationPass>
+#include <ShadowedLightAccumulationPass>
 #include <MotionBlurPass>
 #include <ViewportPresentationPass>
 
@@ -49,9 +50,9 @@ public:
 void MainWidgetPrivate::initializeGL()
 {
   // Set Uniform Buffers
-  OpenGLUniformManager::setUniformBufferIndex("CurrentRenderBlock"  , 1);
-  OpenGLUniformManager::setUniformBufferIndex("PreviousRenderBlock" , 2);
-  OpenGLUniformManager::setUniformBufferIndex("SpotLightProperties" , 3);
+  OpenGLUniformManager::setUniformBufferIndex("CurrentRenderBlock"    , 1);
+  OpenGLUniformManager::setUniformBufferIndex("PreviousRenderBlock"   , 2);
+  OpenGLUniformManager::setUniformBufferIndex("LightBufferProperties" , 3);
 
   // Set Texture Samplers
   OpenGLUniformManager::setTextureSampler("depthTexture"      , OpenGLTexture::numTextureUnits() - 1);
@@ -69,11 +70,12 @@ void MainWidgetPrivate::initializeGL()
   // Create Renderer
   m_renderer.create();
   m_renderer.bind();
-  m_renderer.addPass<GBufferPass>();              // => Nothing (Constructs Globals)
-  m_renderer.addPass<PreparePresentationPass>();  // => RenderBuffer
-  m_renderer.addPass<LightAccumulationPass>();    // => RenderBuffer
-  m_renderer.addPass<MotionBlurPass>();           // => RenderBuffer
-  m_renderer.addPass<ViewportPresentationPass>(); // => Nothing (Displays RenderBuffer)
+  m_renderer.addPass<GBufferPass>();                      // => Nothing (Constructs Globals)
+  m_renderer.addPass<PreparePresentationPass>();          // => RenderBuffer
+  m_renderer.addPass<LightAccumulationPass>();            // => RenderBuffer
+  m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
+  m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
+  m_renderer.addPass<ViewportPresentationPass>();         // => Nothing (Displays RenderBuffer)
 }
 
 void MainWidgetPrivate::resizeGL(int width, int height)

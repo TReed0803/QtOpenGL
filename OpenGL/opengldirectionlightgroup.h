@@ -3,12 +3,12 @@
 
 #include <OpenGLLightGroup>
 #include <OpenGLDirectionLight>
-#include <OpenGLDirectionLightData>
+#include <OpenGLLightData>
 
 class KMatrix4x4;
 class OpenGLMesh;
 
-class OpenGLDirectionLightGroup : public OpenGLLightGroup<OpenGLDirectionLight, OpenGLDirectionLightData>
+class OpenGLDirectionLightGroup : public OpenGLLightGroup<OpenGLDirectionLight, OpenGLLightData>
 {
 public:
   bool create();

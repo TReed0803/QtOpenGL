@@ -15,7 +15,7 @@ layout(location = 0) out highp vec4 fFragColor;
 void main()
 {
   // GBuffer Access
-  highp vec3 viewPos  = viewPosition();
+  highp vec3 viewPos = viewPosition();
   highp vec3 normal   = normal();
   highp vec3 diffuse  = diffuse();
   highp vec4 specular = specular();
@@ -37,15 +37,11 @@ void main()
   highp float specAngle  = max(dot(halfDir, normal), 0.0);
   highp float specFactor = pow(specAngle, specular.w);
 
-  // Spotlight Factor
-  highp float spotAngle  = dot(-lightDir, Light.ViewDirection);
-  highp float spotFactor = smoothstep(Light.OuterAngle, Light.InnerAngle, spotAngle);
-
   // Construct Lighting Terms
   highp vec3 diffuseTerm  = Light.Diffuse  * diffuse      * lambertian;
   highp vec3 specularTerm = Light.Specular * specular.xyz * specFactor;
-  fFragColor = vec4(spotFactor * attenuation * (diffuseTerm + specularTerm), 1.0);
+  fFragColor = vec4(attenuation * (diffuseTerm + specularTerm), 1.0);
 
   // Debug Drawing
-  //fFragColor += debugExecution(spotFactor * attenuation);
+  //fFragColor += debugExecution(attenuation);
 }

@@ -14,8 +14,11 @@ bool OpenGLPointLightGroup::create()
   m_regularLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/pointLight.frag");
   m_regularLight->link();
 
-  // Create Shadow-Casting Shader
-  m_shadowCastingLight = 0;
+  // Create Shadowed Shader
+  m_shadowCastingLight = new OpenGLShaderProgram();
+  m_shadowCastingLight->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/shadowPointLight.vert");
+  m_shadowCastingLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/shadowPointLight.frag");
+  m_shadowCastingLight->link();
 
   return LightGroup::create();
 }

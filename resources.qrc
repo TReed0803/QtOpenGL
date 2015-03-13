@@ -15,7 +15,7 @@
         <file>resources/shaders/GBuffer.ubo</file>
         <file>resources/shaders/gbuffer.vert</file>
         <file>resources/shaders/ubo/GlobalBuffer.ubo</file>
-        <file>resources/shaders/ubo/SpotLight.ubo</file>
+        <file>resources/shaders/ubo/LightBuffer.ubo</file>
         <file>resources/shaders/gbuffer/ambient.frag</file>
         <file>resources/shaders/gbuffer/backbuffer.frag</file>
         <file>resources/shaders/gbuffer/depth.frag</file>
@@ -41,5 +41,9 @@
         <file>resources/shaders/lighting/spotLight.vert</file>
         <file>resources/shaders/lighting/shadowSpotLight.frag</file>
         <file>resources/shaders/lighting/shadowSpotLight.vert</file>
+        <file>resources/shaders/lighting/shadowPointLight.frag</file>
+        <file>resources/shaders/lighting/shadowPointLight.vert</file>
+        <file>resources/shaders/lighting/shadowDirectionLight.frag</file>
+        <file>resources/shaders/lighting/shadowDirectionLight.vert</file>
     </qresource>
 </RCC>

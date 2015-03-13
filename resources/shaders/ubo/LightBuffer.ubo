@@ -4,11 +4,11 @@
  * All of the current rendering spotlight information.
  ******************************************************************************/
 
-#ifndef SPOTLIGHT_UBO
-#define SPOTLIGHT_UBO
+#ifndef LIGHTBUFFER_UBO
+#define LIGHTBUFFER_UBO
 
 layout(std140)
-uniform SpotLightProperties
+uniform LightBufferProperties
 {
   highp mat4 ModelToPersp;
   highp vec4 Attenuation;
@@ -21,5 +21,5 @@ uniform SpotLightProperties
   highp vec3 Specular;
 } Light;
 
-#autobind SpotLightProperties
-#endif // SPOTLIGHT_UBO
+#autobind LightBufferProperties
+#endif // LIGHTBUFFER_UBO

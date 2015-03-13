@@ -11,6 +11,6 @@ layout(location = 0) in highp vec3 position;
 
 void main()
 {
-  // Send to Fragment Shader
-  gl_Position = Light.ModelToPersp * vec4(position, 1.0);
+  // Send to Fragment Shader (FSQ)
+  gl_Position = vec4(position, 1.0);
 }

@@ -22,6 +22,7 @@ public:
   virtual void prepMesh(OpenGLMesh &mesh) = 0;
   virtual void commit(const OpenGLViewport &view) = 0;
   virtual void draw() = 0;
+  virtual void drawShadowed() = 0;
 
 protected:
   OpenGLMesh m_mesh;

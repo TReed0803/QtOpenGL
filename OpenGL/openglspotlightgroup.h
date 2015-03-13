@@ -3,12 +3,12 @@
 
 #include <OpenGLLightGroup>
 #include <OpenGLSpotLight>
-#include <OpenGLSpotLightData>
+#include <OpenGLLightData>
 
 class KMatrix4x4;
 class OpenGLMesh;
 
-class OpenGLSpotLightGroup : public OpenGLLightGroup<OpenGLSpotLight, OpenGLSpotLightData>
+class OpenGLSpotLightGroup : public OpenGLLightGroup<OpenGLSpotLight, OpenGLLightData>
 {
 public:
   bool create();
