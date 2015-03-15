@@ -1,11 +1,14 @@
 #include "openglframebufferobject.h"
 
 #include <QtOpenGL/QGL>
+#include <KStack>
 #include <OpenGLFunctions>
 #include <OpenGLTexture>
 #include <OpenGLRenderbufferObject>
 
 static unsigned sg_release = 0;
+static unsigned sg_currentFbo = 0;
+static KStack<unsigned> sg_stack;
 
 class OpenGLFramebufferObjectPrivate
 {
@@ -46,11 +49,13 @@ void OpenGLFramebufferObject::create()
 void OpenGLFramebufferObject::bind()
 {
   P(OpenGLFramebufferObjectPrivate);
+  sg_currentFbo = p.m_objectId;
   p.m_functions.glBindFramebuffer(GL_FRAMEBUFFER, p.m_objectId);
 }
 
 void OpenGLFramebufferObject::release()
 {
+  sg_currentFbo = sg_release;
   GL::glBindFramebuffer(GL_FRAMEBUFFER, sg_release);
 }
 
@@ -138,6 +143,21 @@ void OpenGLFramebufferObject::drawBuffers(Attachment a1, Attachment a2, Attachme
   P(OpenGLFramebufferObjectPrivate);
   GLenum buffers[] = { a1, a2, a3, a4, a5 };
   p.m_functions.glDrawBuffers(5, buffers);
+}
+
+void OpenGLFramebufferObject::pop()
+{
+  OpenGLFramebufferObject::bind(sg_stack.pop());
+}
+
+void OpenGLFramebufferObject::bind(unsigned id)
+{
+  GL::glBindFramebuffer(GL_FRAMEBUFFER, id);
+}
+
+void OpenGLFramebufferObject::push()
+{
+  sg_stack.push(sg_currentFbo);
 }
 
 void OpenGLFramebufferObject::setRelease(unsigned fbo)

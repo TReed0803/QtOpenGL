@@ -7,6 +7,7 @@ class OpenGLDirectionLight;
 class OpenGLPointLightGroup;
 class OpenGLSpotLightGroup;
 class OpenGLDirectionLightGroup;
+class OpenGLScene;
 class OpenGLViewport;
 #include <KUniquePointer>
 
@@ -19,7 +20,7 @@ public:
   void create();
   void commit(const OpenGLViewport &view);
   void render();
-  void renderShadowed();
+  void renderShadowed(OpenGLScene &scene);
   OpenGLPointLight *createPointLight();
   OpenGLSpotLight *createSpotLight();
   OpenGLDirectionLight *createDirectionLight();

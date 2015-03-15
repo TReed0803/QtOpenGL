@@ -2,6 +2,7 @@
 #define KSHAREDPOINTER_H KSharedPointer
 
 #include <cstdint>
+#include <KTypeTraits>
 
 template <typename T>
 class KSharedPointer
@@ -48,7 +49,7 @@ KSharedPointer<T>::ReferenceContainer::ReferenceContainer(PointerType ptr) :
 template <typename T>
 KSharedPointer<T>::ReferenceContainer::~ReferenceContainer()
 {
-  delete m_internal;
+  Karma::safeDelete(m_internal);
 }
 
 template <typename T>

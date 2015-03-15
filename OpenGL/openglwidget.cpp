@@ -103,6 +103,7 @@ void OpenGLWidget::initializeGL()
 
   // Initialize
   initializeOpenGLFunctions();
+  GL::setInstance(this);
   if (p.m_profiler.initialize())
   {
     connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), &p.m_profilerVisualizer, SLOT(frameResultsAvailable(OpenGLFrameResults)));
@@ -130,7 +131,6 @@ void OpenGLWidget::initializeGL()
   connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), this, SLOT(frameResultAvailable(OpenGLFrameResults)));
   QOpenGLWidget::initializeGL();
   OpenGLDebugDraw::initialize();
-  GL::setInstance(this);
 }
 
 void OpenGLWidget::resizeGL(int width, int height)

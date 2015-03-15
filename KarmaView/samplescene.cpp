@@ -141,7 +141,7 @@ void SampleScene::start()
   p.m_viewport.activate();
 
   // Initialize the Direction Light Group
-  for (int i = 0; i < 1; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     OpenGLDirectionLight *light = createDirectionLight();
     light->setDiffuse(0.1f, 0.1f, 0.1f);
@@ -149,16 +149,17 @@ void SampleScene::start()
   }
 
   // Initialize the Point Light Group
-  for (int i = 0; i < 5; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     OpenGLPointLight *light = createPointLight();
     light->setRadius(25.0f);
   }
 
   // Initialize the Spot Light Group
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 1; ++i)
   {
     OpenGLSpotLight *light = createSpotLight();
+    light->setShadowCasting(true);
     light->setInnerAngle(40.0f);
     light->setOuterAngle(45.0f);
     light->setDepth(25.0f);

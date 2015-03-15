@@ -9,6 +9,8 @@
         <file>resources/shaders/debug/screen.vert</file>
         <file>resources/shaders/debug/world.frag</file>
         <file>resources/shaders/debug/world.vert</file>
+        <file>resources/shaders/debug/texture.frag</file>
+        <file>resources/shaders/debug/texture.vert</file>
         <file>resources/shaders/EncodeDecode.glsl</file>
         <file>resources/shaders/gbuffer.frag</file>
         <file>resources/shaders/Math.glsl</file>
@@ -45,5 +47,7 @@
         <file>resources/shaders/lighting/shadowPointLight.vert</file>
         <file>resources/shaders/lighting/shadowDirectionLight.frag</file>
         <file>resources/shaders/lighting/shadowDirectionLight.vert</file>
+        <file>resources/shaders/lighting/mapSpotLight.frag</file>
+        <file>resources/shaders/lighting/mapSpotLight.vert</file>
     </qresource>
 </RCC>

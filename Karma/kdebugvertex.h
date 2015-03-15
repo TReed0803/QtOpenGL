@@ -2,6 +2,7 @@
 #define KDEBUGVERTEX_H KDebugVertex
 
 #include <KColor>
+#include <KVector2D>
 #include <KVector3D>
 
 class KDebugVertex
@@ -11,6 +12,7 @@ public:
   Q_DECL_CONSTEXPR KDebugVertex();
   Q_DECL_CONSTEXPR explicit KDebugVertex(const KVector3D &position);
   Q_DECL_CONSTEXPR KDebugVertex(const KVector3D &position, const KColor &normal);
+  Q_DECL_CONSTEXPR KDebugVertex(const KVector3D &position, const KVector2D &uv);
 
   // Accessors / Mutators
   Q_DECL_CONSTEXPR const KVector3D& position() const;
@@ -41,6 +43,7 @@ Q_DECLARE_TYPEINFO(KDebugVertex, Q_MOVABLE_TYPE);
 Q_DECL_CONSTEXPR inline KDebugVertex::KDebugVertex() {}
 Q_DECL_CONSTEXPR inline KDebugVertex::KDebugVertex(const KVector3D &position) : m_position(position), m_color(1.0f,1.0f,1.0f) {}
 Q_DECL_CONSTEXPR inline KDebugVertex::KDebugVertex(const KVector3D &position, const KColor &color) : m_position(position), m_color(color.redF(), color.greenF(), color.blueF()) {}
+Q_DECL_CONSTEXPR inline KDebugVertex::KDebugVertex(const KVector3D &position, const KVector2D &uv) : m_position(position), m_color(uv.x(), uv.y(), 0.0f) {}
 
 // Accessors / Mutators
 Q_DECL_CONSTEXPR inline const KVector3D& KDebugVertex::position() const { return m_position; }

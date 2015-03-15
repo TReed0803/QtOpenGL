@@ -2,6 +2,7 @@
 #define OPENGLLIGHTGROUP_H OpenGLLightGroup
 
 #include <vector>
+#include <KRectF>
 #include <OpenGLMesh>
 #include <OpenGLDynamicBuffer>
 #include <OpenGLAbstractLightGroup>
@@ -10,6 +11,9 @@
 #include <OpenGLShaderProgram>
 #include <OpenGLViewport>
 #include <OpenGLLightData>
+#include <OpenGLScene>
+#include <OpenGLFramebufferObject>
+#include <OpenGLDebugDraw>
 
 class OpenGLRenderBlock;
 
@@ -40,7 +44,7 @@ public:
   void prepMesh(OpenGLMesh &mesh);
   void commit(const OpenGLViewport &view);
   void draw();
-  void drawShadowed();
+  void drawShadowed(OpenGLScene &scene);
   virtual void initializeMesh(OpenGLMesh &mesh) = 0;
   virtual void translateBuffer(const OpenGLRenderBlock &stats, DataPointer data, ConstLightIterator begin, ConstLightIterator end) = 0;
   virtual void translateUniforms(const OpenGLRenderBlock &stats, Byte *data, SizeType step, ConstLightIterator begin, ConstLightIterator end) = 0;
@@ -69,6 +73,7 @@ public:
 protected:
   BufferType m_buffer;
   OpenGLUniformBufferObject m_uniforms;
+  std::vector<OpenGLViewport> m_viewports;
   unsigned m_uniformOffset;
   unsigned m_numShadowLights;
   unsigned m_numRegularLights;
@@ -115,6 +120,11 @@ void OpenGLLightGroup<T, D>::commit(const OpenGLViewport &view)
     m_buffer.release();
   }
 
+  if (m_viewports.size() < m_numShadowLights)
+  {
+    m_viewports.reserve(m_numShadowLights);
+  }
+
   // Upload uniform light information
   // Note: because UBOs have complicated alignments, we cannot cast to DataPointer.
   //       The UBO must increment preciecely by GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT.
@@ -151,19 +161,31 @@ void OpenGLLightGroup<T, D>::draw()
 }
 
 template <typename T, typename D>
-void OpenGLLightGroup<T, D>::drawShadowed()
+void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
 {
   if (m_lights.empty()) return;
 
   m_mesh.bind();
 
   // Render each shadow light
-  m_shadowCastingLight->bind();
   for (size_t i = 0; i < m_numShadowLights; ++i)
   {
     m_uniforms.bindRange(BufferType::UniformBuffer, 3, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
+
+    // Draw from Light's Perspective
+    OpenGLFramebufferObject::push();
+    m_shadowMappingFbo.bind();
+    m_shadowMappingLight->bind();
+    scene.renderGeometry();
+
+    // Draw from Camera's Perspective
+    OpenGLFramebufferObject::pop();
+    m_shadowCastingLight->bind();
     m_mesh.draw();
   }
+
+  // Debug draw texture
+  OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 0.25f, 0.25f), m_shadowTexture);
 
   m_mesh.release();
 }
@@ -173,7 +195,7 @@ auto OpenGLLightGroup<T, D>::create() -> bool
 {
   m_uniforms.setUsagePattern(BufferType::DynamicDraw);
   m_buffer.setUsagePattern(BufferType::DynamicDraw);
-  return m_buffer.create() && m_uniforms.create();
+  return m_buffer.create() && m_uniforms.create() && OpenGLAbstractLightGroup::create();
 }
 
 template <typename T, typename D>

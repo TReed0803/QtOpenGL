@@ -68,6 +68,10 @@ public:
   void drawBuffers(Attachment a1, Attachment a2, Attachment a3);
   void drawBuffers(Attachment a1, Attachment a2, Attachment a3, Attachment a4);
   void drawBuffers(Attachment a1, Attachment a2, Attachment a3, Attachment a4, Attachment a5);
+
+  static void push();
+  static void pop();
+  static void bind(unsigned id);
   static void setRelease(unsigned fbo);
 
 private:

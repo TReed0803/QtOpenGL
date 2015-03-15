@@ -97,7 +97,7 @@ void OpenGLScene::renderLights()
 void OpenGLScene::renderShadowedLights()
 {
   P(OpenGLScenePrivate);
-  p.m_lightManager.renderShadowed();
+  p.m_lightManager.renderShadowed(*this);
 }
 
 void OpenGLScene::commit(const OpenGLViewport &view)

@@ -12,6 +12,7 @@ class OpenGLViewportPrivate
 {
 public:
   OpenGLViewportPrivate();
+  ~OpenGLViewportPrivate();
 
   OpenGLRenderBlock &currentRenderBlock();
   OpenGLRenderBlock &previousRenderBlock();
@@ -43,6 +44,11 @@ OpenGLViewportPrivate::OpenGLViewportPrivate() :
   m_renderBlockIndex[1] = 1;    // Previous Index
   m_renderBlockBindings[0] = 0; // Current Binding
   m_renderBlockBindings[1] = 0; // Previous Binding
+}
+
+OpenGLViewportPrivate::~OpenGLViewportPrivate()
+{
+  // Intentionally Empty
 }
 
 OpenGLRenderBlock &OpenGLViewportPrivate::currentRenderBlock()

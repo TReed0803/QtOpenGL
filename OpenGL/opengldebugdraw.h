@@ -7,6 +7,7 @@ class KRectF;
 class KMatrix3x3;
 class KVector3D;
 class OpenGLUniformBufferObject;
+class OpenGLTexture;
 
 struct OpenGLDebugDraw
 {
@@ -15,6 +16,7 @@ struct OpenGLDebugDraw
   struct Screen
   {
     static void drawRect(const KRectF &rect, const KColor &color);
+    static void drawTexture(const KRectF &rect, OpenGLTexture &texture);
   };
 
   // Drawing points within the world. (Unmanipulated)

@@ -52,12 +52,12 @@ void OpenGLLightManager::render()
   p.m_directionLights.draw();
 }
 
-void OpenGLLightManager::renderShadowed()
+void OpenGLLightManager::renderShadowed(OpenGLScene &scene)
 {
   P(OpenGLLightManagerPrivate);
-  p.m_spotLights.drawShadowed();
-  p.m_pointLights.drawShadowed();
-  p.m_directionLights.drawShadowed();
+  p.m_spotLights.drawShadowed(scene);
+  p.m_pointLights.drawShadowed(scene);
+  p.m_directionLights.drawShadowed(scene);
 }
 
 OpenGLPointLight *OpenGLLightManager::createPointLight()

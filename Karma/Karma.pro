@@ -80,4 +80,5 @@ HEADERS += \
     kelapsedtimer.h \
     kdebug.h \
     knullable.h \
-    kstack.h
+    kstack.h \
+    ktypetraits.h

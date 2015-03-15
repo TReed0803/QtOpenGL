@@ -11,6 +11,7 @@ layout(std140)
 uniform LightBufferProperties
 {
   highp mat4 ModelToPersp;
+  highp mat4 CameraViewToLightPersp;
   highp vec4 Attenuation;
   highp vec3 ViewPosition;
   float InnerAngle;
