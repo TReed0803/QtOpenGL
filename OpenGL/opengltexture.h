@@ -57,6 +57,24 @@ public:
     One                         = GL_ONE
   };
 
+  enum CompareMode
+  {
+    CompareNone                 = GL_NONE,
+    CompareRefToTexture         = GL_COMPARE_REF_TO_TEXTURE
+  };
+
+  enum CompareFunction
+  {
+    CompareLessEqual            = GL_LEQUAL,
+    CompareGreaterEqual         = GL_GEQUAL,
+    CompareLess                 = GL_LESS,
+    CompareGreater              = GL_GREATER,
+    CompareEqual                = GL_EQUAL,
+    CompareNotEqual             = GL_NOTEQUAL,
+    CompareAlways               = GL_ALWAYS,
+    CompareNever                = GL_NEVER
+  };
+
   OpenGLTexture();
   ~OpenGLTexture();
   void create(Target type);
@@ -68,6 +86,8 @@ public:
   void setSize(int width, int height);
   void setSize(KSize const &size);
   void setInternalFormat(OpenGLInternalFormat f);
+  void setCompareMode(CompareMode mode);
+  void setCompareFunction(CompareFunction func);
   void allocate();
   int textureId();
   Target target() const;

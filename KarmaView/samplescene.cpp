@@ -156,7 +156,7 @@ void SampleScene::start()
   }
 
   // Initialize the Spot Light Group
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 1; ++i)
   {
     OpenGLSpotLight *light = createSpotLight();
     light->setShadowCasting(true);

@@ -95,6 +95,18 @@ void OpenGLTexture::setInternalFormat(OpenGLInternalFormat f)
   p.m_format = f;
 }
 
+void OpenGLTexture::setCompareMode(OpenGLTexture::CompareMode mode)
+{
+  P(OpenGLTexturePrivate);
+  GL::glTexParameteri(p.m_target, GL_TEXTURE_COMPARE_MODE, mode);
+}
+
+void OpenGLTexture::setCompareFunction(OpenGLTexture::CompareFunction func)
+{
+  P(OpenGLTexturePrivate);
+  GL::glTexParameteri(p.m_target, GL_TEXTURE_COMPARE_FUNC, func);
+}
+
 void OpenGLTexture::allocate()
 {
   P(OpenGLTexturePrivate);

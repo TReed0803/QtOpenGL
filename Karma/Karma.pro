@@ -81,4 +81,5 @@ HEADERS += \
     kdebug.h \
     knullable.h \
     kstack.h \
-    ktypetraits.h
+    ktypetraits.h \
+    krect.h

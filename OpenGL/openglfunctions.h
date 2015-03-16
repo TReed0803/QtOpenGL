@@ -56,6 +56,9 @@ public:
     return value;
   }
 
+  static void pushViewport();
+  static void popViewport();
+
   // 2.0
   static inline void glActiveTexture (GLenum texture)
   {
@@ -707,10 +710,7 @@ public:
     GL::getInstance()->glVertexAttribPointer (index, size, type, normalized, stride, pointer);
   }
 
-  static inline void glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
-  {
-    GL::getInstance()->glViewport (x, y, width, height);
-  }
+  static void glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
 
 
   // 3.0

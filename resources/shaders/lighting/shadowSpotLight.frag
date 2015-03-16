@@ -1,5 +1,5 @@
 /*******************************************************************************
- * lighting/pointLight.frag
+ * lighting/shadowSpotLight.frag
  *------------------------------------------------------------------------------
  * Apply the lighting calculation to a given fragment of incident light.
  * Uses GBuffer information to access statistics about the scene itself.
@@ -10,6 +10,9 @@
 #include <Math.glsl> // saturate
 
 uniform sampler2D shadowMap;
+
+// Light Input
+in highp mat4 vViewToLightBias;
 
 // Light Output
 layout(location = 0) out highp vec4 fFragColor;
@@ -44,16 +47,13 @@ void main()
   highp float spotFactor = smoothstep(Light.OuterAngle, Light.InnerAngle, spotAngle);
 
   // Shadow Effect
-  float bias = 0.005;
+  // Note: Bias must be applied post-transform because W element is not 1.
   float visibility = 1.0;
-  mat4 biasMatrix = mat4(
-    0.5, 0.0, 0.0, 0.0,
-    0.0, 0.5, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.5, 0.5, 0.5, 1.0
-  );
-  vec4 shadowCoord = biasMatrix * Light.ViewToLightPersp * vec4(viewPos, 1.0);
-  if ( textureProj(shadowMap, shadowCoord.xyw).z < ((shadowCoord.z - bias) / shadowCoord.w))
+  float bias = 0.005 * tan(acos(lambertian));
+  vec4 shadowCoord = vViewToLightBias * vec4(viewPos, 1.0);
+  shadowCoord.z -= bias;
+  shadowCoord /= shadowCoord.w;
+  if (texture(shadowMap, shadowCoord.xy).r < shadowCoord.z)
   {
     visibility = 0.0;
   }
@@ -64,5 +64,5 @@ void main()
   fFragColor = vec4(visibility * spotFactor * attenuation * (diffuseTerm + specularTerm), 1.0);
 
   // Debug Drawing
-  //fFragColor += debugExecution(spotFactor * attenuation);
+  //fFragColor += debugExecution(visibility * spotFactor * attenuation);
 }

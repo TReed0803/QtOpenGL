@@ -176,11 +176,14 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
 
     // Draw from Light's Perspective
     OpenGLFramebufferObject::push();
+    GL::pushViewport();
+      GL::glViewport(0, 0, 64, 64);
       m_shadowMappingFbo.bind();
       m_shadowMappingLight->bind();
       GL::glClear(GL_DEPTH_BUFFER_BIT);
       scene.renderGeometry();
       m_shadowMappingLight->release();
+    GL::popViewport();
     OpenGLFramebufferObject::pop();
 
     // Draw from Camera's Perspective
