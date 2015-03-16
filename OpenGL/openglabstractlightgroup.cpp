@@ -13,7 +13,7 @@ bool OpenGLAbstractLightGroup::create()
   m_shadowTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
   m_shadowTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
   m_shadowTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  m_shadowTexture.setSize(64, 64);
+  m_shadowTexture.setSize(800, 600);
   m_shadowTexture.allocate();
   m_shadowTexture.release();
 

@@ -42,12 +42,14 @@
         <file>resources/shaders/lighting/spotLight.frag</file>
         <file>resources/shaders/lighting/spotLight.vert</file>
         <file>resources/shaders/lighting/shadowSpotLight.frag</file>
+        <file>resources/shaders/lighting/shadowSpotLightExponential.frag</file>
         <file>resources/shaders/lighting/shadowSpotLight.vert</file>
         <file>resources/shaders/lighting/shadowPointLight.frag</file>
         <file>resources/shaders/lighting/shadowPointLight.vert</file>
         <file>resources/shaders/lighting/shadowDirectionLight.frag</file>
         <file>resources/shaders/lighting/shadowDirectionLight.vert</file>
         <file>resources/shaders/lighting/mapSpotLight.frag</file>
+        <file>resources/shaders/lighting/mapSpotLightExponential.frag</file>
         <file>resources/shaders/lighting/mapSpotLight.vert</file>
     </qresource>
 </RCC>

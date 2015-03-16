@@ -18,13 +18,13 @@ bool OpenGLSpotLightGroup::create()
   // Create Shadowed Shader
   m_shadowCastingLight = new OpenGLShaderProgram;
   m_shadowCastingLight->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/shadowSpotLight.vert");
-  m_shadowCastingLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/shadowSpotLight.frag");
+  m_shadowCastingLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/shadowSpotLightExponential.frag");
   m_shadowCastingLight->link();
 
   // Create Mapping Shader
   m_shadowMappingLight = new OpenGLShaderProgram;
   m_shadowMappingLight->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/mapSpotLight.vert");
-  m_shadowMappingLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/mapSpotLight.frag");
+  m_shadowMappingLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/mapSpotLightExponential.frag");
   m_shadowMappingLight->link();
 
   return LightGroup::create();

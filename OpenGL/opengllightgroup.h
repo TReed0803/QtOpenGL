@@ -177,7 +177,7 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
     // Draw from Light's Perspective
     OpenGLFramebufferObject::push();
     GL::pushViewport();
-      GL::glViewport(0, 0, 64, 64);
+      GL::glViewport(0, 0, 800, 600);
       m_shadowMappingFbo.bind();
       m_shadowMappingLight->bind();
       GL::glClear(GL_DEPTH_BUFFER_BIT);
@@ -197,6 +197,9 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
       GL::glEnable(GL_DEPTH_TEST);
       m_shadowCastingLight->release();
     m_mesh.release();
+
+    // Debug Draw Shadow Map
+    OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 0.25f, 0.25f), m_shadowTexture);
   }
 }
 
