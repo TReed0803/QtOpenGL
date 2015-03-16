@@ -10,28 +10,47 @@
 #include <KTransform3D>
 #include <KDebugVertex>
 #include <KMath>
+#include <OpenGLTexture>
 #include <OpenGLDynamicBuffer>
+
+/*******************************************************************************
+ * OpenGLAbstractDebugGroup
+ ******************************************************************************/
+class OpenGLAbstractDebugGroup
+{
+public:
+  typedef std::vector<KDebugVertex> KDebugVertexContainer;
+
+  virtual void create(unsigned idx) = 0;
+  virtual void bind() = 0;
+  virtual void write(KDebugVertex *&dest) const = 0;
+  virtual void draw(GLsizei offset) = 0;
+  virtual void release() = 0;
+  virtual void teardown() = 0;
+  virtual void clear() = 0;
+  virtual GLsizei size() const = 0;
+};
 
 /*******************************************************************************
  * OpenGLDebugGroup
  ******************************************************************************/
-class OpenGLDebugGroup
+class OpenGLDebugGroup : public OpenGLAbstractDebugGroup
 {
 public:
   typedef std::vector<KDebugVertex> KDebugVertexContainer;
 
   OpenGLDebugGroup(unsigned &idx, GLenum drawMode, char const *vertex, char const *fragment);
-  void create(unsigned idx);
-  void bind();
-  void write(KDebugVertex *&dest) const;
-  void draw(GLsizei offset) const;
-  void release();
-  void teardown();
-  void clear();
-  GLsizei size() const;
+  virtual void create(unsigned idx);
+  virtual void bind();
+  virtual void write(KDebugVertex *&dest) const;
+  virtual void draw(GLsizei offset);
+  virtual void release();
+  virtual void teardown();
+  virtual void clear();
+  virtual GLsizei size() const;
   KDebugVertexContainer &vertices();
 
-private:
+protected:
   GLenum m_drawMode;
   unsigned *m_idx;
   char const *m_vertexFile;
@@ -72,7 +91,7 @@ void OpenGLDebugGroup::write(KDebugVertex *&dest) const
   }
 }
 
-void OpenGLDebugGroup::draw(GLsizei offset) const
+void OpenGLDebugGroup::draw(GLsizei offset)
 {
   GL::glDrawArrays(m_drawMode, offset, size());
 }
@@ -103,26 +122,79 @@ OpenGLDebugGroup::KDebugVertexContainer &OpenGLDebugGroup::vertices()
 }
 
 /*******************************************************************************
- * OpenGLDebugGroups
+ * OpenGLDebugTextureGroup
+ ******************************************************************************/
+
+class OpenGLDebugTextureGroup : public OpenGLDebugGroup
+{
+public:
+  typedef std::vector<OpenGLTexture*> OpenGLTextureContainer;
+  OpenGLDebugTextureGroup(unsigned &idx, GLenum drawMode, char const *vertex, char const *fragment);
+  virtual void create(unsigned idx);
+  virtual void draw(GLsizei offset);
+  virtual void clear();
+  OpenGLTextureContainer &textures();
+private:
+  OpenGLTextureContainer m_textures;
+};
+
+OpenGLDebugTextureGroup::OpenGLDebugTextureGroup(unsigned &idx, GLenum drawMode, const char *vertex, const char *fragment) :
+  OpenGLDebugGroup(idx, drawMode, vertex, fragment)
+{
+  // Intentionally Empty
+}
+
+void OpenGLDebugTextureGroup::create(unsigned idx)
+{
+  OpenGLDebugGroup::create(idx);
+  m_program->bind();
+  m_program->setUniformValue("textureData", 0);
+  m_program->release();
+}
+
+void OpenGLDebugTextureGroup::draw(GLsizei offset)
+{
+  GL::glActiveTexture(GL_TEXTURE0);
+  for (OpenGLTexture *texture : m_textures)
+  {
+    texture->bind();
+    GL::glDrawArrays(m_drawMode, offset, 4);
+    offset += 4;
+  }
+}
+
+void OpenGLDebugTextureGroup::clear()
+{
+  m_textures.clear();
+  OpenGLDebugGroup::clear();
+}
+
+OpenGLDebugTextureGroup::OpenGLTextureContainer &OpenGLDebugTextureGroup::textures()
+{
+  return m_textures;
+}
+
+/*******************************************************************************
+ * OpenGLDebugGroup
  ******************************************************************************/
 class OpenGLDebugGroups
 {
 public:
-  OpenGLDebugGroups(const std::initializer_list<OpenGLDebugGroup> &groups);
+  OpenGLDebugGroups(const std::initializer_list<OpenGLAbstractDebugGroup*> &groups);
   void create();
   void write(KDebugVertex *dest);
   void draw();
   void destroy();
   void clear();
   GLsizei size() const;
-  OpenGLDebugGroup::KDebugVertexContainer &operator[](unsigned idx);
+  OpenGLAbstractDebugGroup &operator[](unsigned idx);
 private:
-  std::vector<OpenGLDebugGroup> m_groups;
+  std::vector<OpenGLAbstractDebugGroup*> m_groups;
 };
 
-OpenGLDebugGroups::OpenGLDebugGroups(const std::initializer_list<OpenGLDebugGroup> &groups)
+OpenGLDebugGroups::OpenGLDebugGroups(const std::initializer_list<OpenGLAbstractDebugGroup*> &groups)
 {
-  for (const OpenGLDebugGroup &group : groups)
+  for (OpenGLAbstractDebugGroup *group : groups)
   {
     m_groups.push_back(group);
   }
@@ -131,62 +203,62 @@ OpenGLDebugGroups::OpenGLDebugGroups(const std::initializer_list<OpenGLDebugGrou
 void OpenGLDebugGroups::create()
 {
   unsigned idx = 0;
-  for (OpenGLDebugGroup &group : m_groups)
+  for (OpenGLAbstractDebugGroup *group : m_groups)
   {
-    group.create(idx);
+    group->create(idx);
     ++idx;
   }
 }
 
 void OpenGLDebugGroups::write(KDebugVertex *dest)
 {
-  for (OpenGLDebugGroup &group : m_groups)
+  for (OpenGLAbstractDebugGroup *group : m_groups)
   {
-    group.write(dest);
+    group->write(dest);
   }
 }
 
 void OpenGLDebugGroups::draw()
 {
   GLsizei offset = 0;
-  for (OpenGLDebugGroup &group : m_groups)
+  for (OpenGLAbstractDebugGroup *group : m_groups)
   {
-    group.bind();
-    group.draw(offset);
-    group.release();
-    offset += group.size() * sizeof(KDebugVertex);
+    group->bind();
+    group->draw(offset);
+    group->release();
+    offset += group->size();
   }
 }
 
 void OpenGLDebugGroups::destroy()
 {
-  for (OpenGLDebugGroup &group : m_groups)
+  for (OpenGLAbstractDebugGroup *group : m_groups)
   {
-    group.teardown();
+    group->teardown();
   }
 }
 
 void OpenGLDebugGroups::clear()
 {
-  for (OpenGLDebugGroup &group : m_groups)
+  for (OpenGLAbstractDebugGroup *group : m_groups)
   {
-    group.clear();
+    group->clear();
   }
 }
 
 GLsizei OpenGLDebugGroups::size() const
 {
   GLsizei rSize = 0;
-  for (const OpenGLDebugGroup &group : m_groups)
+  for (const OpenGLAbstractDebugGroup *group : m_groups)
   {
-    rSize += group.size();
+    rSize += group->size();
   }
   return rSize;
 }
 
-OpenGLDebugGroup::KDebugVertexContainer &OpenGLDebugGroups::operator[](unsigned idx)
+OpenGLAbstractDebugGroup &OpenGLDebugGroups::operator[](unsigned idx)
 {
-  return m_groups[idx].vertices();
+  return *m_groups[idx];
 }
 
 /*******************************************************************************
@@ -195,12 +267,14 @@ OpenGLDebugGroup::KDebugVertexContainer &OpenGLDebugGroups::operator[](unsigned 
 static unsigned sg_idxLines, sg_idxPoints, sg_idxRectangles, sg_idxTextures;
 static OpenGLDebugGroups sg_debugGroups =
 {
-  OpenGLDebugGroup(sg_idxLines,       GL_LINES,         ":/resources/shaders/debug/world.vert",   ":/resources/shaders/debug/world.frag"  ),
-  OpenGLDebugGroup(sg_idxPoints,      GL_POINTS,        ":/resources/shaders/debug/world.vert",   ":/resources/shaders/debug/world.frag"  ),
-  OpenGLDebugGroup(sg_idxRectangles,  GL_TRIANGLES,     ":/resources/shaders/debug/screen.vert",  ":/resources/shaders/debug/screen.frag" ),
-  OpenGLDebugGroup(sg_idxTextures,    GL_TRIANGLE_FAN,  ":/resources/shaders/debug/texture.vert", ":/resources/shaders/debug/texture.frag")
+  new OpenGLDebugGroup(sg_idxLines,           GL_LINES,         ":/resources/shaders/debug/world.vert",   ":/resources/shaders/debug/world.frag"  ),
+  new OpenGLDebugGroup(sg_idxPoints,          GL_POINTS,        ":/resources/shaders/debug/world.vert",   ":/resources/shaders/debug/world.frag"  ),
+  new OpenGLDebugGroup(sg_idxRectangles,      GL_TRIANGLES,     ":/resources/shaders/debug/screen.vert",  ":/resources/shaders/debug/screen.frag" ),
+  new OpenGLDebugTextureGroup(sg_idxTextures, GL_TRIANGLE_FAN,  ":/resources/shaders/debug/texture.vert", ":/resources/shaders/debug/texture.frag")
 };
 #define G(name) sg_debugGroups[sg_idx##name]
+#define V(name) static_cast<OpenGLDebugGroup&>(G(name)).vertices()
+#define T(name) static_cast<OpenGLDebugTextureGroup&>(G(name)).textures()
 OpenGLDynamicBuffer<KDebugVertex> sg_vertexBuffer;
 OpenGLVertexArrayObject *sg_vertexArrayObject;
 
@@ -292,12 +366,12 @@ void OpenGLDebugDraw::Screen::drawRect(const KRectF &rect, const KColor &color)
   float y2 = nRect.y() - nRect.height();
 
   // Create vertices
-  G(Rectangles).push_back(KDebugVertex( KVector3D(x1, y1, 0.0f), color ));
-  G(Rectangles).push_back(KDebugVertex( KVector3D(x1, y2, 0.0f), color ));
-  G(Rectangles).push_back(KDebugVertex( KVector3D(x2, y1, 0.0f), color ));
-  G(Rectangles).push_back(KDebugVertex( KVector3D(x2, y1, 0.0f), color ));
-  G(Rectangles).push_back(KDebugVertex( KVector3D(x1, y2, 0.0f), color ));
-  G(Rectangles).push_back(KDebugVertex( KVector3D(x2, y2, 0.0f), color ));
+  V(Rectangles).push_back(KDebugVertex( KVector3D(x1, y1, 0.0f), color ));
+  V(Rectangles).push_back(KDebugVertex( KVector3D(x1, y2, 0.0f), color ));
+  V(Rectangles).push_back(KDebugVertex( KVector3D(x2, y1, 0.0f), color ));
+  V(Rectangles).push_back(KDebugVertex( KVector3D(x2, y1, 0.0f), color ));
+  V(Rectangles).push_back(KDebugVertex( KVector3D(x1, y2, 0.0f), color ));
+  V(Rectangles).push_back(KDebugVertex( KVector3D(x2, y2, 0.0f), color ));
 }
 
 void OpenGLDebugDraw::Screen::drawTexture(const KRectF &rect, OpenGLTexture &texture)
@@ -312,10 +386,11 @@ void OpenGLDebugDraw::Screen::drawTexture(const KRectF &rect, OpenGLTexture &tex
   float y2 = nRect.y() - nRect.height();
 
   // Create vertices
-  G(Textures).push_back(KDebugVertex( KVector3D(x1, y1, 0.0f), KVector2D(0.0f, 1.0f) ));
-  G(Textures).push_back(KDebugVertex( KVector3D(x1, y2, 0.0f), KVector2D(0.0f, 0.0f) ));
-  G(Textures).push_back(KDebugVertex( KVector3D(x2, y2, 0.0f), KVector2D(1.0f, 0.0f) ));
-  G(Textures).push_back(KDebugVertex( KVector3D(x2, y1, 0.0f), KVector2D(1.0f, 1.0f) ));
+  V(Textures).push_back(KDebugVertex( KVector3D(x1, y1, 0.0f), KVector2D(0.0f, 1.0f) ));
+  V(Textures).push_back(KDebugVertex( KVector3D(x1, y2, 0.0f), KVector2D(0.0f, 0.0f) ));
+  V(Textures).push_back(KDebugVertex( KVector3D(x2, y2, 0.0f), KVector2D(1.0f, 0.0f) ));
+  V(Textures).push_back(KDebugVertex( KVector3D(x2, y1, 0.0f), KVector2D(1.0f, 1.0f) ));
+  T(Textures).push_back(&texture);
 }
 
 /*******************************************************************************
@@ -323,7 +398,7 @@ void OpenGLDebugDraw::Screen::drawTexture(const KRectF &rect, OpenGLTexture &tex
  ******************************************************************************/
 void OpenGLDebugDraw::World::drawPoint(const KVector3D &point, const KColor &color)
 {
-  G(Points).push_back(KDebugVertex(point, color));
+  V(Points).push_back(KDebugVertex(point, color));
 }
 
 void OpenGLDebugDraw::World::drawOval(const KVector3D &center, const KVector3D &normal, const KVector3D &up, float upRadius, float rightRadius, const KColor &color)
@@ -353,12 +428,12 @@ void OpenGLDebugDraw::World::drawOval(const KVector3D &center, const KVector3D &
   KVector3D point = x_axis * x * rightRadius;
   for (int i = 0; i < segments; ++i)
   {
-    G(Lines).push_back(KDebugVertex(center + point, color));
+    V(Lines).push_back(KDebugVertex(center + point, color));
     t = x;
     x = cosine * x - sine * z;
     z = sine * t + cosine * z;
     point = z_axis * z * upRadius + x_axis * x * rightRadius;
-    G(Lines).push_back(KDebugVertex(center + point, color));
+    V(Lines).push_back(KDebugVertex(center + point, color));
   }
 }
 
@@ -423,12 +498,12 @@ void OpenGLDebugDraw::World::drawCircle(const KVector3D &center, const KVector3D
   KVector3D point = x_axis * x;
   for (int i = 0; i < segments; ++i)
   {
-    G(Lines).push_back(KDebugVertex(center + point, color));
+    V(Lines).push_back(KDebugVertex(center + point, color));
     t = x;
     x = cosine * x - sine * z;
     z = sine * t + cosine * z;
     point = z_axis * z + x_axis * x;
-    G(Lines).push_back(KDebugVertex(center + point, color));
+    V(Lines).push_back(KDebugVertex(center + point, color));
   }
 }
 
@@ -495,6 +570,6 @@ void OpenGLDebugDraw::World::drawAabb(const KVector3D &frontA, const KVector3D &
 void OpenGLDebugDraw::World::drawLine(const KVector3D &from, const KVector3D &to, const KColor &color)
 {
   // Create vertices
-  G(Lines).push_back(KDebugVertex(from, color));
-  G(Lines).push_back(KDebugVertex(to, color));
+  V(Lines).push_back(KDebugVertex(from, color));
+  V(Lines).push_back(KDebugVertex(to, color));
 }

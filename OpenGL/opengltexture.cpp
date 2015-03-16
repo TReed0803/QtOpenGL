@@ -58,6 +58,13 @@ void OpenGLTexture::release()
   p.m_functions.glBindTexture(p.m_target, 0);
 }
 
+void OpenGLTexture::setSwizzle(OpenGLTexture::SwizzleMode r, OpenGLTexture::SwizzleMode g, OpenGLTexture::SwizzleMode b, OpenGLTexture::SwizzleMode a)
+{
+  P(OpenGLTexturePrivate);
+  GLint swizzleMask[] = { r, g, b, a };
+  GL::glTexParameteriv(p.m_target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+}
+
 void OpenGLTexture::setWrapMode(OpenGLTexture::Direction dir, OpenGLTexture::WrapMode mode)
 {
   P(OpenGLTexturePrivate);

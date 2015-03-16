@@ -141,7 +141,7 @@ void SampleScene::start()
   p.m_viewport.activate();
 
   // Initialize the Direction Light Group
-  for (int i = 0; i < 0; ++i)
+  for (int i = 0; i < 1; ++i)
   {
     OpenGLDirectionLight *light = createDirectionLight();
     light->setDiffuse(0.1f, 0.1f, 0.1f);

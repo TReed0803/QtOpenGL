@@ -47,11 +47,22 @@ public:
     Linear                      = 0x2601
   };
 
+  enum SwizzleMode
+  {
+    Red                         = GL_RED,
+    Green                       = GL_GREEN,
+    Blue                        = GL_BLUE,
+    Alpha                       = GL_ALPHA,
+    Zero                        = GL_ZERO,
+    One                         = GL_ONE
+  };
+
   OpenGLTexture();
   ~OpenGLTexture();
   void create(Target type);
   void bind();
   void release();
+  void setSwizzle(SwizzleMode r, SwizzleMode g, SwizzleMode b, SwizzleMode a);
   void setWrapMode(Direction dir, WrapMode mode);
   void setFilter(FilterType filter, FilterOperation op);
   void setSize(int width, int height);

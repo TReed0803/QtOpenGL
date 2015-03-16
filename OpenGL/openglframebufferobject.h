@@ -19,6 +19,7 @@ public:
 
   enum Attachment
   {
+    None                        = GL_NONE,
     ColorAttachment0            = 0x8CE0,
     ColorAttachment1            = 0x8CE1,
     ColorAttachment2            = 0x8CE2,

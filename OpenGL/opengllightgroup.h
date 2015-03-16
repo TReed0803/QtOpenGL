@@ -165,7 +165,9 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
 {
   if (m_lights.empty()) return;
 
-  m_mesh.bind();
+  // Activate the shadow texture
+  GL::glActiveTexture(GL_TEXTURE0);
+  m_shadowTexture.bind();
 
   // Render each shadow light
   for (size_t i = 0; i < m_numShadowLights; ++i)
@@ -174,20 +176,27 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
 
     // Draw from Light's Perspective
     OpenGLFramebufferObject::push();
-    m_shadowMappingFbo.bind();
-    m_shadowMappingLight->bind();
-    scene.renderGeometry();
+      m_shadowMappingFbo.bind();
+      m_shadowMappingLight->bind();
+      GL::glClear(GL_DEPTH_BUFFER_BIT);
+      scene.renderGeometry();
+      m_shadowMappingLight->release();
+    OpenGLFramebufferObject::pop();
 
     // Draw from Camera's Perspective
-    OpenGLFramebufferObject::pop();
-    m_shadowCastingLight->bind();
-    m_mesh.draw();
+    m_mesh.bind();
+      m_shadowCastingLight->bind();
+      GL::glDisable(GL_DEPTH_TEST);
+      GL::glEnable(GL_BLEND);
+      GL::glBlendFunc(GL_ONE, GL_ONE);
+      m_mesh.draw();
+      GL::glDisable(GL_BLEND);
+      GL::glEnable(GL_DEPTH_TEST);
+    m_mesh.release();
+
+    // Debug draw texture
+    OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 0.25f, 0.25f), m_shadowTexture);
   }
-
-  // Debug draw texture
-  OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 0.25f, 0.25f), m_shadowTexture);
-
-  m_mesh.release();
 }
 
 template <typename T, typename D>

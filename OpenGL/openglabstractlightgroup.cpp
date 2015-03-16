@@ -7,20 +7,20 @@ bool OpenGLAbstractLightGroup::create()
   // Create the shadow texture
   m_shadowTexture.create(OpenGLTexture::Texture2D);
   m_shadowTexture.bind();
-  m_shadowTexture.setInternalFormat(OpenGLInternalFormat::R32F);
+  m_shadowTexture.setSwizzle(OpenGLTexture::Red, OpenGLTexture::Red, OpenGLTexture::Red, OpenGLTexture::One);
+  m_shadowTexture.setInternalFormat(OpenGLInternalFormat::Depth16);
   m_shadowTexture.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
   m_shadowTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
   m_shadowTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
   m_shadowTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  m_shadowTexture.setSize(64, 64);
+  m_shadowTexture.setSize(800, 600);
   m_shadowTexture.allocate();
   m_shadowTexture.release();
 
   // Create the shadow fbo
   m_shadowMappingFbo.create();
   m_shadowMappingFbo.bind();
-  m_shadowMappingFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, m_shadowTexture);
-  m_shadowMappingFbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
+  m_shadowMappingFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment, m_shadowTexture);
   m_shadowMappingFbo.validate();
   m_shadowMappingFbo.release();
 

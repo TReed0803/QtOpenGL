@@ -62,18 +62,21 @@ void OpenGLSpotLightGroup::translateBuffer(const OpenGLRenderBlock &stats, DataP
     ++begin;
   }
 }
-
+#include <KCamera3D>
 void OpenGLSpotLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byte *data, OpenGLLightGroup::SizeType step, OpenGLLightGroup::ConstLightIterator begin, OpenGLLightGroup::ConstLightIterator end)
 {
   // Upload data to GPU
   DataPointer lightDest;
+  KMatrix4x4 lWorldToView;
   KMatrix4x4 lViewToPersp;
   ConstLightPointer lightSource;
   while (begin != end)
   {
     lightDest   = reinterpret_cast<DataType*>(data);
     lightSource = *begin;
-    lViewToPersp.perspective(30.0f, 1.0f, 0.0f, lightSource->depth());
+    lWorldToView = lightSource->toMatrix();
+    lWorldToView.flipCoordinates();
+    lViewToPersp.perspective(2.0f * Karma::RadsToDegrees(lightSource->outerAngle()), 1.0f, 0.1f, lightSource->depth());
     lightDest->m_innerAngle   = lightSource->innerAngle();
     lightDest->m_outerAngle   = lightSource->outerAngle();
     lightDest->m_diffAngle    = lightSource->outerAngle() - lightSource->innerAngle();
@@ -83,7 +86,8 @@ void OpenGLSpotLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byt
     lightDest->m_perspTrans   = stats.worldToPersp() * Karma::ToGlm(lightSource->toMatrix());
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
     lightDest->m_viewTrans    = glm::vec3(stats.worldToView() * Karma::ToGlm(lightSource->translation(), 1.0f));
-    lightDest->m_cViewToLPersp= Karma::ToGlm(lViewToPersp) * glm::inverse(Karma::ToGlm(lightSource->toMatrix())) * stats.viewToWorld();
+    lightDest->m_cViewToLPersp= Karma::ToGlm(lViewToPersp) * glm::inverse(Karma::ToGlm(lWorldToView)) * stats.viewToWorld();
+    //lightDest->m_cViewToLPersp= Karma::ToGlm(lViewToPersp);
     data += step;
     ++begin;
   }

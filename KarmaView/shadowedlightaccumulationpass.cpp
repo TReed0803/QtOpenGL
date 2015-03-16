@@ -35,17 +35,7 @@ void ShadowedLightAccumulationPass::render(OpenGLScene &scene)
 {
   P(ShadowedLightAccumulationPassPrivate);
   OpenGLMarkerScoped _("Shadow-Casting Light Accumulation Pass");
-
-  GL::glDisable(GL_DEPTH_TEST);
-  GL::glDepthMask(GL_FALSE);
-  GL::glEnable(GL_BLEND);
-  GL::glBlendFunc(GL_ONE, GL_ONE);
-
   scene.renderShadowedLights();
-
-  GL::glDisable(GL_BLEND);
-  GL::glDepthMask(GL_TRUE);
-  GL::glEnable(GL_DEPTH_TEST);
 }
 
 void ShadowedLightAccumulationPass::teardown()

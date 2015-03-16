@@ -9,6 +9,8 @@
 #include <GBuffer.ubo>
 #include <Math.glsl> // saturate
 
+uniform sampler2D shadowMap;
+
 // Light Output
 layout(location = 0) out highp vec4 fFragColor;
 
@@ -41,10 +43,25 @@ void main()
   highp float spotAngle  = dot(-lightDir, Light.ViewDirection);
   highp float spotFactor = smoothstep(Light.OuterAngle, Light.InnerAngle, spotAngle);
 
+  // Shadow Effect
+  float bias = 0.005;
+  float visibility = 1.0;
+  mat4 biasMatrix = mat4(
+    0.5, 0.0, 0.0, 0.0,
+    0.0, 0.5, 0.0, 0.0,
+    0.0, 0.0, 0.5, 0.0,
+    0.5, 0.5, 0.5, 1.0
+  );
+  vec4 shadowCoord = biasMatrix * Light.ViewToLightPersp * vec4(viewPos, 1.0);
+  if ( textureProj(shadowMap, shadowCoord.xyw).z < ((shadowCoord.z - bias) / shadowCoord.w))
+  {
+    visibility = 0.0;
+  }
+
   // Construct Lighting Terms
   highp vec3 diffuseTerm  = Light.Diffuse  * diffuse      * lambertian;
   highp vec3 specularTerm = Light.Specular * specular.xyz * specFactor;
-  fFragColor = vec4(spotFactor * attenuation * (diffuseTerm + specularTerm), 1.0);
+  fFragColor = vec4(visibility * spotFactor * attenuation * (diffuseTerm + specularTerm), 1.0);
 
   // Debug Drawing
   //fFragColor += debugExecution(spotFactor * attenuation);

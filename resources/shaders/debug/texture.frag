@@ -4,10 +4,11 @@
  * Passhtrough shader, outputs color to fColor.
  ******************************************************************************/
 
-in highp vec4 vColor;
+uniform sampler2D textureData;
+in highp vec2 vUv;
 layout(location = 0) out highp vec4 fColor;
 
 void main()
 {
-  fColor = vColor;
+  fColor = texture(textureData, vUv);
 }
