@@ -76,6 +76,7 @@ void OpenGLSpotLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byt
     lightSource = *begin;
     lWorldToView = lightSource->toMatrix();
     lWorldToView.flipCoordinates();
+    lViewToPersp.setToIdentity();
     lViewToPersp.perspective(2.0f * Karma::RadsToDegrees(lightSource->outerAngle()), 1.0f, 0.1f, lightSource->depth());
     lightDest->m_innerAngle   = lightSource->innerAngle();
     lightDest->m_outerAngle   = lightSource->outerAngle();
@@ -87,7 +88,6 @@ void OpenGLSpotLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byt
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
     lightDest->m_viewTrans    = glm::vec3(stats.worldToView() * Karma::ToGlm(lightSource->translation(), 1.0f));
     lightDest->m_cViewToLPersp= Karma::ToGlm(lViewToPersp) * glm::inverse(Karma::ToGlm(lWorldToView)) * stats.viewToWorld();
-    //lightDest->m_cViewToLPersp= Karma::ToGlm(lViewToPersp);
     data += step;
     ++begin;
   }

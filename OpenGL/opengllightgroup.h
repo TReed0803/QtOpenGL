@@ -192,10 +192,8 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
       m_mesh.draw();
       GL::glDisable(GL_BLEND);
       GL::glEnable(GL_DEPTH_TEST);
+      m_shadowCastingLight->release();
     m_mesh.release();
-
-    // Debug draw texture
-    OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 0.25f, 0.25f), m_shadowTexture);
   }
 }
 

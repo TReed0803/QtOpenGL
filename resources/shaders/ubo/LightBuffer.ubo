@@ -20,6 +20,7 @@ uniform LightBufferProperties
   highp vec3 Diffuse;
   float DiffAngle;
   highp vec3 Specular;
+  highp float Padding;
 } Light;
 
 #autobind LightBufferProperties

@@ -22,6 +22,7 @@ public:
   glm::vec3 m_diffuse;        // { r, g, b }
   float m_diffAngle;          // { outer - inner }
   glm::vec3 m_specular;       // { r, g, b }
+  float padding;
 };
 
 inline int OpenGLLightData::TranslationOffset()

@@ -152,6 +152,7 @@ void OpenGLFramebufferObject::pop()
 
 void OpenGLFramebufferObject::bind(unsigned id)
 {
+  sg_currentFbo = id;
   GL::glBindFramebuffer(GL_FRAMEBUFFER, id);
 }
 
