@@ -5,12 +5,15 @@
  * Uses GBuffer information to access statistics about the scene itself.
  ******************************************************************************/
 
-#include <LightBuffer.ubo>
-#include <Math.glsl>
+#include <LightBuffer.ubo> // Light.Radius
+#include <Math.glsl> // map_01
 
-layout(location = 0) out float depth;
+in highp vec4 vViewPosition;
+layout(location = 0) out float expMap;
 
 void main()
 {
-  depth = gl_FragCoord.z;
+  float depthDivisor = (1.0 / gl_FragCoord.w);
+  float mappedDivisor = map_01(depthDivisor, Light.NearPlane, Light.MaxFalloff);
+  expMap = exp(Light.Exponential * mappedDivisor);
 }

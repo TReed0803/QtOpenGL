@@ -9,6 +9,11 @@
 
 #include <GlobalBuffer.ubo>
 
+highp float map_01(float x, float v0, float v1)
+{
+  return (x - v0) / (v1 - v0);
+}
+
 highp float linearizeDepth(highp float z)
 {
   return (2.0 * Current.NearPlane) / (Current.SumPlane - z * Current.DiffPlane);

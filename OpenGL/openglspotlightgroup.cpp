@@ -52,12 +52,15 @@ void OpenGLSpotLightGroup::translateBuffer(const OpenGLRenderBlock &stats, DataP
     lightDest->m_innerAngle   = lightSource->innerAngle();
     lightDest->m_outerAngle   = lightSource->outerAngle();
     lightDest->m_diffAngle    = lightSource->outerAngle() - lightSource->innerAngle();
-    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation(), lightSource->depth());
+    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation());
+    lightDest->m_maxFalloff   = lightSource->depth();
     lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
     lightDest->m_direction    = glm::vec3(glm::normalize(stats.worldToView() * Karma::ToGlm(lightSource->direction(), 0.0f)));
     lightDest->m_perspTrans   = stats.worldToPersp() * Karma::ToGlm(lightSource->toMatrix());
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
     lightDest->m_viewTrans    = glm::vec3(stats.worldToView() * Karma::ToGlm(lightSource->translation(), 1.0f));
+    lightDest->m_minFalloff   = 0.0f;
+    lightDest->m_nearPlane    = 0.1f;
     ++data;
     ++begin;
   }
@@ -81,13 +84,17 @@ void OpenGLSpotLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byt
     lightDest->m_innerAngle   = lightSource->innerAngle();
     lightDest->m_outerAngle   = lightSource->outerAngle();
     lightDest->m_diffAngle    = lightSource->outerAngle() - lightSource->innerAngle();
-    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation(), lightSource->depth());
+    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation());
+    lightDest->m_maxFalloff   = lightSource->depth();
     lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
     lightDest->m_direction    = glm::vec3(glm::normalize(stats.worldToView() * Karma::ToGlm(lightSource->direction(), 0.0f)));
     lightDest->m_perspTrans   = stats.worldToPersp() * Karma::ToGlm(lightSource->toMatrix());
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
     lightDest->m_viewTrans    = glm::vec3(stats.worldToView() * Karma::ToGlm(lightSource->translation(), 1.0f));
     lightDest->m_cViewToLPersp= Karma::ToGlm(lViewToPersp) * glm::inverse(Karma::ToGlm(lWorldToView)) * stats.viewToWorld();
+    lightDest->m_exponential  = 120.0f;
+    lightDest->m_minFalloff   = 0.0f;
+    lightDest->m_nearPlane    = 0.1f;
     data += step;
     ++begin;
   }

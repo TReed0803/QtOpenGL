@@ -32,7 +32,7 @@ public:
 
 protected:
   OpenGLMesh m_mesh;
-  OpenGLTexture m_shadowTexture;
+  OpenGLTexture m_shadowTexture, m_shadowDepth;
   OpenGLFramebufferObject m_shadowMappingFbo;
   OpenGLShaderProgram *m_regularLight;
   OpenGLShaderProgram *m_shadowCastingLight;

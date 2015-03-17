@@ -27,8 +27,8 @@ void main()
   // Construct a finite attenuation
   highp vec3  lightDir   = lightVec / lightDist;
   highp vec3  polynomial = vec3(1.0, lightDist, lightDist * lightDist);
-  highp float attenuation = 1.0 / dot(polynomial,Light.Attenuation.xyz);
-  attenuation *= saturate(1.0 - (lightDist / Light.Attenuation.w));
+  highp float attenuation = 1.0 / dot(polynomial,Light.Attenuation);
+  attenuation *= saturate(1.0 - (lightDist / Light.MaxFalloff));
 
   // Blinn Phong
   highp float lambertian = max(dot(lightDir, normal), 0.0);

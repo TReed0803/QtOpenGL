@@ -180,7 +180,9 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
       GL::glViewport(0, 0, 800, 600);
       m_shadowMappingFbo.bind();
       m_shadowMappingLight->bind();
-      GL::glClear(GL_DEPTH_BUFFER_BIT);
+      GL::glClearColor(std::numeric_limits<float>::infinity(), 1.0, 1.0f, 1.0f);
+      GL::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      GL::glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
       scene.renderGeometry();
       m_shadowMappingLight->release();
     GL::popViewport();

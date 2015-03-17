@@ -10,5 +10,5 @@ layout(location = 0) out highp vec4 fColor;
 
 void main()
 {
-  fColor = texture(textureData, vUv);
+  fColor = vec4(vec3(log(texture(textureData, vUv).r)/60), 1.0);
 }

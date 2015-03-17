@@ -41,7 +41,8 @@ void OpenGLPointLightGroup::translateBuffer(const OpenGLRenderBlock &stats, Data
   {
     lightDest   = data;
     lightSource = *begin;
-    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation(), lightSource->radius());
+    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation());
+    lightDest->m_maxFalloff   = lightSource->radius();
     lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
     lightDest->m_perspTrans   = stats.worldToPersp() * Karma::ToGlm(lightSource->toMatrix());
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
@@ -60,7 +61,8 @@ void OpenGLPointLightGroup::translateUniforms(const OpenGLRenderBlock &stats, By
   {
     lightDest   = reinterpret_cast<DataType*>(data);
     lightSource = *begin;
-    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation(), lightSource->radius());
+    lightDest->m_attenuation  = Karma::ToGlm(lightSource->attenuation());
+    lightDest->m_maxFalloff   = lightSource->radius();
     lightDest->m_diffuse      = Karma::ToGlm(lightSource->diffuse());
     lightDest->m_perspTrans   = stats.worldToPersp() * Karma::ToGlm(lightSource->toMatrix());
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());

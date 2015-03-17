@@ -12,7 +12,8 @@ uniform LightBufferProperties
 {
   highp mat4 ModelToPersp;
   highp mat4 ViewToLightPersp;
-  highp vec4 Attenuation;
+  highp vec3 Attenuation;
+  highp float MaxFalloff;
   highp vec3 ViewPosition;
   float InnerAngle;
   highp vec3 ViewDirection;
@@ -20,7 +21,9 @@ uniform LightBufferProperties
   highp vec3 Diffuse;
   float DiffAngle;
   highp vec3 Specular;
-  highp float Padding;
+  highp float Exponential;
+  highp float MinFalloff;
+  highp float NearPlane;
 } Light;
 
 #autobind LightBufferProperties
