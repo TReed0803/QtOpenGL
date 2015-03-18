@@ -110,6 +110,7 @@ void GBufferPass::render(OpenGLScene &scene)
   p.m_program->bind();
   p.m_gFbo.bind();
   GL::glViewport(0, 0, p.m_width, p.m_height);
+  GL::glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   GL::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   scene.renderGeometry();
   p.m_gFbo.release();

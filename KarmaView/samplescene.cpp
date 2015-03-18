@@ -176,12 +176,12 @@ void SampleScene::start()
   // Create the floor material
   OpenGLMaterial floorMaterial;
   floorMaterial.setDiffuse(0.0f, 0.0f, 1.0f);
-  floorMaterial.setSpecular(0.25f, 0.25f, 0.25f, 1.0f);
+  floorMaterial.setSpecular(0.25f, 0.25f, 0.25f, 64.0f);
 
   // Create the instance material
   OpenGLMaterial material;
   material.setDiffuse(0.0f, 1.0f, 0.0f);
-  material.setSpecular(1.0f, 1.0f, 1.0f, 32.0f);
+  material.setSpecular(1.0f, 1.0f, 1.0f, 255.0f);
 
   // Note: Currently there is no Material System.
   //       All material properties are per-instance.
