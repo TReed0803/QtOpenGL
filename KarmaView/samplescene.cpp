@@ -141,7 +141,7 @@ void SampleScene::start()
   p.m_viewport.activate();
 
   // Initialize the Direction Light Group
-  for (int i = 0; i < 1; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     OpenGLDirectionLight *light = createDirectionLight();
     light->setDiffuse(0.1f, 0.1f, 0.1f);
@@ -159,6 +159,7 @@ void SampleScene::start()
   for (int i = 0; i < 1; ++i)
   {
     OpenGLSpotLight *light = createSpotLight();
+    light->setAttenuation(1.0f, 0.01f, 0.0f);
     light->setShadowCasting(true);
     light->setInnerAngle(40.0f);
     light->setOuterAngle(45.0f);
@@ -190,15 +191,15 @@ void SampleScene::start()
   floor->setMesh("Floor");
   floor->setMaterial(floorMaterial);
   floor->transform().setScale(1000.0f);
-  floor->transform().setTranslation(0.0f, -1.0f, 0.0f);
+  floor->transform().setTranslation(0.0f, -5.0f, 0.0f);
 
   // Create Instance Data
   OpenGLInstance * instance;
-  static const int total = 0;
+  static const int total = 10;
   static const float arcLength = Karma::TwoPi / float(total);
   for (int i = 0; i < total; ++i)
   {
-    const float radius = 10.0f;
+    const float radius = 5.0f;
     const float radians = i * arcLength;
     instance = createInstance();
     instance->setMesh("SharedMesh");
@@ -239,7 +240,7 @@ void SampleScene::update(KUpdateEvent *event)
   for (OpenGLSpotLight *instance : spotLights())
   {
     static const float radius = 5.0f;
-    instance->setTranslation(cos(angle) * radius, 5.0f + std::sin(angle * 15.0f) * 5.0f, sin(angle) * radius);
+    instance->setTranslation(cos(angle) * radius, /*5.0f + std::sin(angle * 15.0f) * 5.0f*/ 4.5f, sin(angle) * radius);
     instance->setDirection(-instance->translation().normalized());
     angle += 2 * 3.1415926 / spotLights().size();
   }

@@ -161,6 +161,7 @@ void OpenGLLightGroup<T, D>::draw()
   m_mesh.release();
 }
 #include <KInputManager>
+#include <OpenGLBlurData>
 template <typename T, typename D>
 void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
 {
@@ -171,6 +172,8 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
   m_shadowTexture.bind();
 
   // Render each shadow light
+  static int size = 1;
+  static int variance = 1;
   for (size_t i = 0; i < m_numShadowLights; ++i)
   {
     m_uniforms.bindRange(BufferType::UniformBuffer, 3, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
@@ -192,6 +195,32 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
     // Next: Blur the shadow map
     if (KInputManager::keyPressed(Qt::Key_B))
     {
+      if (KInputManager::keyTriggered(Qt::Key_Up))
+      {
+        ++size;
+      }
+      if (KInputManager::keyTriggered(Qt::Key_Down))
+      {
+        --size;
+      }
+      if (KInputManager::keyTriggered(Qt::Key_Right))
+      {
+        ++variance;
+      }
+      if (KInputManager::keyTriggered(Qt::Key_Left))
+      {
+        --variance;
+      }
+
+      // Upload new blur data
+      //*
+      OpenGLBlurData blurData(size, variance);
+      m_blurData.bind();
+      m_blurData.write(0, &blurData, sizeof(OpenGLBlurData));
+      m_blurData.release();
+      m_blurData.bindBase(4);
+      //*/
+
       int W = 800;
       int H = 600;
       GLint loc = m_blurProgram->uniformLocation("Direction");

@@ -124,7 +124,7 @@ namespace Karma
   std::vector<KVector3D> findExtremalPoints(It1 beginPoints, It1 endPoints, It2 beginNorms, It2 endNorms, Func1 pointAccessor);
 
   // Distributions
-  float normalDist(float value);
+  float normalDist(float value, float mean, float deviation);
 }
 
 template <typename T>

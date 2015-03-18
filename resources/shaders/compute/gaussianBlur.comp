@@ -12,7 +12,7 @@ uniform BlurData
 {
   int Width;          // w
   int Width2;         // 2w
-  float Weights[101]; // Weight[2w + 1] = { ... }
+  float Weights[65];  // Weight[2w + 1] = { ... }
 } Blur;
 uniform ivec2 Direction;
 
@@ -20,8 +20,8 @@ uniform ivec2 Direction;
 layout (r32f) uniform readonly  image2D src;
 layout (r32f) uniform writeonly image2D dst;
 
-// Shared Workspace (Max w = 50)
-shared float v[128 + 4];
+// Shared Workspace (Max w = 32)
+shared float v[128 + 64];
 
 void main()
 {

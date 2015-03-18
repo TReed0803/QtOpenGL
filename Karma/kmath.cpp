@@ -181,8 +181,10 @@ double Karma::sec(double x)
 }
 
 
-float Karma::normalDist(float value)
+float Karma::normalDist(float value, float mean, float deviation)
 {
+  value -= mean;
   float valueSquared = value*value;
-  return std::exp(-valueSquared / 2.0f) / Karma::Sqrt2Pi;
+  float variance = deviation * deviation;
+  return std::exp(-valueSquared / (2.0f * variance)) / (Karma::Sqrt2Pi * deviation);
 }
