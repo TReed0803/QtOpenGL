@@ -23,9 +23,9 @@ inline void OpenGLFunctions::glClearDepth(GLclampf depth)
 
 #elif !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
 
-#include <OpenGLFunctions_3_3_Core>
+#include <OpenGLFunctions_4_3_Core>
 
-class OpenGLFunctions : public OpenGLFunctions_3_3_Core
+class OpenGLFunctions : public OpenGLFunctions_4_3_Core
 {
 public:
   void glClearDepthf(GLdouble depth);

@@ -27,6 +27,11 @@
 #define GL_DECL_11(caller,fn,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,...) inline decltype(((caller*)0)->fn(PCAST_10(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9))) fn(PDECL_10(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9))
 #define GL_DECL_12(caller,fn,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,...) inline decltype(((caller*)0)->fn(PCAST_11(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10))) fn(PDECL_11(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10))
 #define GL_DECL_13(caller,fn,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,...) inline decltype(((caller*)0)->fn(PCAST_12(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11))) fn(PDECL_12(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11))
+#define GL_DECL_14(caller,fn,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,...) inline decltype(((caller*)0)->fn(PCAST_13(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12))) fn(PDECL_13(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12))
+#define GL_DECL_15(caller,fn,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,...) inline decltype(((caller*)0)->fn(PCAST_14(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13))) fn(PDECL_14(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13))
+#define GL_DECL_16(caller,fn,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,...) inline decltype(((caller*)0)->fn(PCAST_15(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14))) fn(PDECL_15(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14))
+#define GL_DECL_17(caller,fn,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,...) inline decltype(((caller*)0)->fn(PCAST_16(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15))) fn(PDECL_16(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15))
+#define GL_DECL_18(caller,fn,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16,...) inline decltype(((caller*)0)->fn(PCAST_17(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16))) fn(PDECL_17(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16))
 
 // Accept callings
 #define GL_CALL_1(caller,fn) caller::fn()
@@ -42,6 +47,11 @@
 #define GL_CALL_11(caller,fn,...) caller::fn(PCALL_10())
 #define GL_CALL_12(caller,fn,...) caller::fn(PCALL_11())
 #define GL_CALL_13(caller,fn,...) caller::fn(PCALL_12())
+#define GL_CALL_14(caller,fn,...) caller::fn(PCALL_13())
+#define GL_CALL_15(caller,fn,...) caller::fn(PCALL_14())
+#define GL_CALL_16(caller,fn,...) caller::fn(PCALL_15())
+#define GL_CALL_17(caller,fn,...) caller::fn(PCALL_16())
+#define GL_CALL_18(caller,fn,...) caller::fn(PCALL_17())
 
 // Platform-specific entry points
 #ifdef WIN32

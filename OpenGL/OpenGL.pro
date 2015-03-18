@@ -108,4 +108,5 @@ HEADERS += \
     openglscene.h \
     openglrenderview.h \
     openglrenderpassqueue.h \
-    opengllightdata.h
+    opengllightdata.h \
+    openglfunctions_4_3_core.h
