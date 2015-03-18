@@ -14,6 +14,7 @@
 #include <OpenGLScene>
 #include <OpenGLFramebufferObject>
 #include <OpenGLDebugDraw>
+#include <KPoint>
 
 class OpenGLRenderBlock;
 
@@ -159,7 +160,7 @@ void OpenGLLightGroup<T, D>::draw()
 
   m_mesh.release();
 }
-
+#include <KInputManager>
 template <typename T, typename D>
 void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
 {
@@ -187,6 +188,24 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
       m_shadowMappingLight->release();
     GL::popViewport();
     OpenGLFramebufferObject::pop();
+
+    // Next: Blur the shadow map
+    if (KInputManager::keyPressed(Qt::Key_B))
+    {
+      int W = 800;
+      int H = 600;
+      GLint loc = m_blurProgram->uniformLocation("Direction");
+      m_blurProgram->bind();
+      GL::glBindImageTexture(0, m_shadowTexture.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+      GL::glBindImageTexture(1, m_blurTexture.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+      GL::glUniform2i(loc, 1, 0);
+      GL::glDispatchCompute(std::ceil(float(W) / 128), H, 1);
+      GL::glBindImageTexture(0, m_blurTexture.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+      GL::glBindImageTexture(1, m_shadowTexture.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+      GL::glUniform2i(loc, 0, 1);
+      GL::glDispatchCompute(std::ceil(float(H) / 128), W, 1);
+      m_blurProgram->release();
+    }
 
     // Draw from Camera's Perspective
     m_mesh.bind();

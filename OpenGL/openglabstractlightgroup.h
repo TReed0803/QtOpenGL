@@ -10,6 +10,7 @@ class OpenGLScene;
 #include <OpenGLMesh>
 #include <OpenGLTexture>
 #include <OpenGLFramebufferObject>
+#include <OpenGLUniformBufferObject>
 
 class OpenGLAbstractLightGroup
 {
@@ -32,11 +33,13 @@ public:
 
 protected:
   OpenGLMesh m_mesh;
-  OpenGLTexture m_shadowTexture, m_shadowDepth;
+  OpenGLUniformBufferObject m_blurData;
+  OpenGLTexture m_shadowTexture, m_blurTexture, m_shadowDepth;
   OpenGLFramebufferObject m_shadowMappingFbo;
   OpenGLShaderProgram *m_regularLight;
   OpenGLShaderProgram *m_shadowCastingLight;
   OpenGLShaderProgram *m_shadowMappingLight;
+  OpenGLShaderProgram *m_blurProgram;
 };
 
 #endif // OPENGLABSTRACTLIGHTGROUP_H

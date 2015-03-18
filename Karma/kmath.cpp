@@ -5,6 +5,7 @@ const float Karma::PiHalf   = 1.570796326794896619231321691639751442098584699687
 const float Karma::TwoPi    = 6.2831853071795864769252867665590057683943387987502116f;
 const float Karma::Log2     = 0.6931471805599453094172321214581765680755001343602552f;
 const float Karma::Sqrt2    = 1.4142135623730950488016887242096980785696718753769480f;
+const float Karma::Sqrt2Pi  = 2.5066282746310005024157652848110452530069867406099383f;
 
 void Karma::symSchur2(const KMatrix3x3 &symMtx, int p, int q, float *cosine, float *sine)
 {
@@ -177,4 +178,11 @@ KColor Karma::colorShift(const KColor &orig, float amt)
 double Karma::sec(double x)
 {
   return (2.0 * std::cos(x)) / (std::cos(2.0 * x) + 1.0);
+}
+
+
+float Karma::normalDist(float value)
+{
+  float valueSquared = value*value;
+  return std::exp(-valueSquared / 2.0f) / Karma::Sqrt2Pi;
 }

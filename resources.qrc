@@ -51,5 +51,6 @@
         <file>resources/shaders/lighting/mapSpotLight.frag</file>
         <file>resources/shaders/lighting/mapSpotLight.vert</file>
         <file>resources/shaders/lighting/mapSpotLightExponential.frag</file>
+        <file>resources/shaders/compute/gaussianBlur.comp</file>
     </qresource>
 </RCC>

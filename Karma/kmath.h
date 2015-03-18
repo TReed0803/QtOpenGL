@@ -62,6 +62,7 @@ namespace Karma
   extern const float TwoPi;
   extern const float Log2;
   extern const float Sqrt2;
+  extern const float Sqrt2Pi;
 
   // Trigonometry
   double sec(double x);
@@ -121,6 +122,9 @@ namespace Karma
   KVector3D calculateCentroid(It begin, It end, Func f, KVector3D axes[N], float extents[N]);
   template <typename It1, typename It2, typename Func1>
   std::vector<KVector3D> findExtremalPoints(It1 beginPoints, It1 endPoints, It2 beginNorms, It2 endNorms, Func1 pointAccessor);
+
+  // Distributions
+  float normalDist(float value);
 }
 
 template <typename T>

@@ -49,7 +49,8 @@ SOURCES += \
     openglscenemanager.cpp \
     openglscene.cpp \
     openglrenderview.cpp \
-    openglrenderpassqueue.cpp
+    openglrenderpassqueue.cpp \
+    openglblurdata.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -109,4 +110,5 @@ HEADERS += \
     openglrenderview.h \
     openglrenderpassqueue.h \
     opengllightdata.h \
-    openglfunctions_4_3_core.h
+    openglfunctions_4_3_core.h \
+    openglblurdata.h

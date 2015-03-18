@@ -1144,6 +1144,342 @@ public:
     GL::getInstance()->glVertexAttribDivisor (index, divisor);
   }
 
+  // gles 3.1
+  static inline void glDispatchCompute (GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
+  {
+    GL::getInstance()->glDispatchCompute (num_groups_x, num_groups_y, num_groups_z);
+  }
+
+  static inline void glDispatchComputeIndirect (GLintptr indirect)
+  {
+    GL::getInstance()->glDispatchComputeIndirect (indirect);
+  }
+
+  static inline void glDrawArraysIndirect (GLenum mode, const void *indirect)
+  {
+    GL::getInstance()->glDrawArraysIndirect (mode, indirect);
+  }
+
+  static inline void glDrawElementsIndirect (GLenum mode, GLenum type, const void *indirect)
+  {
+    GL::getInstance()->glDrawElementsIndirect (mode, type, indirect);
+  }
+
+  static inline void glFramebufferParameteri (GLenum target, GLenum pname, GLint param)
+  {
+    GL::getInstance()->glFramebufferParameteri (target, pname, param);
+  }
+
+  static inline void glGetFramebufferParameteriv (GLenum target, GLenum pname, GLint *params)
+  {
+    GL::getInstance()->glGetFramebufferParameteriv (target, pname, params);
+  }
+
+  static inline void glGetProgramInterfaceiv (GLuint program, GLenum programInterface, GLenum pname, GLint *params)
+  {
+    GL::getInstance()->glGetProgramInterfaceiv (program, programInterface, pname, params);
+  }
+
+  static inline GLuint glGetProgramResourceIndex (GLuint program, GLenum programInterface, const GLchar *name)
+  {
+    GL::getInstance()->glGetProgramResourceIndex (program, programInterface, name);
+  }
+
+  static inline void glGetProgramResourceName (GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name)
+  {
+    GL::getInstance()->glGetProgramResourceName (program, programInterface, index, bufSize, length, name);
+  }
+
+  static inline void glGetProgramResourceiv (GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei bufSize, GLsizei *length, GLint *params)
+  {
+    GL::getInstance()->glGetProgramResourceiv (program, programInterface, index, propCount, props, bufSize, length, params);
+  }
+
+  static inline GLint glGetProgramResourceLocation (GLuint program, GLenum programInterface, const GLchar *name)
+  {
+    GL::getInstance()->glGetProgramResourceLocation (program, programInterface, name);
+  }
+
+  static inline void glUseProgramStages (GLuint pipeline, GLbitfield stages, GLuint program)
+  {
+    GL::getInstance()->glUseProgramStages (pipeline, stages, program);
+  }
+
+  static inline void glActiveShaderProgram (GLuint pipeline, GLuint program)
+  {
+    GL::getInstance()->glActiveShaderProgram (pipeline, program);
+  }
+
+  static inline GLuint glCreateShaderProgramv (GLenum type, GLsizei count, const GLchar *const*strings)
+  {
+    GL::getInstance()->glCreateShaderProgramv (type, count, strings);
+  }
+
+  static inline void glBindProgramPipeline (GLuint pipeline)
+  {
+    GL::getInstance()->glBindProgramPipeline (pipeline);
+  }
+
+  static inline void glDeleteProgramPipelines (GLsizei n, const GLuint *pipelines)
+  {
+    GL::getInstance()->glDeleteProgramPipelines (n, pipelines);
+  }
+
+  static inline void glGenProgramPipelines (GLsizei n, GLuint *pipelines)
+  {
+    GL::getInstance()->glGenProgramPipelines (n, pipelines);
+  }
+
+  static inline GLboolean glIsProgramPipeline (GLuint pipeline)
+  {
+    GL::getInstance()->glIsProgramPipeline (pipeline);
+  }
+
+  static inline void glGetProgramPipelineiv (GLuint pipeline, GLenum pname, GLint *params)
+  {
+    GL::getInstance()->glGetProgramPipelineiv (pipeline, pname, params);
+  }
+
+  static inline void glProgramUniform1i (GLuint program, GLint location, GLint v0)
+  {
+    GL::getInstance()->glProgramUniform1i (program, location, v0);
+  }
+
+  static inline void glProgramUniform2i (GLuint program, GLint location, GLint v0, GLint v1)
+  {
+    GL::getInstance()->glProgramUniform2i (program, location, v0, v1);
+  }
+
+  static inline void glProgramUniform3i (GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
+  {
+    GL::getInstance()->glProgramUniform3i (program, location, v0, v1, v2);
+  }
+
+  static inline void glProgramUniform4i (GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+  {
+    GL::getInstance()->glProgramUniform4i (program, location, v0, v1,  v2, v3);
+  }
+
+  static inline void glProgramUniform1ui (GLuint program, GLint location, GLuint v0)
+  {
+    GL::getInstance()->glProgramUniform1ui (program, location, v0);
+  }
+
+  static inline void glProgramUniform2ui (GLuint program, GLint location, GLuint v0, GLuint v1)
+  {
+    GL::getInstance()->glProgramUniform2ui (program, location, v0, v1);
+  }
+
+  static inline void glProgramUniform3ui (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2)
+  {
+    GL::getInstance()->glProgramUniform3ui (program, location, v0, v1, v2);
+  }
+
+  static inline void glProgramUniform4ui (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
+  {
+    GL::getInstance()->glProgramUniform4ui (program, location, v0, v1, v2, v3);
+  }
+
+  static inline void glProgramUniform1f (GLuint program, GLint location, GLfloat v0)
+  {
+    GL::getInstance()->glProgramUniform1f (program, location, v0);
+  }
+
+  static inline void glProgramUniform2f (GLuint program, GLint location, GLfloat v0, GLfloat v1)
+  {
+    GL::getInstance()->glProgramUniform2f (program, location, v0, v1);
+  }
+
+  static inline void glProgramUniform3f (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+  {
+    GL::getInstance()->glProgramUniform3f (program, location, v0, v1, v2);
+  }
+
+  static inline void glProgramUniform4f (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+  {
+    GL::getInstance()->glProgramUniform4f (program, location, v0, v1, v2, v3);
+  }
+
+  static inline void glProgramUniform1iv (GLuint program, GLint location, GLsizei count, const GLint *value)
+  {
+    GL::getInstance()->glProgramUniform1iv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform2iv (GLuint program, GLint location, GLsizei count, const GLint *value)
+  {
+    GL::getInstance()->glProgramUniform2iv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform3iv (GLuint program, GLint location, GLsizei count, const GLint *value)
+  {
+    GL::getInstance()->glProgramUniform3iv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform4iv (GLuint program, GLint location, GLsizei count, const GLint *value)
+  {
+    GL::getInstance()->glProgramUniform4iv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform1uiv (GLuint program, GLint location, GLsizei count, const GLuint *value)
+  {
+    GL::getInstance()->glProgramUniform1uiv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform2uiv (GLuint program, GLint location, GLsizei count, const GLuint *value)
+  {
+    GL::getInstance()->glProgramUniform2uiv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform3uiv (GLuint program, GLint location, GLsizei count, const GLuint *value)
+  {
+    GL::getInstance()->glProgramUniform3uiv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform4uiv (GLuint program, GLint location, GLsizei count, const GLuint *value)
+  {
+    GL::getInstance()->glProgramUniform4uiv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform1fv (GLuint program, GLint location, GLsizei count, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniform1fv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform2fv (GLuint program, GLint location, GLsizei count, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniform2fv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform3fv (GLuint program, GLint location, GLsizei count, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniform3fv (program, location, count, value);
+  }
+
+  static inline void glProgramUniform4fv (GLuint program, GLint location, GLsizei count, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniform4fv (program, location, count, value);
+  }
+
+  static inline void glProgramUniformMatrix2fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix2fv (program, location, count, transpose, value);
+  }
+
+  static inline void glProgramUniformMatrix3fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix3fv (program, location, count, transpose, value);
+  }
+
+  static inline void glProgramUniformMatrix4fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix4fv (program, location, count, transpose, value);
+  }
+
+  static inline void glProgramUniformMatrix2x3fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix2x3fv (program, location, count, transpose, value);
+  }
+
+  static inline void glProgramUniformMatrix3x2fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix3x2fv (program, location, count, transpose, value);
+  }
+
+  static inline void glProgramUniformMatrix2x4fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix2x4fv (program, location, count, transpose, value);
+  }
+
+  static inline void glProgramUniformMatrix4x2fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix4x2fv (program, location, count, transpose, value);
+  }
+
+  static inline void glProgramUniformMatrix3x4fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix3x4fv (program, location, count, transpose, value);
+  }
+
+  static inline void glProgramUniformMatrix4x3fv (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+  {
+    GL::getInstance()->glProgramUniformMatrix4x3fv (program, location, count, transpose, value);
+  }
+
+  static inline void glValidateProgramPipeline (GLuint pipeline)
+  {
+    GL::getInstance()->glValidateProgramPipeline (pipeline);
+  }
+
+  static inline void glGetProgramPipelineInfoLog (GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
+  {
+    GL::getInstance()->glGetProgramPipelineInfoLog (pipeline, bufSize, length, infoLog);
+  }
+
+  static inline void glBindImageTexture (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format)
+  {
+    GL::getInstance()->glBindImageTexture (unit, texture, level, layered, layer, access, format);
+  }
+
+  static inline void glGetBooleani_v (GLenum target, GLuint index, GLboolean *data)
+  {
+    GL::getInstance()->glGetBooleani_v (target, index, data);
+  }
+
+  static inline void glMemoryBarrier (GLbitfield barriers)
+  {
+    GL::getInstance()->glMemoryBarrier (barriers);
+  }
+
+  static inline void glTexStorage2DMultisample (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+  {
+    GL::getInstance()->glTexStorage2DMultisample (target, samples, internalformat, width, height, fixedsamplelocations);
+  }
+
+  static inline void glGetMultisamplefv (GLenum pname, GLuint index, GLfloat *val)
+  {
+    GL::getInstance()->glGetMultisamplefv (pname, index, val);
+  }
+
+  static inline void glSampleMaski (GLuint maskNumber, GLbitfield mask)
+  {
+    GL::getInstance()->glSampleMaski (maskNumber, mask);
+  }
+
+  static inline void glGetTexLevelParameteriv (GLenum target, GLint level, GLenum pname, GLint *params)
+  {
+    GL::getInstance()->glGetTexLevelParameteriv (target, level, pname, params);
+  }
+
+  static inline void glGetTexLevelParameterfv (GLenum target, GLint level, GLenum pname, GLfloat *params)
+  {
+    GL::getInstance()->glGetTexLevelParameterfv (target, level, pname, params);
+  }
+
+  static inline void glBindVertexBuffer (GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
+  {
+    GL::getInstance()->glBindVertexBuffer (bindingindex, buffer, offset, stride);
+  }
+
+  static inline void glVertexAttribFormat (GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
+  {
+    GL::getInstance()->glVertexAttribFormat (attribindex, size, type, normalized, relativeoffset);
+  }
+
+  static inline void glVertexAttribIFormat (GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+  {
+    GL::getInstance()->glVertexAttribIFormat (attribindex, size, type, relativeoffset);
+  }
+
+  static inline void glVertexAttribBinding (GLuint attribindex, GLuint bindingindex)
+  {
+    GL::getInstance()->glVertexAttribBinding (attribindex, bindingindex);
+  }
+
+  static inline void glVertexBindingDivisor (GLuint bindingindex, GLuint divisor)
+  {
+    GL::getInstance()->glVertexBindingDivisor (bindingindex, divisor);
+  }
+
 };
 
 #endif // OPENGLFUNCTIONS_H

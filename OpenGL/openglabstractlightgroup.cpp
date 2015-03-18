@@ -1,6 +1,8 @@
 #include "openglabstractlightgroup.h"
 
 #include <KHalfEdgeMesh>
+#include <OpenGLShaderProgram>
+#include <OpenGLBlurData>
 
 bool OpenGLAbstractLightGroup::create()
 {
@@ -16,6 +18,19 @@ bool OpenGLAbstractLightGroup::create()
   m_shadowTexture.setSize(800, 600);
   m_shadowTexture.allocate();
   m_shadowTexture.release();
+
+  // Create the blur temporary texture
+  m_blurTexture.create(OpenGLTexture::Texture2D);
+  m_blurTexture.bind();
+  m_blurTexture.setSwizzle(OpenGLTexture::Red, OpenGLTexture::Red, OpenGLTexture::Red, OpenGLTexture::One);
+  m_blurTexture.setInternalFormat(OpenGLInternalFormat::R32F);
+  m_blurTexture.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
+  m_blurTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
+  m_blurTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
+  m_blurTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
+  m_blurTexture.setSize(800, 600);
+  m_blurTexture.allocate();
+  m_blurTexture.release();
 
   // Create shadow depth
   m_shadowDepth.create(OpenGLTexture::Texture2D);
@@ -38,6 +53,24 @@ bool OpenGLAbstractLightGroup::create()
   m_shadowMappingFbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
   bool ret = m_shadowMappingFbo.validate();
   m_shadowMappingFbo.release();
+
+  // Setup blur data
+  OpenGLBlurData data(2, 500.0f);
+  m_blurData.create();
+  m_blurData.bind();
+  m_blurData.allocate(&data, sizeof(OpenGLBlurData));
+  m_blurData.release();
+  m_blurData.bindBase(4);
+
+  // Create the Compute Blur Program
+  m_blurProgram = new OpenGLShaderProgram;
+  m_blurProgram->addShaderFromSourceFile(QOpenGLShader::Compute, ":/resources/shaders/compute/gaussianBlur.comp");
+  m_blurProgram->link();
+  m_blurProgram->bind();
+  m_blurProgram->uniformBlockBinding("BlurData", 4);
+  m_blurProgram->setUniformValue("src", 0);
+  m_blurProgram->setUniformValue("dst", 1);
+  m_blurProgram->release();
 
   return ret;
 }

@@ -27,6 +27,7 @@ public:
     DirectionS                  = 0x2802,
     DirectionT                  = 0x2803,
   };
+
   enum WrapMode
   {
     Clamp                       = 0x2900,
