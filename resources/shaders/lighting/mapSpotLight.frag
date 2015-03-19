@@ -5,7 +5,9 @@
  * Uses GBuffer information to access statistics about the scene itself.
  ******************************************************************************/
 
+layout(location = 0) out float depth;
+
 void main()
 {
-  gl_FragDepth = gl_FragCoord.z;
+  depth = gl_FragCoord.z;
 }

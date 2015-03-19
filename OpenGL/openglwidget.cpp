@@ -29,6 +29,7 @@ public:
   OpenGLWidgetPrivate(QObject *parent = 0);
 
   // Rendering Statistics
+  bool m_profilerVisible;
   OpenGLProfiler m_profiler;
   OpenGLProfilerVisualizer m_profilerVisualizer;
   OpenGLFrameTimer m_frameTimer;
@@ -36,7 +37,7 @@ public:
 };
 
 OpenGLWidgetPrivate::OpenGLWidgetPrivate(QObject *parent) :
-  m_profiler(parent), m_profilerVisualizer(parent), m_frameTimer(parent), m_debugLogger(Q_NULLPTR)
+  m_profilerVisible(false), m_profiler(parent), m_profilerVisualizer(parent), m_frameTimer(parent), m_debugLogger(Q_NULLPTR)
 {
   // Intentionally Empty
 }
@@ -94,6 +95,18 @@ void OpenGLWidget::printVersionInformation()
   qDebug() << qPrintable(glType) << qPrintable(glVersion) << "(" << qPrintable(glProfile) << ")";
 }
 
+void OpenGLWidget::setProfilerVisible(bool visible)
+{
+  P(OpenGLWidgetPrivate);
+  p.m_profilerVisible = visible;
+}
+
+bool OpenGLWidget::profilerVisible() const
+{
+  P(OpenGLWidgetPrivate);
+  return p.m_profilerVisible;
+}
+
 /*******************************************************************************
  * OpenGL Protected Methods
  ******************************************************************************/
@@ -144,7 +157,10 @@ void OpenGLWidget::resizeGL(int width, int height)
 void OpenGLWidget::paintGL()
 {
   P(OpenGLWidgetPrivate);
-  p.m_profilerVisualizer.paintGL();
+  if (p.m_profilerVisible)
+  {
+    p.m_profilerVisualizer.paintGL();
+  }
   OpenGLDebugDraw::draw();
   QOpenGLWidget::paintGL();
 }

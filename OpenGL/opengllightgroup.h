@@ -172,8 +172,8 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
   m_shadowTexture.bind();
 
   // Render each shadow light
-  static int size = 1;
-  static int variance = 1;
+  static int size = 1, prevSize = 0;
+  static int variance = 1, prevVariance = 0;
   for (size_t i = 0; i < m_numShadowLights; ++i)
   {
     m_uniforms.bindRange(BufferType::UniformBuffer, 3, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
@@ -211,15 +211,23 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
       {
         --variance;
       }
+      if (size > 32) size = 32;
+      if (size < 1 ) size = 1;
+      if (variance < 1) variance = 1;
 
-      // Upload new blur data
-      //*
-      OpenGLBlurData blurData(size, variance);
-      m_blurData.bind();
-      m_blurData.write(0, &blurData, sizeof(OpenGLBlurData));
-      m_blurData.release();
-      m_blurData.bindBase(4);
-      //*/
+      if (prevSize != size || prevVariance != variance)
+      {
+        // Upload new blur data
+        OpenGLBlurData blurData(size, variance);
+        m_blurData.bind();
+        m_blurData.write(0, &blurData, sizeof(OpenGLBlurData));
+        m_blurData.release();
+        m_blurData.bindBase(4);
+
+        prevSize = size;
+        prevVariance = variance;
+        qDebug() << "Blur Width: " << size << ", Blur Variance: " << variance;
+      }
 
       int W = 800;
       int H = 600;
@@ -249,7 +257,7 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
     m_mesh.release();
 
     // Debug Draw Shadow Map
-    OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 0.25f, 0.25f), m_shadowTexture);
+    //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 1.0f, 1.0f), m_shadowTexture);
   }
 }
 

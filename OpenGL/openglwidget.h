@@ -30,6 +30,8 @@ public:
 
   // Public Methods
   void printVersionInformation();
+  void setProfilerVisible(bool visible);
+  bool profilerVisible() const;
 
   // Static Widget functions
   static void sMakeCurrent();

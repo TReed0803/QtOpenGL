@@ -32,8 +32,8 @@ void main()
   // Construct a finite attenuation
   highp vec3  lightDir   = lightVec / lightDist;
   highp vec3  polynomial = vec3(1.0, lightDist, lightDist * lightDist);
-  highp float attenuation = 1.0 / dot(polynomial,Light.Attenuation.xyz);
-  attenuation *= saturate(1.0 - (lightDist / Light.Attenuation.w));
+  highp float attenuation = 1.0 / dot(polynomial,Light.Attenuation);
+  attenuation *= saturate(1.0 - (lightDist / Light.MaxFalloff));
 
   // Blinn Phong
   highp float lambertian = max(dot(lightDir, normal), 0.0);
@@ -53,10 +53,7 @@ void main()
   vec4 shadowCoord = vViewToLightBias * vec4(viewPos, 1.0);
   shadowCoord.z -= bias;
   shadowCoord /= shadowCoord.w;
-  if (texture(shadowMap, shadowCoord.xy).r < shadowCoord.z)
-  {
-    visibility = 0.0;
-  }
+  visibility = step(shadowCoord.z, texture(shadowMap, shadowCoord.xy).r);
 
   // Construct Lighting Terms
   highp vec3 diffuseTerm  = Light.Diffuse  * diffuse      * lambertian;

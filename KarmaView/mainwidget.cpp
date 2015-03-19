@@ -1,5 +1,8 @@
 #include "mainwidget.h"
 
+// Karma Framework
+#include <KInputManager>
+
 // OpenGL Framework
 #include <OpenGLRenderer>
 #include <OpenGLViewport>
@@ -155,4 +158,8 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   P(MainWidgetPrivate);
   makeCurrent();
   p.m_sceneManager.update(event);
+  if (KInputManager::keyTriggered(Qt::Key_P))
+  {
+    setProfilerVisible(!profilerVisible());
+  }
 }
