@@ -49,7 +49,6 @@ void main()
   highp float spotFactor = smoothstep(Light.OuterAngle, Light.InnerAngle, spotAngle);
 
   // Shadow Effect
-  // Note: Bias must be applied post-transform because W element is not 1.
   vec4 shadowCoord = vViewToLightBias * vec4(viewPos, 1.0);
   float occluder = textureProj(shadowMap, shadowCoord.xyw).r;
   float reciever = map_01(shadowCoord.w, Light.NearPlane, Light.MaxFalloff);
@@ -58,7 +57,9 @@ void main()
   // Construct Lighting Terms
   highp vec3 diffuseTerm  = Light.Diffuse  * diffuse      * lambertian;
   highp vec3 specularTerm = Light.Specular * specular.xyz * specFactor;
-  fFragColor = vec4(visibility * spotFactor * attenuation * (diffuseTerm + specularTerm), 1.0);
+  highp vec3 lighting = visibility * spotFactor * attenuation * (diffuseTerm + specularTerm);
+  lighting = pow(lighting, vec3(2.2));
+  fFragColor = vec4(lighting, 1.0);
 
   // Debug Drawing
   //fFragColor += debugExecution(visibility * spotFactor * attenuation);

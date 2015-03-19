@@ -4,5 +4,5 @@ out highp vec4 fColor;
 
 void main()
 {
-  fColor = lightbuffer(vUvCoord);
+  fColor = vec4(pow(lightbuffer(vUvCoord).xyz, vec3(1.0/2.2)), 1.0);
 }

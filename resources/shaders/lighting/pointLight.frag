@@ -45,7 +45,8 @@ void main()
   // Construct Lighting Terms
   highp vec3 diffuseTerm  = vLightDiffuse  * diffuse      * lambertian;
   highp vec3 specularTerm = vLightSpecular * specular.xyz * specFactor;
-  fFragColor = vec4(attenuation * (diffuseTerm + specularTerm), 1.0);
+  highp vec3 lighting = attenuation * (diffuseTerm + specularTerm);
+  fFragColor = vec4(pow(lighting,vec3(2.2)), 1.0);
 
   // Debug Drawing
   //fFragColor += debugExecution(attenuation);

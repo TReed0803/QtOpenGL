@@ -17,4 +17,5 @@ void main()
   highp float linearDepth = linearDepth();
   fAmbient = vec4(diffuse(), 1.0) * ambientColor;
   fAmbient = fAmbient * (1.0 - linearDepth) + linearDepth * atmosphericColor;
+  fAmbient = vec4(pow(fAmbient.xyz,vec3(2.2)),1.0);
 }
