@@ -28,7 +28,7 @@ void main()
 
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 1: Geometry Buffer
-  // Encode Geometry information (Normal, Normal, , Depth)
+  // Encode Geometry information (Normal, Normal, Velocity, Velocity)
   fGeometry.xy  = encodeNormal(normalize(vViewNormal));
   fGeometry.zw  = homogeneousDiff;
 

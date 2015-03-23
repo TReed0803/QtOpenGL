@@ -1,18 +1,30 @@
 #include <GBuffer.ubo>
+#include <GlobalBuffer.ubo>
 out highp vec4 fColor;
 
 void main()
 {
-  highp vec2 fragCoord = uvCoord();
-  highp vec2 texelSize = 1.0 / vec2(textureSize(lightbufferTexture, 0));
-  highp vec2 v = velocity();
-  highp float speed = length(v / texelSize);
-  highp int nSamples = clamp(int(speed), 1, 20);
+  // Calculate Initial Color
   highp vec3 color = lightbuffer().xyz;
+
+  // Calculate the sample size and velocity
+  highp vec2 texelSize = 1.0 / vec2(Current.Dimensions);
+  highp vec2 vel = velocity();
+  // Note: vel *= currFps / targetFps; For more accuracy
+  highp float speed = length(vel / texelSize);
+  highp int nSamples = clamp(int(speed), 1, 20);
+
+  // Calculate the Iterative motion blur
+  highp vec2 adder = vel / float(nSamples);
+  highp vec2 fragCoord = uvCoord() - vel * vec2(0.5);
+
+  // Apply the motion blur
   for (highp int i = 1; i < nSamples; ++i) {
-     highp vec2 offset = -v * (float(i) / float(nSamples - 1) - 0.5);
-     color += lightbuffer(fragCoord + offset).xyz;
+    color += lightbuffer(fragCoord).xyz;
+    fragCoord += adder;
   }
   color /= float(nSamples);
+
+  // Set the final color
   fColor = vec4(color, 1.0);
 }
