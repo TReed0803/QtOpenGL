@@ -122,7 +122,6 @@ void OpenGLWidget::initializeGL()
     connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), &p.m_profilerVisualizer, SLOT(frameResultsAvailable(OpenGLFrameResults)));
   }
   connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
-  connect(this, SIGNAL(frameSwapped()), &p.m_frameTimer, SLOT(frameSwapped()));
 
   // Add a debug messanger if running in debug mode.
 #ifdef    GL_DEBUG

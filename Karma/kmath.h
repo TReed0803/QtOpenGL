@@ -223,14 +223,12 @@ KVector3D Karma::findAverageCentroid(It begin, It end, Accessor accessor)
 template <typename It, typename Accessor>
 Karma::MinMaxKVector3D Karma::findMinMaxBounds(It begin, It end, Accessor accessor)
 {
-  int test = 0;
   KVector3D vector;
   MinMaxKVector3D m;
   m.min = KVector3D( std::numeric_limits<float>::infinity(),  std::numeric_limits<float>::infinity(),  std::numeric_limits<float>::infinity());
   m.max = KVector3D(-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
   while (begin != end)
   {
-    ++test;
     vector = accessor(*begin);
     if (m.min.x() > vector.x()) m.min.setX(vector.x());
     if (m.min.y() > vector.y()) m.min.setY(vector.y());

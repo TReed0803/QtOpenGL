@@ -15,6 +15,13 @@
 #include <KVector3D>
 #include <KInputManager>
 
+// Bounding Volumes / BVH
+#include <KAabbBoundingVolume>
+#include <KSphereBoundingVolume>
+#include <KEllipsoidBoundingVolume>
+#include <KOrientedBoundingVolume>
+#include <KStaticGeometry>
+
 // OpenGL Framework
 #include <OpenGLInstance>
 #include <OpenGLMaterial>
@@ -39,6 +46,7 @@ public:
   // Object Manipulation
   void loadObj(const char *fileName);
   void loadObj(const KString &fileName);
+  void buildMethod(KHalfEdgeMesh const &mesh, KStaticGeometry::BuildMethod method, KStaticGeometry::TerminationPred pred);
 };
 
 void SampleScenePrivate::loadObj(const char *fileName)
@@ -105,6 +113,41 @@ void SampleScenePrivate::loadObj(const KString &fileName)
       ms = timer.elapsed();
       kDebug() << "Mesh Query Time (sec)        :" << float(ms) / 1e3f;
     }
+    // Generate the Bounding Volumes
+    {
+      timer.start();
+      KAabbBoundingVolume aabbMinMax(halfEdgeMesh, KAabbBoundingVolume::MinMaxMethod);
+      KSphereBoundingVolume sphereCentroid(halfEdgeMesh, KSphereBoundingVolume::CentroidMethod);
+      KSphereBoundingVolume sphereLarssons(halfEdgeMesh, KSphereBoundingVolume::LarssonsMethod);
+      KSphereBoundingVolume spherePca(halfEdgeMesh, KSphereBoundingVolume::PcaMethod);
+      KSphereBoundingVolume sphereRitter(halfEdgeMesh, KSphereBoundingVolume::RittersMethod);
+      KOrientedBoundingVolume obbPca(halfEdgeMesh, KOrientedBoundingVolume::PcaMethod);
+      KEllipsoidBoundingVolume ellipsoidPca(halfEdgeMesh, KEllipsoidBoundingVolume::PcaMethod);
+      ms = timer.elapsed();
+      kDebug() << "Bounding Volume Gen. (sec)   :" << float(ms) / 1e3f;
+    }
+    // Generate the Bounding Volume Hierarchy
+    {
+      timer.start();
+      auto depthPred =
+        [](size_t numTriangles, size_t depth)->bool
+        {
+          (void)numTriangles;
+          return depth >= 7;
+        };
+      auto trianglePred =
+        [](size_t numTriangles, size_t depth)->bool
+        {
+          (void)depth;
+          return numTriangles < 500;
+        };
+      buildMethod(halfEdgeMesh, KStaticGeometry::BottomUpMethod, depthPred);
+      buildMethod(halfEdgeMesh, KStaticGeometry::BottomUpMethod, trianglePred);
+      buildMethod(halfEdgeMesh, KStaticGeometry::TopDownMethod, depthPred);
+      buildMethod(halfEdgeMesh, KStaticGeometry::TopDownMethod, trianglePred);
+      ms = timer.elapsed();
+      kDebug() << "BV Hierarchy Gen. (sec)      :" << float(ms) / 1e3f;
+    }
     kDebug() << "--------------------------------------";
     kDebug() << "Mesh Vertexes  :" << halfEdgeMesh.numVertices();
     kDebug() << "Mesh Faces     :" << halfEdgeMesh.numFaces();
@@ -115,6 +158,20 @@ void SampleScenePrivate::loadObj(const KString &fileName)
 
   // Set all instances to have the same mesh
   OpenGLMeshManager::setMesh("SharedMesh", openGLMesh);
+}
+
+void SampleScenePrivate::buildMethod(KHalfEdgeMesh const &mesh, KStaticGeometry::BuildMethod method, KStaticGeometry::TerminationPred pred)
+{
+  KStaticGeometry geom;
+  KTransform3D transform;
+  for (int i = 0; i < 1; ++i)
+  {
+    static const float radius = 10.0f;
+    float rads = float(i * Karma::Pi) / 2;
+    transform.setTranslation(cos(rads) * radius, 0.0f, sin(rads) * radius);
+    geom.addGeometry(mesh, transform);
+  }
+  geom.build(method, pred);
 }
 
 SampleScene::SampleScene() :

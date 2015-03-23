@@ -636,6 +636,21 @@ KHalfEdgeMesh::Face const *KHalfEdgeMesh::face(FaceIndex idx) const
   return p.face(idx);
 }
 
+const KHalfEdgeMesh::Vertex *KHalfEdgeMesh::unsafeVertex(size_t idx) const
+{
+  return vertex(VertexIndex(idx));
+}
+
+const KHalfEdgeMesh::HalfEdge *KHalfEdgeMesh::unsafeHalfEdge(size_t idx) const
+{
+  return halfEdge(HalfEdgeIndex(idx));
+}
+
+const KHalfEdgeMesh::Face *KHalfEdgeMesh::unsafeFace(size_t idx) const
+{
+  return face(FaceIndex(idx));
+}
+
 KHalfEdgeMesh::VertexContainer const &KHalfEdgeMesh::vertices() const
 {
   P(const KHalfEdgeMeshPrivate);

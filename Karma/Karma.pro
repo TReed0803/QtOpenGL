@@ -29,7 +29,9 @@ SOURCES += \
     kmath.cpp \
     kmatrix3x3.cpp \
     kstaticgeometry.cpp \
-    kepossphere.cpp
+    kepossphere.cpp \
+    kadaptiveoctree.cpp \
+    kgeometrycloud.cpp
 
 HEADERS += \
     kcolor.h \
@@ -82,4 +84,16 @@ HEADERS += \
     knullable.h \
     kstack.h \
     ktypetraits.h \
-    krect.h
+    krect.h \
+    kadaptiveoctree.h \
+    kgeometrycloud.h \
+    kpointcloud.h \
+    ktriangleindexcloud.h \
+    kstandardaccessor.h \
+    kaccessor.h \
+    kindexcloud.h \
+    ktrianglepointiterator.h \
+    kintermediateiterator.h \
+    ktriangleindexiterator.h \
+    ktranslationiterator.h \
+    ktrianglepartition.h

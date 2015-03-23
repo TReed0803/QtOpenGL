@@ -4,9 +4,11 @@
 class KColor;
 class KHalfEdgeMesh;
 class KTransform3D;
+#include <cstddef>
+#include <KGeometryCloud>
 
 class KStaticGeometryPrivate;
-class KStaticGeometry
+class KStaticGeometry : public KGeometryCloud
 {
 public:
   KStaticGeometry();
@@ -20,10 +22,7 @@ public:
 
   typedef bool (*TerminationPred)(size_t numTriangles, size_t depth);
 
-  void addGeometry(KHalfEdgeMesh const &mesh, KTransform3D &transform);
-  bool isDirty() const;
-  void build(BuildMethod method, TerminationPred pred = 0);
-  void clear();
+  void build(BuildMethod method, TerminationPred pred);
   void draw();
   size_t depth() const;
   void drawAabbs(KTransform3D &trans, KColor const &color);

@@ -9,134 +9,44 @@
 #include <OpenGLBuffer>
 #include <OpenGLFunctions>
 #include <KAabbBoundingVolume>
+#include <KPointCloud>
+#include <KTriangleIndexCloud>
+#include <KIndexCloud>
+#include <KTrianglePointIterator>
+#include <KTrianglePartition>
 
-/*******************************************************************************
- * Static Helper Structs
- ******************************************************************************/
-struct KTriangleElement
-{
-  typedef size_t index_type;
-  KTriangleElement(index_type e0, index_type e1, index_type e2);
-  index_type indices[3];
-};
-
-KTriangleElement::KTriangleElement(KTriangleElement::index_type e0, KTriangleElement::index_type e1, KTriangleElement::index_type e2)
-{
-  indices[0] = e0;
-  indices[1] = e1;
-  indices[2] = e2;
-}
-
-struct KPointElement
-{
-  typedef KVector3D point_type;
-  KPointElement(point_type const &p);
-  point_type point;
-};
-
-KPointElement::KPointElement(const KPointElement::point_type &p) :
-  point(p)
-{
-  // Intentionally Empty
-}
-
-typedef std::vector<KPointElement> KPointCloud;
-typedef std::vector<KTriangleElement> KTriangleCloud;
-typedef std::vector<KTriangleElement::index_type> KTriangleIndexCloud;
+// Todo: Move to external file
 typedef std::vector<KAabbBoundingVolume*> KAabbCloud;
 
-struct KPointCloudAccessor : public std::unary_function<KVector3D, KPointElement>
-{
-  KVector3D const &operator()(KPointElement const &elm) const
-  {
-    return elm.point;
-  }
-};
-
+/*******************************************************************************
+ * KStaticGeometryInstance
+ ******************************************************************************/
 struct KStaticGeometryInstance
 {
-  typedef KTriangleCloud::const_iterator const_iterator;
-  KStaticGeometryInstance(const_iterator begin, const_iterator end);
-  KTriangleIndexCloud m_indexCloud;
+  KStaticGeometryInstance(KTriangleIndexIterator begin, KTriangleIndexIterator end);
+  KIndexCloud m_indexCloud;
 };
 
-KStaticGeometryInstance::KStaticGeometryInstance(const_iterator begin, const_iterator end)
+KStaticGeometryInstance::KStaticGeometryInstance(KTriangleIndexIterator begin, KTriangleIndexIterator end)
 {
-  KTriangleElement const*elm;
-  size_t numTriangles = std::distance(begin, end);
-  size_t numIndicies  = 3 * numTriangles;
-  m_indexCloud.reserve(numIndicies);
+  size_t numIndices = std::distance(begin, end);
+  m_indexCloud.reserve(numIndices);
   while (begin != end)
   {
-    elm = &*begin;
-    m_indexCloud.push_back(elm->indices[0] - 1);
-    m_indexCloud.push_back(elm->indices[1] - 1);
-    m_indexCloud.push_back(elm->indices[2] - 1);
+    m_indexCloud.emplace_back((*begin) - 1);
     ++begin;
   }
 }
 
-struct KTriangleVertexIterator : public std::iterator<std::random_access_iterator_tag, KVector3D>
-{
-  typedef KTriangleCloud::const_iterator parent_iterator;
-  KTriangleVertexIterator(parent_iterator it, KPointCloud const *points) :
-    m_index(0), m_cloud(points), m_parent(it)
-  {
-    // Intentionally Empty
-  }
-
-  void operator++()
-  {
-    ++m_index;
-    if (m_index >= 3)
-    {
-      m_index = 0;
-      ++m_parent;
-    }
-  }
-  KVector3D const& operator*() const
-  {
-    // Note: Recall that Half Edge indices are stored as they are referenced
-    //       from the obj - starting from an index of 1.
-    return (*m_cloud)[m_parent->indices[m_index] - 1].point;
-  }
-  char m_index;
-  KPointCloud const *m_cloud;
-  parent_iterator m_parent;
-};
-
-bool operator!=(KTriangleVertexIterator const &lhs, KTriangleVertexIterator const &rhs)
-{
-  return (lhs.m_parent != rhs.m_parent);
-}
-
-struct KPartitionTrianglesAlongAxis : std::unary_function<bool, KTriangleElement>
+/*******************************************************************************
+ * KStaticGeometryNode
+ ******************************************************************************/
+class KStaticGeometryNode
 {
 public:
+  typedef KTriangleIndexCloud::ConstIterator ConstIterator;
 
-  KPartitionTrianglesAlongAxis(KVector3D const &center, KVector3D const &axis, KPointCloud const &cloud) :
-    m_axis(axis), m_pointCloud(&cloud), m_midDot(KVector3D::dotProduct(center, axis))
-  {
-    // Intentionally Empty
-  }
-
-  bool operator()(KTriangleElement const &tri) const
-  {
-    return (KVector3D::dotProduct((*m_pointCloud)[tri.indices[0] - 1].point, m_axis) < m_midDot)
-        && (KVector3D::dotProduct((*m_pointCloud)[tri.indices[1] - 1].point, m_axis) < m_midDot)
-        && (KVector3D::dotProduct((*m_pointCloud)[tri.indices[2] - 1].point, m_axis) < m_midDot);
-  }
-
-  float m_midDot;
-  KVector3D m_axis;
-  KPointCloud const *m_pointCloud;
-};
-
-struct KStaticGeometryNode
-{
-  typedef KTriangleCloud::const_iterator const_iterator;
-
-  KStaticGeometryNode(size_t depth, const_iterator begin, const_iterator end, KPointCloud const &pointCloud);
+  KStaticGeometryNode(size_t depth, ConstIterator begin, ConstIterator end, KPointCloud const &pointCloud);
   KStaticGeometryNode(size_t depth, KStaticGeometryNode *left, KStaticGeometryNode *right);
   bool isLeaf() const;
   void drawAabb(KTransform3D &trans, KColor const &color, size_t min, size_t max) const;
@@ -153,24 +63,8 @@ struct KStaticGeometryNode
   KStaticGeometryInstance *instance;
 };
 
-struct KAabbMinCentroidDistance : public std::binary_function<bool, KStaticGeometryNode*, KStaticGeometryNode*>
-{
-  KAabbMinCentroidDistance(KStaticGeometryNode const *geom) :
-    m_geom(geom)
-  {
-    // Intentionally Empty
-  }
-
-  bool operator()(const KStaticGeometryNode *lhs, const KStaticGeometryNode *rhs) const
-  {
-    return (lhs->aabb.center() - m_geom->aabb.center()).lengthSquared() < (rhs->aabb.center() - m_geom->aabb.center()).lengthSquared();
-  }
-
-  KStaticGeometryNode const *m_geom;
-};
-
-KStaticGeometryNode::KStaticGeometryNode(size_t d, const_iterator begin, const_iterator end, KPointCloud const &pointCloud) :
-  aabb(KTriangleVertexIterator(begin, &pointCloud), KTriangleVertexIterator(end, &pointCloud)),
+KStaticGeometryNode::KStaticGeometryNode(size_t d, ConstIterator begin, ConstIterator end, KPointCloud const &pointCloud) :
+  aabb(KTrianglePointIterator(begin, pointCloud), KTrianglePointIterator(end, pointCloud)),
   left(0), right(0), instance(0), depth(d)
 {
   // Intentionally Empty
@@ -220,36 +114,54 @@ size_t KStaticGeometryNode::getMaxDepth()
 /*******************************************************************************
  * KStaticGeometryPrivate
  ******************************************************************************/
-class KStaticGeometryPrivate : public OpenGLFunctions
+class KStaticGeometryPrivate
 {
 public:
-  typedef KTriangleCloud::iterator TriangleIterator;
+  typedef KTriangleIndexCloud::Iterator TriangleIterator;
   typedef KStaticGeometry::TerminationPred TerminationPred;
-  KStaticGeometryPrivate();
+  KStaticGeometryPrivate(KGeometryCloud &parent);
   void buildBottomUp(TerminationPred pred);
   void buildTopDown(TerminationPred pred);
 
-  // Possible clouds
   KAabbCloud m_aabbCloud;
-  KPointCloud m_pointCloud;
-  KTriangleCloud m_triangleCloud;
   KStaticGeometryNode *m_root;
   size_t m_maxDepth;
+  KGeometryCloud &m_parent;
 
 private:
   KStaticGeometryNode *recursiveTopDown(size_t depth, TriangleIterator begin, TriangleIterator end, TerminationPred pred);
 };
 
-KStaticGeometryPrivate::KStaticGeometryPrivate()
+// Helper functor
+struct KAabbMinCentroidDistance : public std::binary_function<bool, KStaticGeometryNode*, KStaticGeometryNode*>
 {
-  initializeOpenGLFunctions();
+  KAabbMinCentroidDistance(KStaticGeometryNode const *geom) :
+    m_geom(geom)
+  {
+    // Intentionally Empty
+  }
+
+  bool operator()(const KStaticGeometryNode *lhs, const KStaticGeometryNode *rhs) const
+  {
+    return (lhs->aabb.center() - m_geom->aabb.center()).lengthSquared() < (rhs->aabb.center() - m_geom->aabb.center()).lengthSquared();
+  }
+
+  KStaticGeometryNode const *m_geom;
+};
+
+KStaticGeometryPrivate::KStaticGeometryPrivate(KGeometryCloud &parent) :
+  m_parent(parent)
+{
+  // Intentionally Empty
 }
 
 void KStaticGeometryPrivate::buildBottomUp(TerminationPred pred)
 {
+  KPointCloud & pointCloud = m_parent.pointCloud();
+  KTriangleIndexCloud & triangleCloud = m_parent.triangleIndexCloud();
   typedef std::vector<KStaticGeometryNode*> KStaticGeometryNodeCloud;
   KStaticGeometryNodeCloud nodes;
-  size_t numTriangles = m_triangleCloud.size();
+  size_t numTriangles = triangleCloud.size();
   nodes.reserve(numTriangles);
 
   int leafCount;
@@ -260,19 +172,20 @@ void KStaticGeometryPrivate::buildBottomUp(TerminationPred pred)
     leafCount = static_cast<int>(numTriangles / leafSize);
     depthEstimate = std::ceil(std::log(leafSize) / Karma::Log2);
     leafSize /= 2;
+    if (leafSize == 1) break;
   }
   while (pred(numTriangles / leafSize, depthEstimate));
 
   // Initial Construction
   size_t remaining;
   KStaticGeometryNode *currNode;
-  KTriangleCloud::const_iterator it = m_triangleCloud.begin();
-  while (it != m_triangleCloud.cend())
+  TriangleIterator it = triangleCloud.begin();
+  while (it != triangleCloud.cend())
   {
-    remaining = std::distance(it, m_triangleCloud.cend());
+    remaining = std::distance(it, triangleCloud.end());
     if (remaining > leafCount)
       remaining = leafCount;
-    currNode = new KStaticGeometryNode(0, it, it + remaining, m_pointCloud);
+    currNode = new KStaticGeometryNode(0, it, it + remaining, pointCloud);
     nodes.push_back(currNode);
     std::advance(it, remaining);
   }
@@ -310,16 +223,17 @@ void KStaticGeometryPrivate::buildBottomUp(TerminationPred pred)
 
 KStaticGeometryNode *KStaticGeometryPrivate::recursiveTopDown(size_t depth, TriangleIterator begin, TriangleIterator end, TerminationPred pred)
 {
+  KPointCloud const & pointCloud = m_parent.pointCloud();
   size_t numPoints = std::distance(begin, end);
 
   if (numPoints == 0) return 0;
   if (m_maxDepth < depth) m_maxDepth = depth;
 
-  KStaticGeometryNode *node = new KStaticGeometryNode(depth, begin, end, m_pointCloud);
+  KStaticGeometryNode *node = new KStaticGeometryNode(depth, begin, end, pointCloud);
   if (!pred(numPoints, depth))
   {
     KVector3D const &maxAxis = node->aabb.maxAxis();
-    TriangleIterator secondHalf = std::partition(begin, end, KPartitionTrianglesAlongAxis(node->aabb.center(), maxAxis, m_pointCloud));
+    TriangleIterator secondHalf = std::partition(begin, end, KTrianglePartitionAlongAxis(pointCloud, node->aabb.center(), maxAxis));
     if (secondHalf == begin || secondHalf == end)
     {
       node->instance = new KStaticGeometryInstance(begin, end);
@@ -342,14 +256,15 @@ void KStaticGeometryPrivate::buildTopDown(TerminationPred pred)
 {
   // Top-Down looks at the entire triangle cloud.
   m_maxDepth = 0;
-  m_root = recursiveTopDown(0, m_triangleCloud.begin(), m_triangleCloud.end(), pred);
+  KTriangleIndexCloud & triangleCloud = m_parent.triangleIndexCloud();
+  m_root = recursiveTopDown(0, triangleCloud.begin(), triangleCloud.end(), pred);
 }
 
 /*******************************************************************************
- * KStaticGeometryPrivate
+ * KStaticGeometry
  ******************************************************************************/
 KStaticGeometry::KStaticGeometry() :
-  m_private(new KStaticGeometryPrivate)
+  m_private(new KStaticGeometryPrivate(*this))
 {
   // Intentionall Empty
 }
@@ -359,36 +274,12 @@ KStaticGeometry::~KStaticGeometry()
   delete m_private;
 }
 
-void KStaticGeometry::addGeometry(const KHalfEdgeMesh &mesh, KTransform3D &transform)
-{
-  P(KStaticGeometryPrivate);
-  size_t currOffset = p.m_pointCloud.size();
-
-  // Transform and store all vertices
-  KMatrix4x4 const &modelToWorld = transform.toMatrix();
-  for (KHalfEdgeMesh::Vertex const & v: mesh.vertices())
-  {
-    KVector3D temp = modelToWorld * v.position;
-    p.m_pointCloud.emplace_back(temp);
-  }
-
-  // Aggregate all of the triangles formed of the vertices
-  KHalfEdgeMesh::HalfEdge const *hEdge[3];
-  for (KHalfEdgeMesh::Face const & f: mesh.faces())
-  {
-    hEdge[0] = mesh.halfEdge(f.first);
-    hEdge[1] = mesh.halfEdge(hEdge[0]->next);
-    hEdge[2] = mesh.halfEdge(hEdge[1]->next);
-    p.m_triangleCloud.emplace_back(hEdge[0]->to + currOffset, hEdge[1]->to + currOffset, hEdge[2]->to + currOffset);
-  }
-}
-
 void KStaticGeometry::build(BuildMethod method, TerminationPred pred)
 {
   P(KStaticGeometryPrivate);
 
   // If there is no new geometry to build, do nothing.
-  if (!isDirty()) return;
+  if (!dirty()) return;
 
   // Build based on selected method
   switch (method)
@@ -409,19 +300,6 @@ void KStaticGeometry::build(BuildMethod method, TerminationPred pred)
   //       As we iterate through, update the parent nodes so they
   //       understand the "drawable range" of the children.
 
-}
-
-bool KStaticGeometry::isDirty() const
-{
-  P(KStaticGeometryPrivate);
-  return (!p.m_pointCloud.empty() || !p.m_triangleCloud.empty());
-}
-
-void KStaticGeometry::clear()
-{
-  P(KStaticGeometryPrivate);
-  p.m_pointCloud.clear();
-  p.m_triangleCloud.clear();
 }
 
 size_t KStaticGeometry::depth() const

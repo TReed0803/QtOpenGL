@@ -105,6 +105,9 @@ public:
   Vertex const *vertex(VertexIndex idx) const;
   HalfEdge const *halfEdge(HalfEdgeIndex idx) const;
   Face const *face(FaceIndex idx) const;
+  Vertex const *unsafeVertex(size_t idx) const;
+  HalfEdge const *unsafeHalfEdge(size_t idx) const;
+  Face const *unsafeFace(size_t idx) const;
   VertexContainer const &vertices() const;
   HalfEdgeContainer const &halfEdges() const;
   FaceContainer const &faces() const;
