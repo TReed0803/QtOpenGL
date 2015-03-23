@@ -172,8 +172,6 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
   m_shadowTexture.bind();
 
   // Render each shadow light
-  static int size = 1, prevSize = 0;
-  static int variance = 1, prevVariance = 0;
   for (size_t i = 0; i < m_numShadowLights; ++i)
   {
     m_uniforms.bindRange(BufferType::UniformBuffer, 3, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
@@ -193,56 +191,19 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
     OpenGLFramebufferObject::pop();
 
     // Next: Blur the shadow map
-    if (KInputManager::keyPressed(Qt::Key_B))
-    {
-      if (KInputManager::keyTriggered(Qt::Key_Up))
-      {
-        ++size;
-      }
-      if (KInputManager::keyTriggered(Qt::Key_Down))
-      {
-        --size;
-      }
-      if (KInputManager::keyTriggered(Qt::Key_Right))
-      {
-        ++variance;
-      }
-      if (KInputManager::keyTriggered(Qt::Key_Left))
-      {
-        --variance;
-      }
-      if (size > 32) size = 32;
-      if (size < 1 ) size = 1;
-      if (variance < 1) variance = 1;
-
-      if (prevSize != size || prevVariance != variance)
-      {
-        // Upload new blur data
-        OpenGLBlurData blurData(size, variance);
-        m_blurData.bind();
-        m_blurData.write(0, &blurData, sizeof(OpenGLBlurData));
-        m_blurData.release();
-        m_blurData.bindBase(4);
-
-        prevSize = size;
-        prevVariance = variance;
-        qDebug() << "Blur Width: " << size << ", Blur Variance: " << variance;
-      }
-
-      int W = 800;
-      int H = 600;
-      GLint loc = m_blurProgram->uniformLocation("Direction");
-      m_blurProgram->bind();
-      GL::glBindImageTexture(0, m_shadowTexture.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
-      GL::glBindImageTexture(1, m_blurTexture.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
-      GL::glUniform2i(loc, 1, 0);
-      GL::glDispatchCompute(std::ceil(float(W) / 128), H, 1);
-      GL::glBindImageTexture(0, m_blurTexture.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
-      GL::glBindImageTexture(1, m_shadowTexture.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
-      GL::glUniform2i(loc, 0, 1);
-      GL::glDispatchCompute(std::ceil(float(H) / 128), W, 1);
-      m_blurProgram->release();
-    }
+    int W = 800;
+    int H = 600;
+    GLint loc = m_blurProgram->uniformLocation("Direction");
+    m_blurProgram->bind();
+    GL::glBindImageTexture(0, m_shadowTexture.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+    GL::glBindImageTexture(1, m_blurTexture.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+    GL::glUniform2i(loc, 1, 0);
+    GL::glDispatchCompute(std::ceil(float(W) / 128), H, 1);
+    GL::glBindImageTexture(0, m_blurTexture.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+    GL::glBindImageTexture(1, m_shadowTexture.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+    GL::glUniform2i(loc, 0, 1);
+    GL::glDispatchCompute(std::ceil(float(H) / 128), W, 1);
+    m_blurProgram->release();
 
     // Draw from Camera's Perspective
     m_mesh.bind();
@@ -255,9 +216,6 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
       GL::glEnable(GL_DEPTH_TEST);
       m_shadowCastingLight->release();
     m_mesh.release();
-
-    // Debug Draw Shadow Map
-    //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 1.0f, 1.0f), m_shadowTexture);
   }
 }
 

@@ -55,7 +55,7 @@ bool OpenGLAbstractLightGroup::create()
   m_shadowMappingFbo.release();
 
   // Setup blur data
-  OpenGLBlurData data(32, 10.0f);
+  OpenGLBlurData data(8, 8.0f);
   m_blurData.create();
   m_blurData.bind();
   m_blurData.allocate(&data, sizeof(OpenGLBlurData));
