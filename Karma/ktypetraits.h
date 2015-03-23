@@ -2,6 +2,7 @@
 #define KTYPETRAITS_H KTypeTraits
 
 #include <type_traits>
+#include <Qt>
 
 namespace Karma
 {

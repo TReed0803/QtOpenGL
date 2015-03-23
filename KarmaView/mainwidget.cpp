@@ -162,5 +162,4 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   {
     setProfilerVisible(!profilerVisible());
   }
-  paintGL();
 }

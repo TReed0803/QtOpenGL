@@ -42,11 +42,12 @@ public:
   KCamera3D m_camera;
   OpenGLViewport m_viewport;
   std::vector<OpenGLInstance *> m_instances;
+  std::array<KStaticGeometry, 4> m_staticGeometry;
 
   // Object Manipulation
   void loadObj(const char *fileName);
   void loadObj(const KString &fileName);
-  void buildMethod(KHalfEdgeMesh const &mesh, KStaticGeometry::BuildMethod method, KStaticGeometry::TerminationPred pred);
+  void buildMethod(KStaticGeometry &geom, KHalfEdgeMesh const &mesh, KStaticGeometry::BuildMethod method, KStaticGeometry::TerminationPred pred);
 };
 
 void SampleScenePrivate::loadObj(const char *fileName)
@@ -141,10 +142,10 @@ void SampleScenePrivate::loadObj(const KString &fileName)
           (void)depth;
           return numTriangles < 500;
         };
-      buildMethod(halfEdgeMesh, KStaticGeometry::BottomUpMethod, depthPred);
-      buildMethod(halfEdgeMesh, KStaticGeometry::BottomUpMethod, trianglePred);
-      buildMethod(halfEdgeMesh, KStaticGeometry::TopDownMethod, depthPred);
-      buildMethod(halfEdgeMesh, KStaticGeometry::TopDownMethod, trianglePred);
+      buildMethod(m_staticGeometry[0], halfEdgeMesh, KStaticGeometry::BottomUpMethod, depthPred);
+      buildMethod(m_staticGeometry[1], halfEdgeMesh, KStaticGeometry::BottomUpMethod, trianglePred);
+      buildMethod(m_staticGeometry[2], halfEdgeMesh, KStaticGeometry::TopDownMethod, depthPred);
+      buildMethod(m_staticGeometry[3], halfEdgeMesh, KStaticGeometry::TopDownMethod, trianglePred);
       ms = timer.elapsed();
       kDebug() << "BV Hierarchy Gen. (sec)      :" << float(ms) / 1e3f;
     }
@@ -160,11 +161,11 @@ void SampleScenePrivate::loadObj(const KString &fileName)
   OpenGLMeshManager::setMesh("SharedMesh", openGLMesh);
 }
 
-void SampleScenePrivate::buildMethod(KHalfEdgeMesh const &mesh, KStaticGeometry::BuildMethod method, KStaticGeometry::TerminationPred pred)
+void SampleScenePrivate::buildMethod(KStaticGeometry &geom, KHalfEdgeMesh const &mesh, KStaticGeometry::BuildMethod method, KStaticGeometry::TerminationPred pred)
 {
-  KStaticGeometry geom;
   KTransform3D transform;
-  for (int i = 0; i < 1; ++i)
+  geom.clear();
+  for (int i = 0; i < 4; ++i)
   {
     static const float radius = 10.0f;
     float rads = float(i * Karma::Pi) / 2;

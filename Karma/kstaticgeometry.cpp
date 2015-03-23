@@ -15,9 +15,6 @@
 #include <KTrianglePointIterator>
 #include <KTrianglePartition>
 
-// Todo: Move to external file
-typedef std::vector<KAabbBoundingVolume*> KAabbCloud;
-
 /*******************************************************************************
  * KStaticGeometryInstance
  ******************************************************************************/
@@ -123,10 +120,9 @@ public:
   void buildBottomUp(TerminationPred pred);
   void buildTopDown(TerminationPred pred);
 
-  KAabbCloud m_aabbCloud;
   KStaticGeometryNode *m_root;
   size_t m_maxDepth;
-  KGeometryCloud &m_parent;
+  KGeometryCloud m_parent;
 
 private:
   KStaticGeometryNode *recursiveTopDown(size_t depth, TriangleIterator begin, TriangleIterator end, TerminationPred pred);
@@ -271,7 +267,7 @@ KStaticGeometry::KStaticGeometry() :
 
 KStaticGeometry::~KStaticGeometry()
 {
-  delete m_private;
+  // Intentionally Empty
 }
 
 void KStaticGeometry::build(BuildMethod method, TerminationPred pred)
@@ -293,7 +289,7 @@ void KStaticGeometry::build(BuildMethod method, TerminationPred pred)
   }
 
   // We no longer need this data
-  clear();
+  KGeometryCloud::clear();
 
   // Next: Depth-first search to find all leaf nodes.
   //       Form an index buffer of all contiguous leaf nodes.
@@ -302,9 +298,15 @@ void KStaticGeometry::build(BuildMethod method, TerminationPred pred)
 
 }
 
+void KStaticGeometry::clear()
+{
+  KGeometryCloud::clear();
+  m_private = new KStaticGeometryPrivate(*this);
+}
+
 size_t KStaticGeometry::depth() const
 {
-  P(KStaticGeometryPrivate);
+  P(const KStaticGeometryPrivate);
   return p.m_maxDepth;
 }
 

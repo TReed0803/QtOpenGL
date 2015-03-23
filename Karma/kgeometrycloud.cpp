@@ -67,9 +67,7 @@ void KGeometryCloud::addGeometry(const KHalfEdgeMesh &mesh, const KTransform3D &
 
 void KGeometryCloud::clear()
 {
-  P(KGeometryCloudPrivate);
-  p.m_pointCloud.clear();
-  p.m_triangleCloud.clear();
+  m_private = new KGeometryCloudPrivate;
 }
 
 bool KGeometryCloud::dirty() const

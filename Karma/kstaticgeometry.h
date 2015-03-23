@@ -6,6 +6,7 @@ class KHalfEdgeMesh;
 class KTransform3D;
 #include <cstddef>
 #include <KGeometryCloud>
+#include <KSharedPointer>
 
 class KStaticGeometryPrivate;
 class KStaticGeometry : public KGeometryCloud
@@ -24,13 +25,14 @@ public:
 
   void build(BuildMethod method, TerminationPred pred);
   void draw();
+  void clear();
   size_t depth() const;
   void drawAabbs(KTransform3D &trans, KColor const &color);
   void drawAabbs(KTransform3D &trans, KColor const &color, size_t min);
   void drawAabbs(KTransform3D &trans, KColor const &color, size_t min, size_t max);
 
 private:
-  KStaticGeometryPrivate *m_private;
+  KSharedPointer<KStaticGeometryPrivate> m_private;
 };
 
 #endif // KSTATICGEOMETRY_H
