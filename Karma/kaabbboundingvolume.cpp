@@ -32,6 +32,13 @@ KAabbBoundingVolume::KAabbBoundingVolume() :
   // Intentionally Empty
 }
 
+KAabbBoundingVolume::KAabbBoundingVolume(const KAabbBoundingVolume &rhs) :
+  m_private(new KAabbBoundingVolumePrivate)
+{
+  P(KAabbBoundingVolumePrivate);
+  p.maxMin = rhs.m_private->maxMin;
+}
+
 KAabbBoundingVolume::KAabbBoundingVolume(const KAabbBoundingVolume &a, const KAabbBoundingVolume &b) :
   m_private(new KAabbBoundingVolumePrivate)
 {
@@ -80,6 +87,14 @@ KAabbBoundingVolume::KAabbBoundingVolume(KHalfEdgeMesh const &mesh, Method metho
     p.calculateMinMaxMethod(mesh);
     break;
   }
+}
+
+KAabbBoundingVolume::KAabbBoundingVolume(const KAabbBoundingVolume &a, const KVector3D &offset) :
+  m_private(new KAabbBoundingVolumePrivate)
+{
+  P(KAabbBoundingVolumePrivate);
+  p.maxMin.max = a.maxExtent() + offset;
+  p.maxMin.min = a.minExtent() + offset;
 }
 
 KAabbBoundingVolume::~KAabbBoundingVolume()
@@ -196,6 +211,43 @@ void KAabbBoundingVolume::draw(KTransform3D &t, KColor const &color) const
   // Find and draw the Aabb of the translated pointset
   Karma::MinMaxKVector3D mm = Karma::findMinMaxBounds(tVec.begin(), tVec.end());
   OpenGLDebugDraw::World::drawAabb(mm.min, mm.max, color);
+}
+
+void KAabbBoundingVolume::makeCube()
+{
+  P(KAabbBoundingVolumePrivate);
+  KVector3D centroid = center();
+  KVector3D halfExtents = (p.maxMin.max - p.maxMin.min) / 2.0f;
+  float maxHalfExtent = halfExtents.x();
+  if (halfExtents.y() > maxHalfExtent) maxHalfExtent = halfExtents.y();
+  if (halfExtents.z() > maxHalfExtent) maxHalfExtent = halfExtents.z();
+  p.maxMin.max = centroid + KVector3D(maxHalfExtent, maxHalfExtent, maxHalfExtent);
+  p.maxMin.min = centroid - KVector3D(maxHalfExtent, maxHalfExtent, maxHalfExtent);
+}
+
+bool KAabbBoundingVolume::contains(const KVector3D &pos) const
+{
+  P(const KAabbBoundingVolumePrivate);
+  if (pos.x() > p.maxMin.max.x()) return false;
+  if (pos.y() > p.maxMin.max.y()) return false;
+  if (pos.z() > p.maxMin.max.z()) return false;
+  if (pos.x() < p.maxMin.min.x()) return false;
+  if (pos.y() < p.maxMin.min.y()) return false;
+  if (pos.z() < p.maxMin.min.z()) return false;
+  return true;
+}
+
+KAabbBoundingVolume KAabbBoundingVolume::copyOffset(float x, float y, float z)
+{
+  return KAabbBoundingVolume(*this, KVector3D(x, y, z));
+}
+
+void KAabbBoundingVolume::scale(float k)
+{
+  P(KAabbBoundingVolumePrivate);
+  KVector3D centroid = center();
+  p.maxMin.max = (p.maxMin.max - centroid) * k + centroid;
+  p.maxMin.min = (p.maxMin.min - centroid) * k + centroid;
 }
 
 void KAabbBoundingVolume::constructPrivate()

@@ -1,4 +1,7 @@
 #include "kmath.h"
+#include <QMainWindow>
+#include <QWidget>
+#include <QApplication>
 
 const float Karma::Pi       = 3.1415926535897932384626433832795028841971693993751058f;
 const float Karma::PiHalf   = 1.5707963267948966192313216916397514420985846996875529f;
@@ -187,4 +190,78 @@ float Karma::normalDist(float value, float mean, float deviation)
   float valueSquared = value*value;
   float variance = deviation * deviation;
   return std::exp(-valueSquared / (2.0f * variance)) / (Karma::Sqrt2Pi * deviation);
+}
+
+
+Karma::PolygonType Karma::classifyPolygon(const KPlane &plane, const KVector3D &a, const KVector3D &b, const KVector3D &c)
+{
+  static const float epsilon = 0.01f;
+
+  // Cache dot products for efficiency
+  float dotA = plane.dot(a);
+  float dotB = plane.dot(b);
+  float dotC = plane.dot(c);
+
+  // Check if the polygon is front-facing
+  if (dotA > epsilon)
+  {
+    if (dotB > epsilon && dotC > epsilon)
+    {
+      return Karma::FrontPolygon;
+    }
+  }
+  // Check if the polygon is back-facing
+  else if (dotA < -epsilon)
+  {
+    if (dotB < -epsilon && dotC < -epsilon)
+    {
+      return Karma::BackPolygon;
+    }
+  }
+  // Check if the polygon is coplanar
+  else if (std::abs(dotB) < epsilon && std::abs(dotC) < epsilon)
+  {
+    return Karma::CoplanarPolygon;
+  }
+
+  // If the polygon falls under no other category, it straddles the plane.
+  return Karma::StraddlePolygon;
+}
+
+void Karma::classifyRange(const KPlane &plane, KTriangleIndexCloud::ConstIterator begin, KTriangleIndexCloud::ConstIterator end, const KPointCloud &cloud, int *numCoplanar, int *numFront, int *numBack, int *numStraddle)
+{
+  while (begin != end)
+  {
+    KTriangleIndexCloud::ElementType const &tri = *begin;
+    switch (Karma::classifyPolygon(plane, cloud[tri.indices[0] - 1], cloud[tri.indices[1] - 1], cloud[tri.indices[2] - 1]))
+    {
+    case Karma::CoplanarPolygon:
+      ++*numCoplanar;
+      break;
+    case Karma::FrontPolygon:
+      ++*numFront;
+      break;
+    case Karma::BackPolygon:
+      ++*numBack;
+      break;
+    case Karma::StraddlePolygon:
+      ++*numStraddle;
+      break;
+    }
+    ++begin;
+  }
+}
+
+void Karma::setTitle(const KString &str)
+{
+  QMainWindow* window = NULL;
+  foreach(QWidget *widget, qApp->topLevelWidgets())
+  {
+    if(widget->inherits("QMainWindow"))
+    {
+      window = static_cast<QMainWindow*>(widget);
+      window->setWindowTitle( str );
+      break;
+    }
+  }
 }

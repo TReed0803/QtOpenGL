@@ -220,13 +220,13 @@ void KStaticGeometryPrivate::buildBottomUp(TerminationPred pred)
 KStaticGeometryNode *KStaticGeometryPrivate::recursiveTopDown(size_t depth, TriangleIterator begin, TriangleIterator end, TerminationPred pred)
 {
   KPointCloud const & pointCloud = m_parent.pointCloud();
-  size_t numPoints = std::distance(begin, end);
+  size_t numTriangles = std::distance(begin, end);
 
-  if (numPoints == 0) return 0;
+  if (numTriangles == 0) return 0;
   if (m_maxDepth < depth) m_maxDepth = depth;
 
   KStaticGeometryNode *node = new KStaticGeometryNode(depth, begin, end, pointCloud);
-  if (!pred(numPoints, depth))
+  if (!pred(numTriangles, depth))
   {
     KVector3D const &maxAxis = node->aabb.maxAxis();
     TriangleIterator secondHalf = std::partition(begin, end, KTrianglePartitionAlongAxis(pointCloud, node->aabb.center(), maxAxis));

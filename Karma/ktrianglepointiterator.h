@@ -34,7 +34,7 @@ inline bool KTrianglePointIterator::operator!=(KTrianglePointIterator const &rhs
   return (m_iterator != rhs.m_iterator);
 }
 
-auto KTrianglePointIterator::operator*() -> ValueType const &
+inline auto KTrianglePointIterator::operator*() -> ValueType const &
 {
   // Reminder: FaceIndices start from 1
   return m_cloud[(*m_iterator) - 1];

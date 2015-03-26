@@ -3,6 +3,9 @@
 
 #include <KVector3D>
 #include <KMatrix3x3>
+#include <KTriangleIndexCloud>
+#include <KPointCloud>
+#include <KPlane>
 #include <limits>
 #include <KColor>
 #include <QMatrix4x4>
@@ -11,9 +14,30 @@
 #include <QVector4D>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <KString>
 
 namespace Karma
 {
+
+  enum PolygonType
+  {
+    CoplanarPolygon,
+    FrontPolygon,
+    BackPolygon,
+    StraddlePolygon
+  };
+
+  template <typename T, typename U, typename V>
+  T clamp(T const &a, U const &min, V const &max)
+  {
+    if (a < min) return min;
+    if (a > max) return max;
+    return a;
+  }
+
+  void setTitle(KString const &str);
+  void classifyRange(KPlane const &plane, KTriangleIndexCloud::ConstIterator begin, KTriangleIndexCloud::ConstIterator end, KPointCloud const & cloud, int *numCoplanar, int *numFront, int *numBack, int *numStraddle);
+  PolygonType classifyPolygon(KPlane const &plane, KVector3D const &a, KVector3D const &b, KVector3D const &c);
 
   template <typename T>
   struct MinMax
@@ -125,6 +149,7 @@ namespace Karma
 
   // Distributions
   float normalDist(float value, float mean, float deviation);
+
 }
 
 template <typename T>

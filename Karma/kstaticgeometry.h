@@ -15,18 +15,9 @@ public:
   KStaticGeometry();
   ~KStaticGeometry();
 
-  enum BuildMethod
-  {
-    TopDownMethod,
-    BottomUpMethod
-  };
-
-  typedef bool (*TerminationPred)(size_t numTriangles, size_t depth);
-
-  void build(BuildMethod method, TerminationPred pred);
-  void draw();
   void clear();
   size_t depth() const;
+  void build(BuildMethod method, TerminationPred pred);
   void drawAabbs(KTransform3D &trans, KColor const &color);
   void drawAabbs(KTransform3D &trans, KColor const &color, size_t min);
   void drawAabbs(KTransform3D &trans, KColor const &color, size_t min, size_t max);

@@ -31,7 +31,8 @@ SOURCES += \
     kstaticgeometry.cpp \
     kepossphere.cpp \
     kadaptiveoctree.cpp \
-    kgeometrycloud.cpp
+    kgeometrycloud.cpp \
+    kbsptree.cpp
 
 HEADERS += \
     kcolor.h \
@@ -96,4 +97,6 @@ HEADERS += \
     kintermediateiterator.h \
     ktriangleindexiterator.h \
     ktranslationiterator.h \
-    ktrianglepartition.h
+    ktrianglepartition.h \
+    kbsptree.h \
+    kplane.h

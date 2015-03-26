@@ -20,10 +20,12 @@ public:
 
   // Constructors & Destructor
   KAabbBoundingVolume();
+  KAabbBoundingVolume(KAabbBoundingVolume const &rhs);
   template <typename It, typename Accessor = Karma::DefaultAccessor<KVector3D const>>
   KAabbBoundingVolume(It begin, It end, Accessor accessor = Karma::DefaultAccessor<KVector3D const>());
   KAabbBoundingVolume(KAabbBoundingVolume const &a, KAabbBoundingVolume const &b);
   KAabbBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
+  KAabbBoundingVolume(KAabbBoundingVolume const &a, KVector3D const &offset);
   ~KAabbBoundingVolume();
 
   // Virtual Implementation
@@ -37,6 +39,10 @@ public:
   void encompassPoint(const KVector3D &vector);
   void setMinMaxBounds(Karma::MinMaxKVector3D const &minMax);
   void draw(KTransform3D &t, const KColor &color) const;
+  void makeCube();
+  bool contains(const KVector3D &pos) const;
+  KAabbBoundingVolume copyOffset(float x, float y, float z);
+  void scale(float k);
 
 private:
   void constructPrivate();

@@ -14,6 +14,7 @@
 #include <KString>
 #include <KVector3D>
 #include <KInputManager>
+#include <KMath>
 
 // Bounding Volumes / BVH
 #include <KAabbBoundingVolume>
@@ -21,6 +22,8 @@
 #include <KEllipsoidBoundingVolume>
 #include <KOrientedBoundingVolume>
 #include <KStaticGeometry>
+#include <KAdaptiveOctree>
+#include <KBspTree>
 
 // OpenGL Framework
 #include <OpenGLInstance>
@@ -43,11 +46,15 @@ public:
   OpenGLViewport m_viewport;
   std::vector<OpenGLInstance *> m_instances;
   std::array<KStaticGeometry, 4> m_staticGeometry;
+  KAdaptiveOctree m_octree;
+  KBspTree m_bspTree;
 
   // Object Manipulation
   void loadObj(const char *fileName);
   void loadObj(const KString &fileName);
-  void buildMethod(KStaticGeometry &geom, KHalfEdgeMesh const &mesh, KStaticGeometry::BuildMethod method, KStaticGeometry::TerminationPred pred);
+
+  template <typename T>
+  void buildMethod(T &geom, KHalfEdgeMesh const &mesh, typename T::BuildMethod method, typename T::TerminationPred pred);
 };
 
 void SampleScenePrivate::loadObj(const char *fileName)
@@ -140,12 +147,14 @@ void SampleScenePrivate::loadObj(const KString &fileName)
         [](size_t numTriangles, size_t depth)->bool
         {
           (void)depth;
-          return numTriangles < 500;
+          return numTriangles < 300;
         };
       buildMethod(m_staticGeometry[0], halfEdgeMesh, KStaticGeometry::BottomUpMethod, depthPred);
       buildMethod(m_staticGeometry[1], halfEdgeMesh, KStaticGeometry::BottomUpMethod, trianglePred);
       buildMethod(m_staticGeometry[2], halfEdgeMesh, KStaticGeometry::TopDownMethod, depthPred);
       buildMethod(m_staticGeometry[3], halfEdgeMesh, KStaticGeometry::TopDownMethod, trianglePred);
+      buildMethod(m_octree           , halfEdgeMesh, KAdaptiveOctree::TopDownMethod, trianglePred);
+      buildMethod(m_bspTree          , halfEdgeMesh, KBspTree::TopDownMethod, trianglePred);
       ms = timer.elapsed();
       kDebug() << "BV Hierarchy Gen. (sec)      :" << float(ms) / 1e3f;
     }
@@ -161,7 +170,8 @@ void SampleScenePrivate::loadObj(const KString &fileName)
   OpenGLMeshManager::setMesh("SharedMesh", openGLMesh);
 }
 
-void SampleScenePrivate::buildMethod(KStaticGeometry &geom, KHalfEdgeMesh const &mesh, KStaticGeometry::BuildMethod method, KStaticGeometry::TerminationPred pred)
+template <typename T>
+void SampleScenePrivate::buildMethod(T &geom, KHalfEdgeMesh const &mesh, typename T::BuildMethod method, typename T::TerminationPred pred)
 {
   KTransform3D transform;
   geom.clear();
@@ -253,22 +263,20 @@ void SampleScene::start()
 
   // Create Instance Data
   OpenGLInstance * instance;
-  static const int total = 0;
+  static const int total = 4;
   static const float arcLength = Karma::TwoPi / float(total);
   for (int i = 0; i < total; ++i)
   {
-    const float radius = 2.0f;
-    const float radians = i * arcLength;
+    //const float radius = 2.0f;
+    //const float radians = i * arcLength;
     instance = createInstance();
     instance->setMesh("SharedMesh");
     instance->setMaterial(material);
-    instance->currentTransform().setTranslation(std::cos(radians) * radius, 0.0f, std::sin(radians) * radius);
+    static const float radius = 10.0f;
+    float rads = float(i * Karma::Pi) / 2;
+    instance->currentTransform().setTranslation(cos(rads) * radius, 0.0f, sin(rads) * radius);
     p.m_instances.push_back(instance);
   }
-  instance = createInstance();
-  instance->setMesh("SharedMesh");
-  instance->setMaterial(material);
-  p.m_instances.push_back(instance);
 
   // Load the SharedMesh
   p.loadObj(":/resources/objects/sphere.obj");
@@ -366,6 +374,54 @@ void SampleScene::update(KUpdateEvent *event)
         p.loadObj(fileName);
       }
     }
+  }
+
+  static int min = 0;
+  static int max = std::numeric_limits<int>::max();
+  if (!KInputManager::keyPressed(Qt::Key_Shift))
+  {
+    if (KInputManager::keyTriggered(Qt::Key_Left))
+    {
+      --min;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_Right))
+    {
+      ++min;
+    }
+  }
+  else
+  {
+    if (KInputManager::keyTriggered(Qt::Key_Left))
+    {
+      --max;
+    }
+    if (KInputManager::keyTriggered(Qt::Key_Right))
+    {
+      ++max;
+    }
+  }
+  min = Karma::clamp(min, 0, std::max(p.m_octree.depth(), p.m_bspTree.depth()));
+  max = Karma::clamp(max, min, std::max(p.m_octree.depth(), p.m_bspTree.depth()));
+  Karma::setTitle(KString("Min: %1 Max: %2").arg(min).arg(max));
+
+  static bool octreeDraw = false;
+  static bool bspTreeDraw = false;
+  if (KInputManager::keyTriggered(Qt::Key_V))
+  {
+    octreeDraw = !octreeDraw;
+  }
+  if (KInputManager::keyTriggered(Qt::Key_B))
+  {
+    bspTreeDraw = !bspTreeDraw;
+  }
+
+  if (octreeDraw)
+  {
+    p.m_octree.debugDraw(Karma::clamp(min, 0, p.m_octree.depth()), Karma::clamp(max, min, p.m_octree.depth()));
+  }
+  if (bspTreeDraw)
+  {
+    p.m_bspTree.debugDraw(Karma::clamp(min, 0, p.m_bspTree.depth()), Karma::clamp(max, min, p.m_bspTree.depth()));
   }
 }
 

@@ -312,16 +312,6 @@ void OpenGLWidget::update()
 void OpenGLWidget::frameTimeout(float fps)
 {
   QString format("FPS: %1");
-  QMainWindow* window = NULL;
-  foreach(QWidget *widget, qApp->topLevelWidgets())
-  {
-    if(widget->inherits("QMainWindow"))
-    {
-      window = static_cast<QMainWindow*>(widget);
-      window->setWindowTitle( format.arg(Karma::round(fps)) );
-      break;
-    }
-  }
 }
 
 void OpenGLWidget::messageLogged(const QOpenGLDebugMessage &msg)

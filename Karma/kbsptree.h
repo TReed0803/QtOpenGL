@@ -1,19 +1,18 @@
-#ifndef KADAPTIVEOCTREE_H
-#define KADAPTIVEOCTREE_H KAdaptiveOctree
+#ifndef KBSPTREE_H
+#define KBSPTREE_H KBspTree
 
 class KColor;
 class KHalfEdgeMesh;
 class KTransform3D;
-#include <cstddef>
 #include <KGeometryCloud>
 #include <KSharedPointer>
 
-class KAdaptiveOctreePrivate;
-class KAdaptiveOctree : public KGeometryCloud
+class KBspTreePrivate;
+class KBspTree : public KGeometryCloud
 {
 public:
-  KAdaptiveOctree();
-  ~KAdaptiveOctree();
+  KBspTree();
+  ~KBspTree();
 
   void clear();
   size_t depth() const;
@@ -22,7 +21,7 @@ public:
   void debugDraw(KTransform3D &trans, size_t min = 0, size_t max = std::numeric_limits<size_t>::max());
 
 private:
-  KSharedPointer<KAdaptiveOctreePrivate> m_private;
+  KSharedPointer<KBspTreePrivate> m_private;
 };
 
-#endif // KADAPTIVEOCTREE_H
+#endif // KBSPTREE_H

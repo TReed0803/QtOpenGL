@@ -14,8 +14,16 @@ public:
   KGeometryCloud();
   ~KGeometryCloud();
 
+  enum BuildMethod
+  {
+    TopDownMethod,
+    BottomUpMethod
+  };
+  typedef bool (*TerminationPred)(size_t numTriangles, size_t depth);
+
   void addGeometry(KHalfEdgeMesh const &mesh);
   void addGeometry(KHalfEdgeMesh const &mesh, KTransform3D const &trans);
+  virtual void build(BuildMethod method, TerminationPred pred);
 
   void clear();
   bool dirty() const;

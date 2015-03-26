@@ -573,3 +573,10 @@ void OpenGLDebugDraw::World::drawLine(const KVector3D &from, const KVector3D &to
   V(Lines).push_back(KDebugVertex(from, color));
   V(Lines).push_back(KDebugVertex(to, color));
 }
+
+void OpenGLDebugDraw::World::drawTriangle(const KVector3D &a, const KVector3D &b, const KVector3D &c, const KColor &color)
+{
+  drawLine(a, b, color);
+  drawLine(b, c, color);
+  drawLine(c, a, color);
+}

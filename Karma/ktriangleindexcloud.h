@@ -29,6 +29,8 @@ public:
   size_t size() const;
   void clear();
   bool empty() const;
+  template <typename It>
+  void copy(It begin, It end);
 
   // Iterators
   ConstIterator cbegin() const;
@@ -116,6 +118,16 @@ inline auto KTriangleIndexCloud::begin() -> Iterator
 inline auto KTriangleIndexCloud::end() -> Iterator
 {
   return m_container.end();
+}
+
+template <typename It>
+void KTriangleIndexCloud::copy(It begin, It end)
+{
+  while (begin != end)
+  {
+    m_container.push_back(*begin);
+    ++begin;
+  }
 }
 
 #endif // KTRIANGLEINDEXCLOUD_H
