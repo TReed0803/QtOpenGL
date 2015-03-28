@@ -5,6 +5,7 @@
 #include <OpenGLFramebufferObject>
 #include <OpenGLFunctions>
 #include <OpenGLScene>
+#include <OpenGLBindings>
 
 class PreparePresentationPassPrivate
 {
@@ -62,7 +63,7 @@ void PreparePresentationPass::commit(OpenGLViewport &view)
 {
   P(PreparePresentationPassPrivate);
   // Bind Lightbuffer
-  GL::glActiveTexture(OpenGLTexture::endTextureUnits() - 5);
+  GL::glActiveTexture(OpenGLTexture::beginTextureUnits() + K_LIGHT_BUFFER_TEXTURE_BINDING);
   p.m_lLighting.bind();
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }

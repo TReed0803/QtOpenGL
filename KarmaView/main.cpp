@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     QSurfaceFormat glFormat;
     glFormat.setRenderableType(QSurfaceFormat::OpenGL);
     glFormat.setProfile(QSurfaceFormat::CoreProfile);
-    glFormat.setVersion(4,3);
+    glFormat.setVersion(4,5);
     formats.push_back(glFormat);
   }
 #endif

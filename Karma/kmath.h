@@ -30,8 +30,8 @@ namespace Karma
   template <typename T, typename U, typename V>
   T clamp(T const &a, U const &min, V const &max)
   {
-    if (a < min) return min;
-    if (a > max) return max;
+    if (a < min) return static_cast<T>(min);
+    if (a > max) return static_cast<T>(max);
     return a;
   }
 

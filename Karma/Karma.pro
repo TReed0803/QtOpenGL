@@ -32,7 +32,8 @@ SOURCES += \
     kepossphere.cpp \
     kadaptiveoctree.cpp \
     kgeometrycloud.cpp \
-    kbsptree.cpp
+    kbsptree.cpp \
+    kfrustum.cpp
 
 HEADERS += \
     kcolor.h \
@@ -99,4 +100,6 @@ HEADERS += \
     ktranslationiterator.h \
     ktrianglepartition.h \
     kbsptree.h \
-    kplane.h
+    kplane.h \
+    kfrustum.h \
+    kvector4d.h

@@ -95,6 +95,7 @@ KAdaptiveOctreePrivate::KAdaptiveOctreePrivate(KGeometryCloud &parent) :
 
 void KAdaptiveOctreePrivate::buildBottomUp(TerminationPred pred)
 {
+  (void)pred;
   qFatal("Unsupported Build Method!");
 }
 

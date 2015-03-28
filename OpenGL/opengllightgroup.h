@@ -155,7 +155,7 @@ void OpenGLLightGroup<T, D>::draw()
   m_mesh.bind();
 
   // Batch render regular lights
-  m_regularLight->bind();
+  m_regularLight[FFactor()][GFactor()][DFactor()]->bind();
   m_mesh.drawInstanced(0, m_numRegularLights);
 
   m_mesh.release();

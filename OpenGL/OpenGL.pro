@@ -22,7 +22,6 @@ SOURCES += \
     openglmesh.cpp \
     opengluniformbufferobject.cpp \
     openglslparser.cpp \
-    openglinstancegroup.cpp \
     openglframebufferobject.cpp \
     openglrenderbufferobject.cpp \
     opengltexture.cpp \
@@ -71,7 +70,6 @@ HEADERS += \
     openglfunctions_3_3_core.h \
     opengluniformbufferobject.h \
     openglslparser.h \
-    openglinstancegroup.h \
     openglframebufferobject.h \
     opengltexture.h \
     openglrenderbufferobject.h \
@@ -111,4 +109,7 @@ HEADERS += \
     openglrenderpassqueue.h \
     opengllightdata.h \
     openglfunctions_4_3_core.h \
-    openglblurdata.h
+    openglblurdata.h \
+    opengldynamicuniformbufferobject.h \
+    openglmaterialdata.h \
+    openglbindings.h

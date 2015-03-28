@@ -4,6 +4,7 @@
 #include <KMatrix4x4>
 #include <KVector3D>
 #include <KQuaternion>
+#include <KFrustum>
 
 class KCamera3D
 {
@@ -30,11 +31,13 @@ public:
   void setRotation(const KQuaternion &r);
   void setRotation(float angle, const KVector3D &axis);
   void setRotation(float angle, float ax, float ay, float az);
+  void setProjection(KMatrix4x4 const &proj) const;
 
   // Accessors
   const KVector3D& translation() const;
   const KQuaternion& rotation() const;
   const KMatrix4x4& toMatrix() const;
+  const KFrustum& frustum() const;
   bool dirty() const;
 
   // Queries
@@ -49,6 +52,10 @@ private:
   KVector3D m_translation;
   KQuaternion m_rotation;
   mutable KMatrix4x4 m_world;
+  mutable KMatrix4x4 m_projection;
+  mutable KFrustum m_frustum;
+
+  void clean() const;
 
 #ifndef QT_NO_DATASTREAM
   friend QDataStream &operator<<(QDataStream &out, const KCamera3D &transform);

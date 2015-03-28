@@ -7,7 +7,9 @@
 #ifndef GLOBALBUFFER_UBO
 #define GLOBALBUFFER_UBO
 
-layout(std140)
+#include <Bindings.glsl>
+
+layout(binding = K_CURRENT_VIEW_BINDING, std140)
 uniform CurrentRenderBlock
 {
   highp mat4 WorldToView;
@@ -24,7 +26,7 @@ uniform CurrentRenderBlock
   highp float SumPlane;
 } Current;
 
-layout(std140)
+layout(binding = K_PREVIOUS_VIEW_BINDING, std140)
 uniform PreviousRenderBlock
 {
   highp mat4 WorldToView;
@@ -41,6 +43,4 @@ uniform PreviousRenderBlock
   highp float SumPlane;
 } Previous;
 
-#autobind CurrentRenderBlock
-#autobind PreviousRenderBlock
 #endif // GLOBALBUFFER_UBO

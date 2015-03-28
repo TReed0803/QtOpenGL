@@ -43,17 +43,26 @@ void KCamera3D::setRotation(const KQuaternion &r)
   }
 }
 
+void KCamera3D::setProjection(const KMatrix4x4 &proj) const
+{
+  if (proj != m_projection)
+  {
+    m_dirty = true;
+    m_projection = proj;
+  }
+}
+
 // Accessors
 const KMatrix4x4 &KCamera3D::toMatrix() const
 {
-  if (m_dirty)
-  {
-    m_dirty = false;
-    m_world.setToIdentity();
-    m_world.rotate(m_rotation.conjugate());
-    m_world.translate(-m_translation);
-  }
+  clean();
   return m_world;
+}
+
+const KFrustum &KCamera3D::frustum() const
+{
+  clean();
+  return m_frustum;
 }
 
 bool KCamera3D::dirty() const
@@ -80,6 +89,18 @@ KVector3D KCamera3D::right() const
 float KCamera3D::fieldOfView() const
 {
   return m_fovy;
+}
+
+void KCamera3D::clean() const
+{
+  if (m_dirty)
+  {
+    m_dirty = false;
+    m_world.setToIdentity();
+    m_world.rotate(m_rotation.conjugate());
+    m_world.translate(-m_translation);
+    m_frustum.setFrustum(m_projection * m_world);
+  }
 }
 
 // Qt Streams

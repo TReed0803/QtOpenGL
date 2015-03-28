@@ -20,7 +20,6 @@ public:
 
   // Render Block Properties
   void setViewMatrix(const KMatrix4x4 &view);
-  void setPerspective(float fovy, float aspectRatio, float nearPlane, float farPlane);
   void setPerspectiveMatrix(const KMatrix4x4 &perspective);
   void setOrigin(const KVector2D &origin);
   void setNearFar(float nearPlane, float farPlane);

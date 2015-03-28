@@ -48,13 +48,6 @@ void OpenGLRenderBlock::setViewMatrix(const KMatrix4x4 &view)
   p.updateCombinationMatrices();
 }
 
-void OpenGLRenderBlock::setPerspective(float fovy, float aspectRatio, float nearPlane, float farPlane)
-{
-  KMatrix4x4 persp;
-  persp.perspective(fovy, aspectRatio, nearPlane, farPlane);
-  setPerspectiveMatrix(persp);
-}
-
 void OpenGLRenderBlock::setPerspectiveMatrix(const KMatrix4x4 &perspective)
 {
   P(OpenGLRenderBlockPrivate);

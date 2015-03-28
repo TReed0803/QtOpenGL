@@ -12,6 +12,7 @@
 #include <KMath>
 #include <OpenGLTexture>
 #include <OpenGLDynamicBuffer>
+#include <KAabbBoundingVolume>
 
 /*******************************************************************************
  * OpenGLAbstractDebugGroup
@@ -543,6 +544,11 @@ void OpenGLDebugDraw::World::drawSphere(const KVector3D &center, float radius, i
     drawCircle(center + radius * std::cos(angle) * upAxis, upAxis, radius * std::sin(angle), subdivisions, color);
     angle += ringAngle;
   }
+}
+
+void OpenGLDebugDraw::World::drawAabb(const KAabbBoundingVolume &aabb, const KColor &color)
+{
+  drawAabb(aabb.minExtent(), aabb.maxExtent(), color);
 }
 
 void OpenGLDebugDraw::World::drawAabb(const KVector3D &frontA, const KVector3D &backC, const KColor &color)

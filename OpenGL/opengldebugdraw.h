@@ -8,6 +8,7 @@ class KMatrix3x3;
 class KVector3D;
 class OpenGLUniformBufferObject;
 class OpenGLTexture;
+class KAabbBoundingVolume;
 
 struct OpenGLDebugDraw
 {
@@ -31,6 +32,7 @@ struct OpenGLDebugDraw
     static void drawSphere(const KVector3D &center, float radius, const KColor &color);
     static void drawSphere(const KVector3D &center, float radius, int segments, int rings, const KColor &color);
     static void drawSphere(const KVector3D &center, float radius, int segments, int rings, int subdivisions, const KColor &color);
+    static void drawAabb(const KAabbBoundingVolume &aabb, const KColor &color);
     static void drawAabb(const KVector3D &min, const KVector3D &max, const KColor &color);
     static void drawLine(const KVector3D &from, const KVector3D &to, const KColor &color);
     static void drawTriangle(const KVector3D &a, const KVector3D &b, const KVector3D &c, const KColor &color);

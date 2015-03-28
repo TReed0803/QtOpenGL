@@ -6,6 +6,7 @@
 #include <KVector3D>
 
 class QString;
+class KAabbBoundingVolume;
 
 class KHalfEdgeMeshPrivate;
 class KHalfEdgeMesh : public KAbstractMesh
@@ -122,6 +123,7 @@ public:
   HalfEdge const *twin(HalfEdge const *he) const;
   HalfEdge const *twin(HalfEdgeIndex const &idx) const;
   HalfEdgeIndex twinIndex(HalfEdgeIndex const &he) const;
+  KAabbBoundingVolume const &aabb() const;
 
   // Mutation Commands
   void calculateFaceNormals();

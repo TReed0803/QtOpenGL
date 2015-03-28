@@ -29,7 +29,8 @@ SOURCES += \
     viewportpresentationpass.cpp \
     motionblurpass.cpp \
     preparepresentationpass.cpp \
-    shadowedlightaccumulationpass.cpp
+    shadowedlightaccumulationpass.cpp \
+    debuggbufferpass.cpp
 
 HEADERS += \
     mainwidget.h \
@@ -41,7 +42,8 @@ HEADERS += \
     viewportpresentationpass.h \
     motionblurpass.h \
     preparepresentationpass.h \
-    shadowedlightaccumulationpass.h
+    shadowedlightaccumulationpass.h \
+    debuggbufferpass.h
 
 RESOURCES += \
     ../resources.qrc

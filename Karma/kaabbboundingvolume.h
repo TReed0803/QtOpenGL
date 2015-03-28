@@ -6,6 +6,7 @@
 class KColor;
 class KHalfEdgeMesh;
 class KTransform3D;
+class KMatrix4x4;
 
 class KAabbBoundingVolumePrivate;
 class KAabbBoundingVolume : public KAbstractBoundingVolume
@@ -27,6 +28,7 @@ public:
   KAabbBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   KAabbBoundingVolume(KAabbBoundingVolume const &a, KVector3D const &offset);
   ~KAabbBoundingVolume();
+  void operator=(KAabbBoundingVolume const &rhs);
 
   // Virtual Implementation
   Karma::MinMaxKVector3D const &extents() const;
@@ -43,6 +45,8 @@ public:
   bool contains(const KVector3D &pos) const;
   KAabbBoundingVolume copyOffset(float x, float y, float z);
   void scale(float k);
+  KVector3D point(int idx) const;
+  KAabbBoundingVolume operator*(KMatrix4x4 const &mtx) const;
 
 private:
   void constructPrivate();

@@ -112,6 +112,7 @@ public:
   inline Vertex const *vertex(VertexIndex const &idx) const;
   inline HalfEdge const *halfEdge(HalfEdgeIndex const &idx) const;
   inline Face const *face(FaceIndex const &idx) const;
+  inline KAabbBoundingVolume const &aabb() const;
 
   // Query Commands (elements => index)
   inline VertexIndex index(Vertex const *v) const;
@@ -265,6 +266,11 @@ inline KHalfEdgeMeshPrivate::HalfEdge const *KHalfEdgeMeshPrivate::halfEdge(cons
 inline KHalfEdgeMeshPrivate::Face const *KHalfEdgeMeshPrivate::face(const FaceIndex &idx) const
 {
   return &m_faces[idx - 1];
+}
+
+const KAabbBoundingVolume &KHalfEdgeMeshPrivate::aabb() const
+{
+  return m_aabb;
 }
 
 /*******************************************************************************
@@ -638,17 +644,17 @@ KHalfEdgeMesh::Face const *KHalfEdgeMesh::face(FaceIndex idx) const
 
 const KHalfEdgeMesh::Vertex *KHalfEdgeMesh::unsafeVertex(size_t idx) const
 {
-  return vertex(VertexIndex(idx));
+  return vertex(VertexIndex(static_cast<IndexType::index_type>(idx)));
 }
 
 const KHalfEdgeMesh::HalfEdge *KHalfEdgeMesh::unsafeHalfEdge(size_t idx) const
 {
-  return halfEdge(HalfEdgeIndex(idx));
+  return halfEdge(HalfEdgeIndex(static_cast<IndexType::index_type>(idx)));
 }
 
 const KHalfEdgeMesh::Face *KHalfEdgeMesh::unsafeFace(size_t idx) const
 {
-  return face(FaceIndex(idx));
+  return face(FaceIndex(static_cast<IndexType::index_type>(idx)));
 }
 
 KHalfEdgeMesh::VertexContainer const &KHalfEdgeMesh::vertices() const
@@ -722,6 +728,12 @@ KHalfEdgeMesh::HalfEdgeIndex KHalfEdgeMesh::twinIndex(const KHalfEdgeMesh::HalfE
 {
   P(const KHalfEdgeMeshPrivate);
   return p.twinIndex(idx);
+}
+
+const KAabbBoundingVolume &KHalfEdgeMesh::aabb() const
+{
+  P(const KHalfEdgeMeshPrivate);
+  return p.aabb();
 }
 
 void KHalfEdgeMesh::calculateFaceNormals()

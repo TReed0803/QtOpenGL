@@ -8,7 +8,8 @@ enum RenderPassId
   LightAccumulationPassId,
   ShadowedLightAccumulationPassId,
   MotionBlurPassId,
-  ViewportPresentationPassId
+  ViewportPresentationPassId,
+  DebugGBufferPassId
 };
 
 #endif // RENDERPASSES_H

@@ -6,6 +6,7 @@ class KSize;
 class KSizeF;
 class KVector2D;
 class OpenGLRenderBlock;
+class KFrustum;
 #include <KSharedPointer>
 
 class OpenGLViewportPrivate;
@@ -26,6 +27,7 @@ public:
   const KSize &screenSize() const;
   const KVector2D &origin() const;
   const KSizeF &region() const;
+  const KFrustum &frustum() const;
   void commit();
   void activate();
   const OpenGLRenderBlock &current() const;

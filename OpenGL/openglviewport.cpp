@@ -7,6 +7,7 @@
 #include <KSizeF>
 #include <OpenGLRenderBlock>
 #include <OpenGLRenderer>
+#include <resources/shaders/Bindings.glsl>
 
 class OpenGLViewportPrivate
 {
@@ -134,14 +135,14 @@ void OpenGLViewport::create()
 void OpenGLViewport::bind()
 {
   P(OpenGLViewportPrivate);
-  p.currentRenderBlock().bindBase(1);
-  p.previousRenderBlock().bindBase(2);
+  p.currentRenderBlock().bindBase(K_CURRENT_VIEW_BINDING);
+  p.previousRenderBlock().bindBase(K_PREVIOUS_VIEW_BINDING);
 }
 
 void OpenGLViewport::release()
 {
-  OpenGLUniformBufferObject::bindBufferId(1, 0);
-  OpenGLUniformBufferObject::bindBufferId(2, 0);
+  OpenGLUniformBufferObject::bindBufferId(K_CURRENT_VIEW_BINDING, 0);
+  OpenGLUniformBufferObject::bindBufferId(K_PREVIOUS_VIEW_BINDING, 0);
 }
 
 void OpenGLViewport::resize(int width, int height)
@@ -209,6 +210,12 @@ const KSizeF &OpenGLViewport::region() const
   return p.m_dimensions;
 }
 
+const KFrustum &OpenGLViewport::frustum() const
+{
+  P(const OpenGLViewportPrivate);
+  return p.m_camera->frustum();
+}
+
 void OpenGLViewport::commit()
 {
   P(OpenGLViewportPrivate);
@@ -217,12 +224,15 @@ void OpenGLViewport::commit()
   // Update GPU Data for camera view
   if (p.m_camera->dirty() || p.viewportDirty())
   {
+    KMatrix4x4 persp;
     p.swapRenderBlocks();
+    persp.perspective(p.m_camera->fieldOfView(), p.m_aspectRatio, p.m_nearPlane, p.m_farPlane);
     KVector2D offset(0.0f, p.m_pixelDimensions.height());
     p.currentRenderBlock().setNearFar(p.m_nearPlane, p.m_farPlane);
     p.currentRenderBlock().setOrigin(offset);
     p.currentRenderBlock().setDimensions(p.m_pixelDimensions);
-    p.currentRenderBlock().setPerspective(p.m_camera->fieldOfView(), p.m_aspectRatio, p.m_nearPlane, p.m_farPlane);
+    p.currentRenderBlock().setPerspectiveMatrix(persp);
+    p.m_camera->setProjection(persp);
     p.currentRenderBlock().setViewMatrix(p.m_camera->toMatrix());
   }
   else

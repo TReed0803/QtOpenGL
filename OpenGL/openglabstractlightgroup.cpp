@@ -96,3 +96,21 @@ void OpenGLAbstractLightGroup::setMesh(const char *filepath)
   mesh.create(filepath);
   setMesh(mesh);
 }
+
+int &OpenGLAbstractLightGroup::FFactor()
+{
+  static int f = 0;
+  return f;
+}
+
+int &OpenGLAbstractLightGroup::GFactor()
+{
+  static int g = 0;
+  return g;
+}
+
+int &OpenGLAbstractLightGroup::DFactor()
+{
+  static int d = 0;
+  return d;
+}

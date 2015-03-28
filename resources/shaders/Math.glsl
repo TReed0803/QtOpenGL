@@ -7,6 +7,8 @@
 #ifndef MATH_GLSL
 #define MATH_GLSL
 
+#define M_PI 3.1415926535897932384626433832795
+
 #include <GlobalBuffer.ubo>
 
 highp float map_01(float x, float v0, float v1)

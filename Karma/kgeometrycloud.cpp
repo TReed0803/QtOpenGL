@@ -67,7 +67,8 @@ void KGeometryCloud::addGeometry(const KHalfEdgeMesh &mesh, const KTransform3D &
 
 void KGeometryCloud::build(KGeometryCloud::BuildMethod method, KGeometryCloud::TerminationPred pred)
 {
-  // Do nothing
+  (void)method;
+  (void)pred;
 }
 
 void KGeometryCloud::clear()

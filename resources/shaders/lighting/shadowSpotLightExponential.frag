@@ -8,7 +8,9 @@
 #include <LightBuffer.ubo>
 #include <GBuffer.ubo>
 #include <Math.glsl> // saturate
+#include <Bindings.glsl>
 
+layout(binding = K_TEXTURE_0)
 uniform sampler2D shadowMap;
 
 // Light Input

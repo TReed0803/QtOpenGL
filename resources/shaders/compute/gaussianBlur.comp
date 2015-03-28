@@ -40,12 +40,12 @@ void main()
 
   // Load image information into temporary workspace
   ivec2 sourceTexel = currTexel - Blur.Width * Direction;
-  v[texelIndex] = imageLoad(src, sourceTexel);
+  v[texelIndex] = imageLoad(src, sourceTexel).r;
 
   // First 2w threads will load the last 2w texels.
   if (texelIndex < Blur.Width2)
   {
-    v[texelIndex + workWidth] = imageLoad(src, sourceTexel + workWidth * Direction);
+    v[texelIndex + workWidth] = imageLoad(src, sourceTexel + workWidth * Direction).r;
   }
 
   // We must wait until all information

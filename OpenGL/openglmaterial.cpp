@@ -1,38 +1,88 @@
 #include "openglmaterial.h"
 
+#include <Kmath>
 #include <KColor>
 #include <KMacros>
+#include <KVector2D>
+#include <OpenGLUniformBufferObject>
+#include <OpenGLBindings>
+#include <OpenGLMaterialData>
 
+/*******************************************************************************
+ * OpenGLMaterialPrivate
+ ******************************************************************************/
 class OpenGLMaterialPrivate
 {
 public:
   KColor m_diffuse;
-  KColor m_specularColor;
-  float m_specularExponent;
+  KColor m_fresnel;
+  KVector2D m_roughness;
+  OpenGLUniformBufferObject m_buffer;
 };
 
-
+/*******************************************************************************
+ * OpenGLMaterial
+ ******************************************************************************/
 OpenGLMaterial::OpenGLMaterial() :
   m_private(new OpenGLMaterialPrivate)
 {
   // Intentionally Empty
 }
 
-OpenGLMaterial::OpenGLMaterial(const OpenGLMaterial &rhs) :
-  m_private(new OpenGLMaterialPrivate)
-{
-  *m_private = *rhs.m_private;
-}
-
 OpenGLMaterial::~OpenGLMaterial()
 {
-  delete m_private;
+  // Intentionally Empty
 }
 
-void OpenGLMaterial::operator=(const OpenGLMaterial &rhs)
+void OpenGLMaterial::create()
 {
-  *m_private = *rhs.m_private;
+  P(OpenGLMaterialPrivate);
+  p.m_buffer.create();
+  p.m_buffer.bind();
+  p.m_buffer.allocate(sizeof(OpenGLMaterialData));
+  p.m_buffer.release();
 }
+
+void OpenGLMaterial::bind()
+{
+  P(OpenGLMaterialPrivate);
+  p.m_buffer.bindBase(K_MATERIAL_BINDING);
+}
+
+void OpenGLMaterial::commit()
+{
+  P(OpenGLMaterialPrivate);
+  OpenGLBuffer::RangeAccessFlags flags =
+    OpenGLBuffer::RangeUnsynchronized   |
+    OpenGLBuffer::RangeInvalidateBuffer |
+    OpenGLBuffer::RangeWrite;
+
+  p.m_buffer.bind();
+
+  // Send data to the GPU
+  {
+    OpenGLMaterialData *data = (OpenGLMaterialData*)p.m_buffer.mapRange(0, sizeof(OpenGLMaterialData), flags);
+    data->m_diffuse = Karma::ToGlm(p.m_diffuse);
+    data->m_fresnel = Karma::ToGlm(p.m_fresnel);
+    data->m_roughness = Karma::ToGlm(p.m_roughness);
+    p.m_buffer.unmap();
+  }
+
+  p.m_buffer.release();
+}
+
+void OpenGLMaterial::release()
+{
+  OpenGLUniformBufferObject::bindBufferId(K_MATERIAL_BINDING, 0);
+}
+
+int OpenGLMaterial::objectId() const
+{
+  P(const OpenGLMaterialPrivate);
+  return p.m_buffer.bufferId();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 void OpenGLMaterial::setDiffuse(char r, char g, char b)
 {
@@ -54,64 +104,59 @@ void OpenGLMaterial::setDiffuse(const KColor &color)
 
 const KColor &OpenGLMaterial::diffuse() const
 {
-  P(OpenGLMaterialPrivate);
+  P(const OpenGLMaterialPrivate);
   return p.m_diffuse;
 }
 
-void OpenGLMaterial::setSpecular(char r, char g, char b, float exp)
+///////////////////////////////////////////////////////////////////////////////
+
+void OpenGLMaterial::setFresnel(float rgb)
 {
   P(OpenGLMaterialPrivate);
-  p.m_specularColor.setRgb(r, g, b);
-  p.m_specularExponent = exp;
+  p.m_fresnel.setRgbF(rgb, rgb, rgb);
 }
 
-void OpenGLMaterial::setSpecular(float r, float g, float b, float exp)
+void OpenGLMaterial::setFresnel(char r, char g, char b)
 {
   P(OpenGLMaterialPrivate);
-  p.m_specularColor.setRgbF(r, g, b);
-  p.m_specularExponent = exp;
+  p.m_fresnel.setRgb(r, g, b);
 }
 
-void OpenGLMaterial::setSpecular(const KColor &color, float exp)
+void OpenGLMaterial::setFresnel(float r, float g, float b)
 {
   P(OpenGLMaterialPrivate);
-  p.m_specularColor = color;
-  p.m_specularExponent = exp;
+  p.m_fresnel.setRgbF(r, g, b);
 }
 
-void OpenGLMaterial::setSpecularColor(char r, char g, char b)
+void OpenGLMaterial::setFresnel(const KColor &color)
 {
   P(OpenGLMaterialPrivate);
-  p.m_specularColor.setRgb(r, g, b);
+  p.m_fresnel = color;
 }
 
-void OpenGLMaterial::setSpecularColor(float r, float g, float b)
+const KColor &OpenGLMaterial::color() const
 {
-  P(OpenGLMaterialPrivate);
-  p.m_specularColor.setRgbF(r, g, b);
+  P(const OpenGLMaterialPrivate);
+  return p.m_fresnel;
 }
 
-void OpenGLMaterial::setSpecularColor(const KColor &color)
+///////////////////////////////////////////////////////////////////////////////
+
+void OpenGLMaterial::setRoughness(float xy)
 {
   P(OpenGLMaterialPrivate);
-  p.m_specularColor = color;
+  p.m_roughness = KVector2D(xy, xy);
 }
 
-void OpenGLMaterial::setSpecularExponent(float exp)
+void OpenGLMaterial::setRoughness(float x, float y)
 {
   P(OpenGLMaterialPrivate);
-  p.m_specularExponent = exp;
+  p.m_roughness = KVector2D(x, y);
 }
 
-const KColor &OpenGLMaterial::specularColor() const
+const KVector2D &OpenGLMaterial::roughness() const
 {
-  P(OpenGLMaterialPrivate);
-  return p.m_specularColor;
-}
-
-float OpenGLMaterial::specularExponent() const
-{
-  P(OpenGLMaterialPrivate);
-  return p.m_specularExponent;
+  P(const OpenGLMaterialPrivate);
+  return p.m_roughness;
 }
 

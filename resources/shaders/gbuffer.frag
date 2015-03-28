@@ -5,19 +5,18 @@
  ******************************************************************************/
 
 #include <EncodeDecode.glsl>
+#include <Material.ubo>
 
 // Vertex Inputs
 in highp vec3 vViewNormal;
-in highp vec4 vCurrViewPosition;
 in highp vec4 vCurrClipPosition;
 in highp vec4 vPrevClipPosition;
-flat in highp vec3 vDiffuse;
-flat in highp vec4 vSpecular;
 
 // Framebuffer Outputs
 layout(location = 0) out highp vec4 fGeometry;
 layout(location = 1) out highp vec4 fMaterial;
 layout(location = 2) out highp float fSurface;
+layout(location = 3) out highp vec4 fPhysical;
 
 void main()
 {
@@ -35,11 +34,16 @@ void main()
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 2: Material Buffer
   // Encode Material information (Diffuse, Diffuse, Diffuse, Specular Color)
-  fMaterial.xyz = vDiffuse;
-  fMaterial.w   = encodeSpecularColor(vSpecular.xyz);
+  fMaterial.xyz = Material.Diffuse;
+  fMaterial.w   = encodeSpecularColor(Material.Fresnel);
 
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 3: Surface Buffer
   // Encode Dynamics information (Specular Exp.)
-  fSurface = encodeSpecularExponent(vSpecular.w);
+  fSurface = encodeSpecularExponent(Material.Roughness.x * 255.0);
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Deferred Buffer 4: Physical Buffer
+  // Encode Dynamics information (Fresnel, Fresnel, Fresnel, Roughness)
+  fPhysical = vec4(Material.Fresnel, Material.Roughness.x);
 }

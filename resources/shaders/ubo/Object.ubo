@@ -1,0 +1,20 @@
+/*******************************************************************************
+ * ubo/Object.ubo
+ *------------------------------------------------------------------------------
+ * All of the current object information
+ ******************************************************************************/
+
+#ifndef OBJECT_UBO
+#define OBJECT_UBO
+
+#include <Bindings.glsl>
+
+layout(binding = K_OBJECT_BINDING,std140)
+uniform ObjectBuffer
+{
+  highp mat4 CurrentModelToView;
+  highp mat4 PreviousModelToView;
+  highp mat4 NormalTransform;
+} Object;
+
+#endif // OBJECT_UBO

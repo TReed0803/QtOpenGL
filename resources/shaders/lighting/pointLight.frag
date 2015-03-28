@@ -7,6 +7,7 @@
 
 #include <GBuffer.ubo>
 #include <Math.glsl> // saturate
+#include <Physical.glsl>
 
 // Light Properties
 flat in highp vec4 vLightAttenuation;
@@ -35,20 +36,14 @@ void main()
   highp float attenuation = 1.0 / dot(polynomial,vLightAttenuation.xyz);
   attenuation *= saturate(1.0 - (lightDist / vLightAttenuation.w));
 
-  // Blinn Phong
-  highp float lambertian = max(dot(lightDir, normal), 0.0);
-  highp vec3  viewDir    = normalize(-viewPos);
-  highp vec3  halfDir    = normalize(lightDir + viewDir);
-  highp float specAngle  = max(dot(halfDir, normal), 0.0);
-  highp float specFactor = pow(specAngle, specular.w);
+  // Construct Half-Vector
+  highp vec3 viewDir = normalize(viewPos);
+  highp vec3 halfDir = normalize(lightDir + viewDir);
 
-  // Construct Lighting Terms
-  highp vec3 diffuseTerm  = vLightDiffuse  * diffuse      * lambertian;
-  highp vec3 specularTerm = vLightSpecular * specular.xyz * specFactor;
-  highp vec3 lighting = attenuation * (diffuseTerm + specularTerm);
-  lighting = pow(lighting, vec3(2.2));
-  fFragColor = vec4(lighting, 1.0);
+  // Microfacet BRDF
+  vec3 color = F(lightDir, halfDir) * G(lightDir, viewDir, halfDir) * D(halfDir);
+  color /= (4 * dot(normal, lightDir) * dot(normal, viewDir));
 
-  // Debug Drawing
-  //fFragColor += debugExecution(attenuation);
+  // Commit final color
+  fFragColor = vec4(attenuation * color, 1.0);
 }

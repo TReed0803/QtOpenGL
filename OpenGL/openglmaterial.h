@@ -2,6 +2,8 @@
 #define   OPENGLMATERIAL_H OpenGLMaterial
 
 class KColor;
+class KVector2D;
+#include <KSharedPointer>
 
 class OpenGLMaterialPrivate;
 class OpenGLMaterial
@@ -9,10 +11,14 @@ class OpenGLMaterial
 public:
 
   OpenGLMaterial();
-  OpenGLMaterial(OpenGLMaterial const &rhs);
   ~OpenGLMaterial();
 
-  void operator=(OpenGLMaterial const &rhs);
+  // OpenGL
+  void create();
+  void bind();
+  void commit();
+  void release();
+  int objectId() const;
 
   // Diffuse
   void setDiffuse(char r, char g, char b);
@@ -20,19 +26,20 @@ public:
   void setDiffuse(KColor const &color);
   KColor const &diffuse() const;
 
-  // Specular
-  void setSpecular(char r, char g, char b, float exp);
-  void setSpecular(float r, float g, float b, float exp);
-  void setSpecular(KColor const &color, float exp);
-  void setSpecularColor(char r, char g, char b);
-  void setSpecularColor(float r, float g, float b);
-  void setSpecularColor(KColor const &color);
-  void setSpecularExponent(float exp);
-  KColor const &specularColor() const;
-  float specularExponent() const;
+  // Fresnel
+  void setFresnel(float rgb);
+  void setFresnel(char r, char g, char b);
+  void setFresnel(float r, float g, float b);
+  void setFresnel(KColor const &color);
+  KColor const &color() const;
+
+  // Roughness
+  void setRoughness(float xy);
+  void setRoughness(float x, float y);
+  KVector2D const &roughness() const;
 
 private:
-  OpenGLMaterialPrivate *m_private;
+  KSharedPointer<OpenGLMaterialPrivate> m_private;
 };
 
 #endif // OPENGLMATERIAL_H

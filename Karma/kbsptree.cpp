@@ -100,6 +100,7 @@ KBspTreePrivate::KBspTreePrivate(KGeometryCloud &parent) :
 
 void KBspTreePrivate::buildBottomUp(TerminationPred pred)
 {
+  (void)pred;
   qFatal("Unsupported Build Method!");
 }
 

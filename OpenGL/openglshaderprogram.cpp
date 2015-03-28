@@ -50,6 +50,7 @@ public:
   std::vector<std::string> m_autosampler;
   std::vector<OpenGLShaderProgramUniformUpdate> m_uniformUpdate;
   std::vector<OpenGLShaderProgramUniformBufferUpdate> m_bufferUpdate;
+  std::string m_defines;
   OpenGLShaderProgramPrivate();
 };
 
@@ -85,7 +86,7 @@ void OpenGLShaderProgram::addSharedIncludePath(const char *path)
 bool OpenGLShaderProgram::addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString &fileName)
 {
   P(OpenGLShaderProgramPrivate);
-  std::string ppSource = getVersionComment().toUtf8().constData();
+  std::string ppSource = getVersionComment().toUtf8().constData() + p.m_defines;
 
   // Preprocess the shader file
   KBufferedFileReader reader(fileName, 1024);
@@ -198,6 +199,12 @@ QString OpenGLShaderProgram::getVersionComment()
   }
 
   return comment + "\n";
+}
+
+void OpenGLShaderProgram::addShaderDefines(const char *defs)
+{
+  P(OpenGLShaderProgramPrivate);
+  p.m_defines += defs;
 }
 
 bool OpenGLShaderProgram::link()

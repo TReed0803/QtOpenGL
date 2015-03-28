@@ -7,6 +7,7 @@
 #include <OpenGLElementType>
 
 class KHalfEdgeMesh;
+class KAabbBoundingVolume;
 
 class OpenGLMeshPrivate;
 class OpenGLMesh
@@ -32,6 +33,8 @@ public:
   void vertexAttribPointerDivisor(int location, int elements, int count, OpenGLElementType type, bool normalized, int stride, int offset, int divisor);
   void release();
   bool isCreated() const;
+  int objectId() const;
+  KAabbBoundingVolume const &aabb() const;
 
 private:
   KSharedPointer<OpenGLMeshPrivate> m_private;

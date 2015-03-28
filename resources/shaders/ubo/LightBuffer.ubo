@@ -7,7 +7,9 @@
 #ifndef LIGHTBUFFER_UBO
 #define LIGHTBUFFER_UBO
 
-layout(std140)
+#include <Bindings.glsl>
+
+layout(binding = K_LIGHT_BINDING,std140)
 uniform LightBufferProperties
 {
   highp mat4 ModelToPersp;
@@ -26,5 +28,4 @@ uniform LightBufferProperties
   highp float NearPlane;
 } Light;
 
-#autobind LightBufferProperties
 #endif // LIGHTBUFFER_UBO

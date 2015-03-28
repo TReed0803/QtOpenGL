@@ -4,6 +4,7 @@
 #include <OpenGLDebugDraw>
 #include <KTransform3D>
 #include <KMatrix3x3>
+#include <KMatrix4x4>
 #include <KMath>
 
 class KAabbBoundingVolumePrivate
@@ -102,6 +103,11 @@ KAabbBoundingVolume::~KAabbBoundingVolume()
   delete m_private;
 }
 
+void KAabbBoundingVolume::operator=(const KAabbBoundingVolume &rhs)
+{
+  m_private->maxMin = rhs.m_private->maxMin;
+}
+
 Karma::MinMaxKVector3D const &KAabbBoundingVolume::extents() const
 {
   P(KAabbBoundingVolumePrivate);
@@ -192,25 +198,8 @@ void KAabbBoundingVolume::setMinMaxBounds(const Karma::MinMaxKVector3D &minMax)
 
 void KAabbBoundingVolume::draw(KTransform3D &t, KColor const &color) const
 {
-  P(KAabbBoundingVolumePrivate);
-  KMatrix4x4 const &mtx = t.toMatrix();
-
-  // Construct translated pointset
-  std::vector<KVector3D> tVec =
-  {
-    mtx * p.maxMin.min,
-    mtx * p.maxMin.max,
-    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.max.y(), p.maxMin.max.z()),
-    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.min.y(), p.maxMin.max.z()),
-    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.min.y(), p.maxMin.max.z()),
-    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.min.y(), p.maxMin.min.z()),
-    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.max.y(), p.maxMin.min.z()),
-    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.max.y(), p.maxMin.min.z())
-  };
-
-  // Find and draw the Aabb of the translated pointset
-  Karma::MinMaxKVector3D mm = Karma::findMinMaxBounds(tVec.begin(), tVec.end());
-  OpenGLDebugDraw::World::drawAabb(mm.min, mm.max, color);
+  KAabbBoundingVolume aabb = (*this) * t.toMatrix();
+  OpenGLDebugDraw::World::drawAabb(aabb.m_private->maxMin.min, aabb.m_private->maxMin.max, color);
 }
 
 void KAabbBoundingVolume::makeCube()
@@ -248,6 +237,57 @@ void KAabbBoundingVolume::scale(float k)
   KVector3D centroid = center();
   p.maxMin.max = (p.maxMin.max - centroid) * k + centroid;
   p.maxMin.min = (p.maxMin.min - centroid) * k + centroid;
+}
+
+KVector3D KAabbBoundingVolume::point(int idx) const
+{
+  P(KAabbBoundingVolumePrivate);
+  switch (idx)
+  {
+  case 0:
+    return KVector3D(p.maxMin.min.x(), p.maxMin.min.y(), p.maxMin.min.z());
+  case 1:
+    return KVector3D(p.maxMin.min.x(), p.maxMin.min.y(), p.maxMin.max.z());
+  case 2:
+    return KVector3D(p.maxMin.min.x(), p.maxMin.max.y(), p.maxMin.min.z());
+  case 3:
+    return KVector3D(p.maxMin.max.x(), p.maxMin.min.y(), p.maxMin.min.z());
+  case 4:
+    return KVector3D(p.maxMin.max.x(), p.maxMin.max.y(), p.maxMin.max.z());
+  case 5:
+    return KVector3D(p.maxMin.max.x(), p.maxMin.max.y(), p.maxMin.min.z());
+  case 6:
+    return KVector3D(p.maxMin.max.x(), p.maxMin.min.y(), p.maxMin.max.z());
+  case 7:
+    return KVector3D(p.maxMin.min.x(), p.maxMin.max.y(), p.maxMin.max.z());
+  default:
+    qFatal("Invalid index into KAabbBoundingVollume::point(int idx)!");
+    break;
+  }
+  return KVector3D();
+}
+
+KAabbBoundingVolume KAabbBoundingVolume::operator*(const KMatrix4x4 &mtx) const
+{
+  P(const KAabbBoundingVolumePrivate);
+  KAabbBoundingVolume retVal;
+
+  // Construct translated pointset
+  std::vector<KVector3D> tVec =
+  {
+    mtx * p.maxMin.min,
+    mtx * p.maxMin.max,
+    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.max.y(), p.maxMin.max.z()),
+    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.min.y(), p.maxMin.max.z()),
+    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.min.y(), p.maxMin.max.z()),
+    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.min.y(), p.maxMin.min.z()),
+    mtx * KVector3D( p.maxMin.max.x(), p.maxMin.max.y(), p.maxMin.min.z()),
+    mtx * KVector3D( p.maxMin.min.x(), p.maxMin.max.y(), p.maxMin.min.z())
+  };
+
+  // Find and draw the Aabb of the translated pointset
+  retVal.m_private->maxMin = Karma::findMinMaxBounds(tVec.begin(), tVec.end());
+  return retVal;
 }
 
 void KAabbBoundingVolume::constructPrivate()

@@ -9,18 +9,20 @@
 
 #include <Math.glsl>
 #include <EncodeDecode.glsl>
+#include <Bindings.glsl>
 
+layout(binding = K_DEPTH_TEXTURE_BINDING)
 uniform highp sampler2D depthTexture;
+layout(binding = K_GEOMETRY_TEXTURE_BINDING)
 uniform highp sampler2D geometryTexture;
+layout(binding = K_MATERIAL_TEXTURE_BINDING)
 uniform highp sampler2D materialTexture;
+layout(binding = K_PHYSICAL_TEXTURE_BINDING)
+uniform highp sampler2D physicalTexture;
+layout(binding = K_SURFACE_TEXTURE_BINDING)
 uniform highp sampler2D surfaceTexture;
+layout(binding = K_LIGHT_BUFFER_TEXTURE_BINDING)
 uniform highp sampler2D lightbufferTexture;
-
-#autosample depthTexture
-#autosample geometryTexture
-#autosample materialTexture
-#autosample surfaceTexture
-#autosample lightbufferTexture
 
 highp float depth(highp vec2 uv)
 {
@@ -118,6 +120,26 @@ highp vec2 velocity()
   return velocity(uvCoord());
 }
 
+highp vec3 fresnel(highp vec2 uv)
+{
+  return texture(physicalTexture, uv).xyz;
+}
+
+highp vec3 fresnel()
+{
+  return fresnel(uvCoord());
+}
+
+highp float roughness(highp vec2 uv)
+{
+  return texture(physicalTexture, uv).w;
+}
+
+highp float roughness()
+{
+  return roughness(uvCoord());
+}
+
 highp vec4 lightbuffer(highp vec2 uv)
 {
   return texture(lightbufferTexture, uv);
@@ -126,26 +148,6 @@ highp vec4 lightbuffer(highp vec2 uv)
 highp vec4 lightbuffer()
 {
   return lightbuffer(uvCoord());
-}
-
-struct gdata
-{
-  vec3 normal;
-  vec3 diffuse;
-  vec4 specular;
-};
-
-highp gdata gbufferData(highp vec2 uv)
-{
-  highp vec2 geometryData = texture(geometryTexture, uv).xy;
-  highp vec4 materialData = texture(materialTexture, uv);
-  highp float surfaceData = texture(surfaceTexture, uv).x;
-  return gdata(decodeNormal(geometryData.xy), materialData.xyz, vec4(decodeSpecularColor(materialData.w), decodeSpecularExponent(surfaceData)));
-}
-
-highp gdata gbufferData()
-{
-  return gbufferData(uvCoord());
 }
 
 #endif // GBUFFER_UBO

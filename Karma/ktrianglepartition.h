@@ -17,7 +17,7 @@ public:
   KTrianglePartition(KPointCloud const &cloud);
 protected:
   KPointCloud const &m_pointCloud;
-  KVector3D const &point(int idx) const;
+  KVector3D const &point(size_t idx) const;
 };
 
 inline KTrianglePartition::KTrianglePartition(const KPointCloud &cloud) :
@@ -26,7 +26,7 @@ inline KTrianglePartition::KTrianglePartition(const KPointCloud &cloud) :
   // Intentionally Empty
 }
 
-inline const KVector3D &KTrianglePartition::point(int idx) const
+inline const KVector3D &KTrianglePartition::point(size_t idx) const
 {
   return m_pointCloud[idx - 1];
 }

@@ -16,9 +16,14 @@
         <file>resources/shaders/Math.glsl</file>
         <file>resources/shaders/GBuffer.ubo</file>
         <file>resources/shaders/gbuffer.vert</file>
+        <file>resources/shaders/Bindings.glsl</file>
         <file>resources/shaders/ubo/GlobalBuffer.ubo</file>
         <file>resources/shaders/ubo/LightBuffer.ubo</file>
+        <file>resources/shaders/ubo/Material.ubo</file>
+        <file>resources/shaders/ubo/Object.ubo</file>
         <file>resources/shaders/gbuffer/ambient.frag</file>
+        <file>resources/shaders/gbuffer/fresnel.frag</file>
+        <file>resources/shaders/gbuffer/roughness.frag</file>
         <file>resources/shaders/gbuffer/backbuffer.frag</file>
         <file>resources/shaders/gbuffer/depth.frag</file>
         <file>resources/shaders/gbuffer/diffuse.frag</file>
@@ -51,6 +56,7 @@
         <file>resources/shaders/lighting/mapSpotLight.frag</file>
         <file>resources/shaders/lighting/mapSpotLight.vert</file>
         <file>resources/shaders/lighting/mapSpotLightExponential.frag</file>
+        <file>resources/shaders/lighting/Physical.glsl</file>
         <file>resources/shaders/compute/gaussianBlur.comp</file>
     </qresource>
 </RCC>

@@ -183,6 +183,7 @@ public:
   void scheduleUniformBlockUpdate(unsigned location, unsigned index);
   void scheduleUniformUpdate(unsigned location, unsigned index);
   QString getVersionComment();
+  void addShaderDefines(char const *defs);
   bool link();
   bool bind();
 private:

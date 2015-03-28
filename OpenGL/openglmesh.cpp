@@ -6,6 +6,7 @@
 #include <OpenGLBuffer>
 #include <OpenGLFunctions>
 #include <OpenGLVertexArrayObject>
+#include <KAabbBoundingVolume>
 
 class OpenGLMeshPrivate : public OpenGLFunctions
 {
@@ -20,6 +21,7 @@ public:
   OpenGLBuffer m_indexBuffer;
   OpenGLBuffer m_vertexBuffer;
   OpenGLVertexArrayObject m_vertexArrayObject;
+  KAabbBoundingVolume m_aabb;
 };
 
 OpenGLMeshPrivate::OpenGLMeshPrivate() :
@@ -32,6 +34,7 @@ void OpenGLMeshPrivate::create(const KHalfEdgeMesh &mesh)
 {
 
   // Helpers
+  m_aabb = KAabbBoundingVolume(mesh.aabb());
   KHalfEdgeMesh::FaceContainer const &faces = mesh.faces();
   KHalfEdgeMesh::VertexContainer const &vertices = mesh.vertices();
   size_t verticesSize = sizeof(KVertex) * vertices.size();
@@ -210,4 +213,16 @@ bool OpenGLMesh::isCreated() const
 {
   P(const OpenGLMeshPrivate);
   return p.m_indexBuffer.isCreated() && p.m_vertexBuffer.isCreated() && p.m_vertexArrayObject.isCreated();
+}
+
+int OpenGLMesh::objectId() const
+{
+  P(const OpenGLMeshPrivate);
+  return p.m_vertexArrayObject.objectId();
+}
+
+const KAabbBoundingVolume &OpenGLMesh::aabb() const
+{
+  P(const OpenGLMeshPrivate);
+  return p.m_aabb;
 }

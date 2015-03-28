@@ -18,6 +18,7 @@
 #include <ShadowedLightAccumulationPass>
 #include <MotionBlurPass>
 #include <ViewportPresentationPass>
+#include <DebugGBufferPass>
 
 // Scenes
 #include <SampleScene>
@@ -52,18 +53,6 @@ public:
  ******************************************************************************/
 void MainWidgetPrivate::initializeGL()
 {
-  // Set Uniform Buffers
-  OpenGLUniformManager::setUniformBufferIndex("CurrentRenderBlock"    , 1);
-  OpenGLUniformManager::setUniformBufferIndex("PreviousRenderBlock"   , 2);
-  OpenGLUniformManager::setUniformBufferIndex("LightBufferProperties" , 3);
-
-  // Set Texture Samplers
-  OpenGLUniformManager::setTextureSampler("depthTexture"      , OpenGLTexture::numTextureUnits() - 1);
-  OpenGLUniformManager::setTextureSampler("geometryTexture"   , OpenGLTexture::numTextureUnits() - 2);
-  OpenGLUniformManager::setTextureSampler("materialTexture"   , OpenGLTexture::numTextureUnits() - 3);
-  OpenGLUniformManager::setTextureSampler("surfaceTexture"    , OpenGLTexture::numTextureUnits() - 4);
-  OpenGLUniformManager::setTextureSampler("lightbufferTexture", OpenGLTexture::numTextureUnits() - 5);
-
   // Global Setup (Rarely Changed)
   GL::glEnable(GL_CULL_FACE);
   GL::glEnable(GL_DEPTH_TEST);
@@ -75,9 +64,10 @@ void MainWidgetPrivate::initializeGL()
   m_renderer.bind();
   m_renderer.addPass<GBufferPass>();                      // => Nothing (Constructs Globals)
   m_renderer.addPass<PreparePresentationPass>();          // => RenderBuffer
+  //m_renderer.addPass<DebugGBufferPass>();
   m_renderer.addPass<LightAccumulationPass>();            // => RenderBuffer
-  m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
-  m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
+  //m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
+  //m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
   m_renderer.addPass<ViewportPresentationPass>();         // => Nothing (Displays RenderBuffer)
 }
 

@@ -4,22 +4,98 @@
 #include <KMacros>
 #include <OpenGLMeshManager>
 #include <OpenGLInstance>
-#include <OpenGLInstanceGroup>
 #include <OpenGLMesh>
 #include <string>
+#include <algorithm>
+#include <KFrustum>
+#include <OpenGLViewport>
+#include <OpenGLRenderBlock>
+#include <OpenGLMaterial>
 
-struct OpenGLInstanceGroupPair
+struct OpenGLInstancePartitionWithinView : public std::unary_function<bool, OpenGLInstance*>
 {
-  std::string meshFile;
-  OpenGLInstanceGroup group;
+  OpenGLInstancePartitionWithinView(const OpenGLViewport &view) :
+    m_frustum(view.frustum())
+  {
+    // Intentionally Empty
+  }
+  inline bool operator()(OpenGLInstance *instance) const
+  {
+    return m_frustum.intersects(instance->aabb());
+  }
+private:
+  KFrustum m_frustum;
+};
+
+struct OpenGLInstanceSortByMeshMaterial : public std::binary_function<bool, OpenGLInstance*, OpenGLInstance*>
+{
+  inline bool operator()(OpenGLInstance *lhs, OpenGLInstance *rhs) const
+  {
+    // Primary Sort Condition
+    if (lhs->mesh().objectId() < rhs->mesh().objectId()) return true;
+    if (lhs->mesh().objectId() > rhs->mesh().objectId()) return false;
+
+    // Secondary Sort Condition
+    if (lhs->material().objectId() < rhs->material().objectId()) return true;
+    if (lhs->material().objectId() > rhs->material().objectId()) return false;
+
+    // Completely equal
+    return false;
+  }
 };
 
 class OpenGLInstanceManagerPrivate
 {
 public:
-  std::vector<OpenGLInstanceGroupPair*> m_groups;
-  std::vector<OpenGLInstance*> m_instances;
+  typedef std::vector<OpenGLInstance*> InstanceContainer;
+  typedef InstanceContainer::iterator InstanceIterator;
+  InstanceContainer m_instances;
+  InstanceIterator m_begin, m_end;
+  void commit(const OpenGLViewport &view);
+  void render() const;
 };
+
+void OpenGLInstanceManagerPrivate::commit(const OpenGLViewport &view)
+{
+  m_begin = m_instances.begin();
+  m_end = m_instances.end();
+  m_end = std::partition(m_begin, m_end, OpenGLInstancePartitionWithinView(view));
+  std::sort(m_begin, m_end, OpenGLInstanceSortByMeshMaterial());
+
+  InstanceIterator it = m_begin;
+  while (it != m_end)
+  {
+    OpenGLInstance *instance = *it;
+    instance->commit(view);
+    instance->material().commit();
+    ++it;
+  }
+}
+
+void OpenGLInstanceManagerPrivate::render() const
+{
+  OpenGLInstance *instance;
+  InstanceIterator begin = m_begin;
+  int currMat  = 0;
+  int currMesh = 0;
+  while (begin != m_end)
+  {
+    instance = *begin;
+    if (currMesh != instance->mesh().objectId())
+    {
+      instance->mesh().bind();
+      currMesh = instance->mesh().objectId();
+    }
+    if (currMat != instance->material().objectId())
+    {
+      instance->material().bind();
+      currMat = instance->material().objectId();
+    }
+    instance->bind();
+    instance->mesh().draw();
+    ++begin;
+  }
+}
 
 OpenGLInstanceManager::OpenGLInstanceManager() :
   m_private(new OpenGLInstanceManagerPrivate)
@@ -40,73 +116,13 @@ void OpenGLInstanceManager::create()
 void OpenGLInstanceManager::commit(const OpenGLViewport &view)
 {
   P(OpenGLInstanceManagerPrivate);
-
-  // Clear all drawing instances
-  for (OpenGLInstanceGroupPair *pair : p.m_groups)
-  {
-    pair->group.clear();
-  }
-
-  // Aggregate all drawing instances
-  for (OpenGLInstance *instance : p.m_instances)
-  {
-
-    // Ignore instances with no mesh set
-    if (instance->mesh().empty()) continue;
-
-    // Search for already added groups
-    for (OpenGLInstanceGroupPair *pair : p.m_groups)
-    {
-      if (pair->meshFile == instance->mesh())
-      {
-        pair->group.addInstance(instance);
-        goto NextInstance;
-      }
-    }
-
-    // Add the new instance group
-    {
-      OpenGLInstanceGroupPair *pair = new OpenGLInstanceGroupPair;
-      const OpenGLMesh &mesh = OpenGLMeshManager::mesh(instance->mesh());
-      if (mesh.isCreated())
-      {
-        pair->meshFile = instance->mesh();
-        pair->group.create();
-        pair->group.setMesh(mesh);
-        pair->group.addInstance(instance);
-        p.m_groups.push_back(pair);
-      }
-      else
-      {
-        qFatal("Attempted to activate mesh which has not been created!");
-      }
-    }
-
-    // Continue since the instance was already found
-    NextInstance:
-    continue;
-  }
-
-  // Make sure all meshes are up-to-date
-  for (OpenGLInstanceGroupPair *pair : p.m_groups)
-  {
-    pair->group.setMesh(OpenGLMeshManager::mesh(pair->meshFile));
-  }
-
-  // Update all GPU data
-  for (OpenGLInstanceGroupPair *pair : p.m_groups)
-  {
-    pair->group.commit(view);
-  }
+  p.commit(view);
 }
 
 void OpenGLInstanceManager::render() const
 {
   P(const OpenGLInstanceManagerPrivate);
-  for (OpenGLInstanceGroupPair *pair : p.m_groups)
-  {
-    pair->group.draw();
-  }
+  p.render();
 }
 
 OpenGLInstance *OpenGLInstanceManager::createInstance()

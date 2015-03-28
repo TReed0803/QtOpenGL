@@ -149,12 +149,12 @@ void SampleScenePrivate::loadObj(const KString &fileName)
           (void)depth;
           return numTriangles < 300;
         };
-      buildMethod(m_staticGeometry[0], halfEdgeMesh, KStaticGeometry::BottomUpMethod, depthPred);
-      buildMethod(m_staticGeometry[1], halfEdgeMesh, KStaticGeometry::BottomUpMethod, trianglePred);
-      buildMethod(m_staticGeometry[2], halfEdgeMesh, KStaticGeometry::TopDownMethod, depthPred);
-      buildMethod(m_staticGeometry[3], halfEdgeMesh, KStaticGeometry::TopDownMethod, trianglePred);
-      buildMethod(m_octree           , halfEdgeMesh, KAdaptiveOctree::TopDownMethod, trianglePred);
-      buildMethod(m_bspTree          , halfEdgeMesh, KBspTree::TopDownMethod, trianglePred);
+      //buildMethod(m_staticGeometry[0], halfEdgeMesh, KStaticGeometry::BottomUpMethod, depthPred);
+      //buildMethod(m_staticGeometry[1], halfEdgeMesh, KStaticGeometry::BottomUpMethod, trianglePred);
+      //buildMethod(m_staticGeometry[2], halfEdgeMesh, KStaticGeometry::TopDownMethod, depthPred);
+      //buildMethod(m_staticGeometry[3], halfEdgeMesh, KStaticGeometry::TopDownMethod, trianglePred);
+      //buildMethod(m_octree           , halfEdgeMesh, KAdaptiveOctree::TopDownMethod, trianglePred);
+      //buildMethod(m_bspTree          , halfEdgeMesh, KBspTree::TopDownMethod, trianglePred);
       ms = timer.elapsed();
       kDebug() << "BV Hierarchy Gen. (sec)      :" << float(ms) / 1e3f;
     }
@@ -166,8 +166,10 @@ void SampleScenePrivate::loadObj(const KString &fileName)
     kDebug() << "Polygons/Frame :" << halfEdgeMesh.numFaces() * m_instances.size();
   }
 
-  // Set all instances to have the same mesh
-  OpenGLMeshManager::setMesh("SharedMesh", openGLMesh);
+  for (OpenGLInstance *instance : m_instances)
+  {
+    instance->setMesh(openGLMesh);
+  }
 }
 
 template <typename T>
@@ -209,7 +211,7 @@ void SampleScene::start()
   p.m_viewport.activate();
 
   // Initialize the Direction Light Group
-  for (int i = 0; i < 0; ++i)
+  for (int i = 0; i < 1; ++i)
   {
     OpenGLDirectionLight *light = createDirectionLight();
     light->setDiffuse(0.1f, 0.1f, 0.1f);
@@ -217,14 +219,14 @@ void SampleScene::start()
   }
 
   // Initialize the Point Light Group
-  for (int i = 0; i < 10; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     OpenGLPointLight *light = createPointLight();
     light->setRadius(25.0f);
   }
 
   // Initialize the Spot Light Group
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     OpenGLSpotLight *light = createSpotLight();
     light->setAttenuation(1.0f, 0.01f, 0.0f);
@@ -245,37 +247,42 @@ void SampleScene::start()
 
   // Create the floor material
   OpenGLMaterial floorMaterial;
+  floorMaterial.create();
   floorMaterial.setDiffuse(0.0f, 0.0f, 1.0f);
-  floorMaterial.setSpecular(0.25f, 0.25f, 0.25f, 64.0f);
+  floorMaterial.setFresnel(0.04f);
+  floorMaterial.setRoughness(1.0f);
 
   // Create the instance material
   OpenGLMaterial material;
+  material.create();
   material.setDiffuse(0.0f, 1.0f, 0.0f);
-  material.setSpecular(1.0f, 1.0f, 1.0f, 255.0f);
+  material.setFresnel(1.0f, 0.782f, 0.344f);
+  material.setRoughness(0.266f);
 
   // Note: Currently there is no Material System.
   //       All material properties are per-instance.
   OpenGLInstance *floor = createInstance();
-  floor->setMesh("Floor");
+  floor->setMesh(floorMeshGL);
   floor->setMaterial(floorMaterial);
   floor->transform().setScale(1000.0f);
   floor->transform().setTranslation(0.0f, -1.0f, 0.0f);
 
-  // Create Instance Data
-  OpenGLInstance * instance;
-  static const int total = 4;
-  static const float arcLength = Karma::TwoPi / float(total);
-  for (int i = 0; i < total; ++i)
+  // Create instance data
+  for (int i = 1; i < 11; ++i)
   {
-    //const float radius = 2.0f;
-    //const float radians = i * arcLength;
-    instance = createInstance();
-    instance->setMesh("SharedMesh");
-    instance->setMaterial(material);
-    static const float radius = 10.0f;
-    float rads = float(i * Karma::Pi) / 2;
-    instance->currentTransform().setTranslation(cos(rads) * radius, 0.0f, sin(rads) * radius);
-    p.m_instances.push_back(instance);
+    for (int j = 1; j < 11; ++j)
+    {
+      static const float k = 3.0f;
+      OpenGLMaterial material;
+      material.create();
+      material.setDiffuse(1.0f, 0.0f, 0.0f);
+      material.setFresnel(float(i) / 10);
+      material.setRoughness(float(j) / 10);
+      OpenGLInstance *instance = createInstance();
+      instance->setMaterial(material);
+      instance->currentTransform().setTranslation((-5.0f + i) * k, 0.0f, (-5.0f + j) * k);
+      p.m_instances.push_back(instance);
+    }
   }
 
   // Load the SharedMesh
@@ -376,53 +383,39 @@ void SampleScene::update(KUpdateEvent *event)
     }
   }
 
-  static int min = 0;
-  static int max = std::numeric_limits<int>::max();
-  if (!KInputManager::keyPressed(Qt::Key_Shift))
+  if (!KInputManager::buttonPressed(Qt::RightButton))
   {
-    if (KInputManager::keyTriggered(Qt::Key_Left))
+    int amount = 1;
+    if (KInputManager::keyPressed(Qt::Key_Shift))
     {
-      --min;
+      amount = -1;
     }
-    if (KInputManager::keyTriggered(Qt::Key_Right))
-    {
-      ++min;
-    }
-  }
-  else
-  {
-    if (KInputManager::keyTriggered(Qt::Key_Left))
-    {
-      --max;
-    }
-    if (KInputManager::keyTriggered(Qt::Key_Right))
-    {
-      ++max;
-    }
-  }
-  min = Karma::clamp(min, 0, std::max(p.m_octree.depth(), p.m_bspTree.depth()));
-  max = Karma::clamp(max, min, std::max(p.m_octree.depth(), p.m_bspTree.depth()));
-  Karma::setTitle(KString("Min: %1 Max: %2").arg(min).arg(max));
 
-  static bool octreeDraw = false;
-  static bool bspTreeDraw = false;
-  if (KInputManager::keyTriggered(Qt::Key_V))
-  {
-    octreeDraw = !octreeDraw;
-  }
-  if (KInputManager::keyTriggered(Qt::Key_B))
-  {
-    bspTreeDraw = !bspTreeDraw;
+    if (KInputManager::keyTriggered(Qt::Key_F))
+    {
+      OpenGLAbstractLightGroup::FFactor() = (OpenGLAbstractLightGroup::FFactor() + amount) % FresnelCount;
+    }
+
+    if (KInputManager::keyTriggered(Qt::Key_G))
+    {
+      OpenGLAbstractLightGroup::GFactor() = (OpenGLAbstractLightGroup::GFactor() + amount) % GeometryCount;
+    }
+
+    if (KInputManager::keyTriggered(Qt::Key_D))
+    {
+      OpenGLAbstractLightGroup::DFactor() = (OpenGLAbstractLightGroup::DFactor() + amount) % DistributionCount;
+    }
+
+    if (OpenGLAbstractLightGroup::FFactor() < 0) OpenGLAbstractLightGroup::FFactor() = FresnelCount - 1;
+    if (OpenGLAbstractLightGroup::GFactor() < 0) OpenGLAbstractLightGroup::GFactor() = GeometryCount - 1;
+    if (OpenGLAbstractLightGroup::DFactor() < 0) OpenGLAbstractLightGroup::DFactor() = DistributionCount - 1;
   }
 
-  if (octreeDraw)
-  {
-    p.m_octree.debugDraw(Karma::clamp(min, 0, p.m_octree.depth()), Karma::clamp(max, min, p.m_octree.depth()));
-  }
-  if (bspTreeDraw)
-  {
-    p.m_bspTree.debugDraw(Karma::clamp(min, 0, p.m_bspTree.depth()), Karma::clamp(max, min, p.m_bspTree.depth()));
-  }
+  Karma::setTitle(
+    KString((FToCStr(OpenGLAbstractLightGroup::FFactor()) + "|" +
+    GToCStr(OpenGLAbstractLightGroup::GFactor()) + "|" +
+    DToCStr(OpenGLAbstractLightGroup::DFactor())).c_str())
+  );
 }
 
 void SampleScene::end()
