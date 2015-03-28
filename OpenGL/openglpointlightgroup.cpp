@@ -8,24 +8,11 @@
 
 bool OpenGLPointLightGroup::create()
 {
-  // Create Regular Shader (s)
-  for (int f = 0; f < FresnelCount; ++f)
-  {
-    std::string fdefines = "#define F_FACTOR " + FToCStr(f) + '\n';
-    for (int g = 0; g < GeometryCount; ++g)
-    {
-      std::string gdefines = fdefines +"#define G_FACTOR " + GToCStr(g) + '\n';
-      for (int d = 0; d < DistributionCount; ++d)
-      {
-        std::string defines = gdefines + "#define D_FACTOR " + DToCStr(d) + '\n';
-        m_regularLight[f][g][d] = new OpenGLShaderProgram();
-        m_regularLight[f][g][d]->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/pointLight.vert");
-        m_regularLight[f][g][d]->addShaderDefines(defines.c_str());
-        m_regularLight[f][g][d]->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/pointLight.frag");
-        m_regularLight[f][g][d]->link();
-      }
-    }
-  }
+  // Create Regular Shader
+  m_regularLight = new OpenGLShaderProgram();
+  m_regularLight->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/lighting/pointLight.vert");
+  m_regularLight->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/lighting/pointLight.frag");
+  m_regularLight->link();
 
   // Create Shadowed Shader
   m_shadowCastingLight = new OpenGLShaderProgram();

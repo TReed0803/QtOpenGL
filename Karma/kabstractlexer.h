@@ -77,7 +77,8 @@ private:
   case '\t':\
   case '\v':\
   case '\f':\
-  case '\r'
+  case '\r':\
+  case '\0'
 
 #define NEWLINE \
   '\n':\

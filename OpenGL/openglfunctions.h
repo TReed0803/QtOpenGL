@@ -1480,6 +1480,45 @@ public:
     GL::getInstance()->glVertexBindingDivisor (bindingindex, divisor);
   }
 
+#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
+
+  static inline void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint *params)
+  {
+      GL::getInstance()->glGetUniformSubroutineuiv(shadertype, location, params);
+  }
+
+  static inline void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint *indices)
+  {
+      GL::getInstance()->glUniformSubroutinesuiv(shadertype, count, indices);
+  }
+
+  static inline void glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name)
+  {
+      GL::getInstance()->glGetActiveSubroutineName(program, shadertype, index, bufsize, length, name);
+  }
+
+  static inline void glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name)
+  {
+      GL::getInstance()->glGetActiveSubroutineUniformName(program, shadertype, index, bufsize, length, name);
+  }
+
+  static inline void glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint *values)
+  {
+      GL::getInstance()->glGetActiveSubroutineUniformiv(program, shadertype, index, pname, values);
+  }
+
+  static inline GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar *name)
+  {
+      return GL::getInstance()->glGetSubroutineIndex(program, shadertype, name);
+  }
+
+  static inline GLint glGetSubroutineUniformLocation(GLuint program, GLenum shadertype, const GLchar *name)
+  {
+      return GL::getInstance()->glGetSubroutineUniformLocation(program, shadertype, name);
+  }
+
+#endif
+
 };
 
 #endif // OPENGLFUNCTIONS_H

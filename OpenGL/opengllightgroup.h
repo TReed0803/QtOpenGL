@@ -155,7 +155,25 @@ void OpenGLLightGroup<T, D>::draw()
   m_mesh.bind();
 
   // Batch render regular lights
-  m_regularLight[FFactor()][GFactor()][DFactor()]->bind();
+  m_regularLight->bind();
+
+#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
+  std::string fName = "s" + FToCStr(FFactor());
+  std::string gName = "s" + GToCStr(GFactor());
+  std::string dName = "s" + DToCStr(DFactor());
+  unsigned fIndex = GL::glGetSubroutineIndex(m_regularLight->programId(), GL_FRAGMENT_SHADER, fName.c_str());
+  unsigned gIndex = GL::glGetSubroutineIndex(m_regularLight->programId(), GL_FRAGMENT_SHADER, gName.c_str());
+  unsigned dIndex = GL::glGetSubroutineIndex(m_regularLight->programId(), GL_FRAGMENT_SHADER, dName.c_str());
+  if (m_uFresnel != -1)
+  {
+    unsigned locations[3];
+    locations[m_uFresnel] = fIndex;
+    locations[m_uGeometry] = gIndex;
+    locations[m_uDistribution] = dIndex;
+    GL::glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 3, locations);
+  }
+#endif
+
   m_mesh.drawInstanced(0, m_numRegularLights);
 
   m_mesh.release();

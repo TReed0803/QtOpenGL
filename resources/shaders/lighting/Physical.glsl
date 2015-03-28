@@ -7,32 +7,37 @@
  #ifndef PHYSICAL_GLSL
  #define PHYSICAL_GLSL
 
- #include <Math.glsl>
+#include <Math.glsl>
+
+float roughness2()
+{
+  return pow(roughness(), 2.0);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // F: Fresnel Factors
-// Notes: Kspec = F0(0 degrees)
+// Notes: fresnel() = F0(0 degrees)
 //   The Fresnel is the amount
 ////////////////////////////////////////////////////////////////////////////////
-vec3 FNone(vec3 Kspec, vec3 lightDir, vec3 halfDir)
+vec3 FNone(vec3 lightDir, vec3 halfDir)
 {
-  return Kspec;
+  return fresnel();
 }
 
-vec3 FSchlick2(vec3 Kspec, vec3 lightDir, vec3 halfDir)
+vec3 FSchlick2(vec3 lightDir, vec3 halfDir)
 {
-  return (vec3(1.0) - Kspec) * pow(1.0 - dot(lightDir, halfDir), 5.0);
+  return (vec3(1.0) - fresnel()) * pow(1.0 - dot(lightDir, halfDir), 5.0);
 }
 
-vec3 FSchlick(vec3 Kspec, vec3 lightDir, vec3 halfDir)
+vec3 FSchlick(vec3 lightDir, vec3 halfDir)
 {
-  return Kspec + FSchlick2(Kspec, lightDir, halfDir);
+  return fresnel() + FSchlick2(lightDir, halfDir);
 }
 
-vec3 FCookTorrance(vec3 Kspec, vec3 lightDir, vec3 halfDir)
+vec3 FCookTorrance(vec3 lightDir, vec3 halfDir)
 {
   // Preparation
-  vec3 n = (1.0 + sqrt(Kspec)) / (1.0 - sqrt(Kspec));
+  vec3 n = (1.0 + sqrt(fresnel())) / (1.0 - sqrt(fresnel()));
   vec3 c = vec3(max(dot(lightDir, halfDir), 0.0));
   vec3 g = sqrt(n * n + c * c - vec3(1.0));
 
@@ -137,25 +142,25 @@ float GSmithSchlickBeckmann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
 // D: Microfacet Normal Distribution Functions (NDF)
 // Notes: Krough = Roughness parameter
 ////////////////////////////////////////////////////////////////////////////////
-float DPhong(float Krough, vec3 halfDir)
+float DPhong(vec3 halfDir)
 {
-  float factor0 = (Krough + 2.0) / (2.0 * M_PI);
-  float factor1 = pow(dot(normal(), halfDir), Krough);
+  float factor0 = (roughness2() + 2.0) / (2.0 * M_PI);
+  float factor1 = pow(dot(normal(), halfDir), roughness2());
 
   return factor0 * factor1;
 }
 
-float DBlinnPhong(float Krough, vec3 halfDir)
+float DBlinnPhong(vec3 halfDir)
 {
-  float Krough2 = Krough * Krough;
+  float Krough2 = roughness2() * roughness2();
   float exponent = (2.0 / Krough2) - 2.0;
 
   return pow(dot(normal(), halfDir), exponent) / (M_PI * Krough2);
 }
 
-float DBeckmann(float Krough, vec3 halfDir)
+float DBeckmann(vec3 halfDir)
 {
-  float Krough2 = Krough * Krough;
+  float Krough2 = roughness2() * roughness2();
   float nDotH = max(dot(normal(), halfDir),0.0);
   float nDotH2 = nDotH * nDotH;
 
@@ -165,19 +170,131 @@ float DBeckmann(float Krough, vec3 halfDir)
   return factor0 * factor1;
 }
 
-float DGgx(float Krough, vec3 halfDir)
+float DGgx(vec3 halfDir)
 {
-  float Krough2 = Krough * Krough;
+  float Krough2 = roughness2() * roughness2();
   float nDotH = max(dot(normal(), halfDir), 0.0);
   float nDotH2= nDotH * nDotH;
 
   return Krough2 / (M_PI * pow(nDotH2 * (Krough2 - 1.0) + 1.0, 2.0));
 }
 
-float DGgxAnisotropic(float Krough, vec3 halfDir)
+float DGgxAnisotropic(vec3 halfDir)
 {
   return 0.0; // Not Implemented
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Subroutines
+// Note: This block of code should be commented out on GLES 3.1.
+////////////////////////////////////////////////////////////////////////////////
+#ifdef   GL_ES
+
+// Embedded System GL does not support subroutines
+# define F_FACTOR FSchlick
+# define G_FACTOR GSmithSchlickBeckmann
+# define D_FACTOR DGgx
+
+#else // GL_ES
+
+// Declaration
+subroutine vec3 FresnelSubroutine(vec3 lightDir, vec3 halfDir);
+subroutine float GeometrySubroutine(vec3 lightDir, vec3 viewDir, vec3 halfDir);
+subroutine float DistributionSubroutine(vec3 halfDir);
+subroutine uniform FresnelSubroutine uFresnel;
+subroutine uniform GeometrySubroutine uGeometry;
+subroutine uniform DistributionSubroutine uDistribution;
+#define F_FACTOR uFresnel
+#define G_FACTOR uGeometry
+#define D_FACTOR uDistribution
+
+// Fresnel Definitions
+subroutine(FresnelSubroutine)
+vec3 sFNone(vec3 lightDir, vec3 halfDir)
+{
+  return FNone(lightDir, halfDir);
+}
+subroutine(FresnelSubroutine)
+vec3 sFSchlick2(vec3 lightDir, vec3 halfDir)
+{
+  return FSchlick2(lightDir, halfDir);
+}
+subroutine(FresnelSubroutine)
+vec3 sFSchlick(vec3 lightDir, vec3 halfDir)
+{
+  return FSchlick(lightDir, halfDir);
+}
+subroutine(FresnelSubroutine)
+vec3 sFCookTorrance(vec3 lightDir, vec3 halfDir)
+{
+  return FCookTorrance(lightDir, halfDir);
+}
+
+// Geometry Definitions
+subroutine(GeometrySubroutine)
+float sGImplicit(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+{
+  return GImplicit(lightDir, viewDir, halfDir);
+}
+subroutine(GeometrySubroutine)
+float sGNeumann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+{
+  return GNeumann(lightDir, viewDir, halfDir);
+}
+subroutine(GeometrySubroutine)
+float sGCookTorrance(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+{
+  return GCookTorrance(lightDir, viewDir, halfDir);
+}
+subroutine(GeometrySubroutine)
+float sGKelemen(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+{
+  return GKelemen(lightDir, viewDir, halfDir);
+}
+subroutine(GeometrySubroutine)
+float sGSmithBeckmann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+{
+  return GSmithBeckmann(lightDir, viewDir, halfDir);
+}
+subroutine(GeometrySubroutine)
+float sGSmithGgx(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+{
+  return GSmithGgx(lightDir, viewDir, halfDir);
+}
+subroutine(GeometrySubroutine)
+float sGSmithSchlickBeckmann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+{
+  return GSmithSchlickBeckmann(lightDir, viewDir, halfDir);
+}
+
+// Distribution Definitions
+subroutine(DistributionSubroutine)
+float sDPhong(vec3 halfDir)
+{
+  return DPhong(halfDir);
+}
+subroutine(DistributionSubroutine)
+float sDBlinnPhong(vec3 halfDir)
+{
+  return DBlinnPhong(halfDir);
+}
+subroutine(DistributionSubroutine)
+float sDBeckmann(vec3 halfDir)
+{
+  return DBeckmann(halfDir);
+}
+subroutine(DistributionSubroutine)
+float sDGgx(vec3 halfDir)
+{
+  return DGgx(halfDir);
+}
+subroutine(DistributionSubroutine)
+float sDGgxAnisotropic(vec3 halfDir)
+{
+  return DGgxAnisotropic(halfDir);
+}
+
+#endif // GL_ES
 
 ////////////////////////////////////////////////////////////////////////////////
 // Selected BRDF:
@@ -186,7 +303,7 @@ float DGgxAnisotropic(float Krough, vec3 halfDir)
 ////////////////////////////////////////////////////////////////////////////////
 vec3 F(vec3 lightDir, vec3 halfDir)
 {
-  return F_FACTOR(fresnel(), lightDir, halfDir);
+  return F_FACTOR(lightDir, halfDir);
 }
 
 float G(vec3 lightDir, vec3 viewDir, vec3 halfDir)
@@ -196,13 +313,20 @@ float G(vec3 lightDir, vec3 viewDir, vec3 halfDir)
 
 float D(vec3 halfDir)
 {
-  return D_FACTOR(pow(roughness(), 2.0), halfDir);
+  return D_FACTOR(halfDir);
 }
 
 vec3 Brdf(vec3 lightDir, vec3 viewDir, vec3 halfDir)
 {
   vec3 color = F(lightDir, halfDir) * G(lightDir, viewDir, halfDir) * D(halfDir);
   return color / (4 * max(dot(normal(), lightDir), 0.0) * max(dot(normal(), viewDir), 0.0));
+}
+
+vec3 L(vec3 lightIntensity, vec3 lightDir, vec3 viewDir)
+{
+  vec3 halfDir = normalize(lightDir + viewDir);
+  vec3 color = diffuse() / M_PI + Brdf(lightDir, viewDir, halfDir);
+  return color * lightIntensity * max(dot(normal(), lightDir), 0.0);
 }
 
 #endif // PHYSICAL_GLSL

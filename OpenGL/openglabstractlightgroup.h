@@ -110,10 +110,11 @@ protected:
   OpenGLUniformBufferObject m_blurData;
   OpenGLTexture m_shadowTexture, m_blurTexture, m_shadowDepth;
   OpenGLFramebufferObject m_shadowMappingFbo;
-  OpenGLShaderProgram *m_regularLight[FresnelCount][GeometryCount][DistributionCount];
+  OpenGLShaderProgram *m_regularLight;
   OpenGLShaderProgram *m_shadowCastingLight;
   OpenGLShaderProgram *m_shadowMappingLight;
   OpenGLShaderProgram *m_blurProgram;
+  int m_uFresnel, m_uGeometry, m_uDistribution;
 };
 
 #endif // OPENGLABSTRACTLIGHTGROUP_H

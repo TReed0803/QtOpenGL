@@ -6,6 +6,15 @@
 
 bool OpenGLAbstractLightGroup::create()
 {
+  // Get the subroutine locations
+#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
+  m_regularLight->bind();
+  m_uFresnel = GL::glGetSubroutineUniformLocation(m_regularLight->programId(), GL_FRAGMENT_SHADER, "uFresnel");
+  m_uGeometry = GL::glGetSubroutineUniformLocation(m_regularLight->programId(), GL_FRAGMENT_SHADER, "uGeometry");
+  m_uDistribution = GL::glGetSubroutineUniformLocation(m_regularLight->programId(), GL_FRAGMENT_SHADER, "uDistribution");
+  m_regularLight->release();
+#endif
+
   // Create the shadow texture
   m_shadowTexture.create(OpenGLTexture::Texture2D);
   m_shadowTexture.bind();

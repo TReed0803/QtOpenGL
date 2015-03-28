@@ -219,7 +219,7 @@ void SampleScene::start()
   }
 
   // Initialize the Point Light Group
-  for (int i = 0; i < 0; ++i)
+  for (int i = 0; i < 5; ++i)
   {
     OpenGLPointLight *light = createPointLight();
     light->setRadius(25.0f);
@@ -252,13 +252,6 @@ void SampleScene::start()
   floorMaterial.setFresnel(0.04f);
   floorMaterial.setRoughness(1.0f);
 
-  // Create the instance material
-  OpenGLMaterial material;
-  material.create();
-  material.setDiffuse(0.0f, 1.0f, 0.0f);
-  material.setFresnel(1.0f, 0.782f, 0.344f);
-  material.setRoughness(0.266f);
-
   // Note: Currently there is no Material System.
   //       All material properties are per-instance.
   OpenGLInstance *floor = createInstance();
@@ -268,6 +261,7 @@ void SampleScene::start()
   floor->transform().setTranslation(0.0f, -1.0f, 0.0f);
 
   // Create instance data
+#ifdef MULTI_MESH
   for (int i = 1; i < 11; ++i)
   {
     for (int j = 1; j < 11; ++j)
@@ -284,6 +278,21 @@ void SampleScene::start()
       p.m_instances.push_back(instance);
     }
   }
+#else
+
+  // Create the instance material
+  OpenGLMaterial material;
+  material.create();
+  material.setDiffuse(1.0f, 0.0f, 0.0f);
+  material.setFresnel(0.6f);
+  material.setRoughness(0.266f);
+
+  // Create the instance
+  OpenGLInstance *instance = createInstance();
+  instance->setMaterial(material);
+  p.m_instances.push_back(instance);
+
+#endif
 
   // Load the SharedMesh
   p.loadObj(":/resources/objects/sphere.obj");

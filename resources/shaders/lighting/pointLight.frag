@@ -31,19 +31,12 @@ void main()
   highp float lightDist  = length(lightVec);
 
   // Construct a finite attenuation
-  highp vec3  lightDir   = lightVec / lightDist;
-  highp vec3  polynomial = vec3(1.0, lightDist, lightDist * lightDist);
+  highp vec3  lightDir    = lightVec / lightDist;
+  highp vec3  viewDir     = normalize(-viewPos);
+  highp vec3  polynomial  = vec3(1.0, lightDist, lightDist * lightDist);
   highp float attenuation = 1.0 / dot(polynomial,vLightAttenuation.xyz);
   attenuation *= saturate(1.0 - (lightDist / vLightAttenuation.w));
 
-  // Construct Half-Vector
-  highp vec3 viewDir = normalize(viewPos);
-  highp vec3 halfDir = normalize(lightDir + viewDir);
-
-  // Microfacet BRDF
-  vec3 color = F(lightDir, halfDir) * G(lightDir, viewDir, halfDir) * D(halfDir);
-  color /= (4 * dot(normal, lightDir) * dot(normal, viewDir));
-
-  // Commit final color
+  highp vec3 color = L(vLightDiffuse, lightDir, viewDir);
   fFragColor = vec4(attenuation * color, 1.0);
 }

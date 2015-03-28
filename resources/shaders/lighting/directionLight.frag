@@ -19,18 +19,7 @@ layout(location = 0) out highp vec4 fFragColor;
 
 void main()
 {
-  // GBuffer Access
-  highp vec3 viewPos  = viewPosition();
-  highp vec3 normal   = normal();
-  highp vec3 diffuse  = diffuse();
-  highp vec4 specular = specular();
-
-  // Light Calculations
-  highp vec3 lightDir = vLightDirection;
-  highp vec3 viewDir  = normalize(-viewPos);
-  highp vec3 halfDir  = normalize(vLightDirection + viewDir);
-  highp vec3 color    = diffuse / M_PI + Brdf(lightDir, viewDir, halfDir);
-
-  // Output final color
-  fFragColor = vec4(max(dot(normal, vLightDirection), 0.0) * color, 1.0);
+  highp vec3 viewDir  = normalize(-viewPosition());
+  highp vec3 color = L(vLightDiffuse, vLightDirection, viewDir);
+  fFragColor = vec4(color, 1.0);
 }

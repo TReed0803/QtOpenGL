@@ -67,7 +67,7 @@ void MainWidgetPrivate::initializeGL()
   //m_renderer.addPass<DebugGBufferPass>();
   m_renderer.addPass<LightAccumulationPass>();            // => RenderBuffer
   //m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
-  //m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
+  m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
   m_renderer.addPass<ViewportPresentationPass>();         // => Nothing (Displays RenderBuffer)
 }
 
