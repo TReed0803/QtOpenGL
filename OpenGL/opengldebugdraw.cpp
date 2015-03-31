@@ -13,6 +13,7 @@
 #include <OpenGLTexture>
 #include <OpenGLDynamicBuffer>
 #include <KAabbBoundingVolume>
+#include <OpenGLBindings>
 
 /*******************************************************************************
  * OpenGLAbstractDebugGroup
@@ -155,7 +156,7 @@ void OpenGLDebugTextureGroup::create(unsigned idx)
 
 void OpenGLDebugTextureGroup::draw(GLsizei offset)
 {
-  GL::glActiveTexture(GL_TEXTURE0);
+  GL::glActiveTexture(OpenGLTexture::beginTextureUnits() + K_TEXTURE_0);
   for (OpenGLTexture *texture : m_textures)
   {
     texture->bind();

@@ -49,7 +49,10 @@ SOURCES += \
     openglscene.cpp \
     openglrenderview.cpp \
     openglrenderpassqueue.cpp \
-    openglblurdata.cpp
+    openglblurdata.cpp \
+    openglenvironment.cpp \
+    opengltonemappingfunction.cpp \
+    openglhdrtexture.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -112,4 +115,7 @@ HEADERS += \
     openglblurdata.h \
     opengldynamicuniformbufferobject.h \
     openglmaterialdata.h \
-    openglbindings.h
+    openglbindings.h \
+    openglenvironment.h \
+    opengltonemappingfunction.h \
+    openglhdrtexture.h

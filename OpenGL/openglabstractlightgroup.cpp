@@ -108,18 +108,18 @@ void OpenGLAbstractLightGroup::setMesh(const char *filepath)
 
 int &OpenGLAbstractLightGroup::FFactor()
 {
-  static int f = 0;
+  static int f = FSchlick;
   return f;
 }
 
 int &OpenGLAbstractLightGroup::GFactor()
 {
-  static int g = 0;
+  static int g = GSmithSchlickBeckmann;
   return g;
 }
 
 int &OpenGLAbstractLightGroup::DFactor()
 {
-  static int d = 0;
+  static int d = DGgx;
   return d;
 }

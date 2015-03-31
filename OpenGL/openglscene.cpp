@@ -3,12 +3,14 @@
 #include <KMacros>
 #include <OpenGLInstanceManager>
 #include <OpenGLLightManager>
+#include <OpenGLEnvironment>
 
 class OpenGLScenePrivate
 {
 public:
   OpenGLInstanceManager m_instanceManager;
   OpenGLLightManager m_lightManager;
+  OpenGLEnvironment m_environment;
 };
 
 OpenGLScene::OpenGLScene() :
@@ -28,6 +30,7 @@ void OpenGLScene::start()
   P(OpenGLScenePrivate);
   p.m_instanceManager.create();
   p.m_lightManager.create();
+  p.m_environment.create();
 }
 
 void OpenGLScene::update(KUpdateEvent *event)
@@ -105,4 +108,10 @@ void OpenGLScene::commit(const OpenGLViewport &view)
   P(OpenGLScenePrivate);
   p.m_instanceManager.commit(view);
   p.m_lightManager.commit(view);
+}
+
+OpenGLEnvironment *OpenGLScene::environment()
+{
+  P(OpenGLScenePrivate);
+  return &p.m_environment;
 }

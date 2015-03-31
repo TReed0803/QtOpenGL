@@ -33,7 +33,10 @@ SOURCES += \
     kadaptiveoctree.cpp \
     kgeometrycloud.cpp \
     kbsptree.cpp \
-    kfrustum.cpp
+    kfrustum.cpp \
+    kimage.cpp \
+    kabstracthdrparser.cpp \
+    kbufferedbinaryfilereader.cpp
 
 HEADERS += \
     kcolor.h \
@@ -102,4 +105,7 @@ HEADERS += \
     kbsptree.h \
     kplane.h \
     kfrustum.h \
-    kvector4d.h
+    kvector4d.h \
+    kimage.h \
+    kabstracthdrparser.h \
+    kbufferedbinaryfilereader.h

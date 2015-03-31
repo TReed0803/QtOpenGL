@@ -19,6 +19,7 @@
 #include <MotionBlurPass>
 #include <ViewportPresentationPass>
 #include <DebugGBufferPass>
+#include <EnvironmentPass>
 
 // Scenes
 #include <SampleScene>
@@ -65,6 +66,7 @@ void MainWidgetPrivate::initializeGL()
   m_renderer.addPass<GBufferPass>();                      // => Nothing (Constructs Globals)
   m_renderer.addPass<PreparePresentationPass>();          // => RenderBuffer
   //m_renderer.addPass<DebugGBufferPass>();
+  m_renderer.addPass<EnvironmentPass>();
   m_renderer.addPass<LightAccumulationPass>();            // => RenderBuffer
   //m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
   m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer

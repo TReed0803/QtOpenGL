@@ -7,7 +7,6 @@ class OpenGLTexturePrivate
 {
 public:
   int m_references;
-  OpenGLFunctions m_functions;
   OpenGLTexture::Target m_target;
   GLuint m_textureId;
   KSize m_size;
@@ -19,13 +18,12 @@ public:
 OpenGLTexturePrivate::OpenGLTexturePrivate(OpenGLTexture::Target t) :
   m_references(1), m_target(t), m_textureId(0), m_size(1, 1), m_format(OpenGLInternalFormat::Rgba8)
 {
-  m_functions.initializeOpenGLFunctions();
-  m_functions.glGenTextures(1, &m_textureId);
+  GL::glGenTextures(1, &m_textureId);
 }
 
 OpenGLTexturePrivate::~OpenGLTexturePrivate()
 {
-  m_functions.glDeleteTextures(1, &m_textureId);
+  GL::glDeleteTextures(1, &m_textureId);
 }
 
 
@@ -49,13 +47,13 @@ void OpenGLTexture::create(OpenGLTexture::Target type)
 void OpenGLTexture::bind()
 {
   P(OpenGLTexturePrivate);
-  p.m_functions.glBindTexture(p.m_target, p.m_textureId);
+  GL::glBindTexture(p.m_target, p.m_textureId);
 }
 
 void OpenGLTexture::release()
 {
   P(OpenGLTexturePrivate);
-  p.m_functions.glBindTexture(p.m_target, 0);
+  GL::glBindTexture(p.m_target, 0);
 }
 
 void OpenGLTexture::setSwizzle(OpenGLTexture::SwizzleMode r, OpenGLTexture::SwizzleMode g, OpenGLTexture::SwizzleMode b, OpenGLTexture::SwizzleMode a)
@@ -68,13 +66,13 @@ void OpenGLTexture::setSwizzle(OpenGLTexture::SwizzleMode r, OpenGLTexture::Swiz
 void OpenGLTexture::setWrapMode(OpenGLTexture::Direction dir, OpenGLTexture::WrapMode mode)
 {
   P(OpenGLTexturePrivate);
-  p.m_functions.glTexParameteri(p.m_target, dir, mode);
+  GL::glTexParameteri(p.m_target, dir, mode);
 }
 
 void OpenGLTexture::setFilter(OpenGLTexture::FilterType filter, OpenGLTexture::FilterOperation op)
 {
   P(OpenGLTexturePrivate);
-  p.m_functions.glTexParameteri(p.m_target, filter, op);
+  GL::glTexParameteri(p.m_target, filter, op);
 }
 
 void OpenGLTexture::setSize(int width, int height)
@@ -109,11 +107,16 @@ void OpenGLTexture::setCompareFunction(OpenGLTexture::CompareFunction func)
 
 void OpenGLTexture::allocate()
 {
+  allocate(0);
+}
+
+void OpenGLTexture::allocate(void *data)
+{
   P(OpenGLTexturePrivate);
   switch (p.m_target)
   {
   case Texture2D:
-    p.m_functions.glTexImage2D(p.m_target, 0, static_cast<GLint>(p.m_format), p.m_size.width(), p.m_size.height(), 0, static_cast<GLenum>(GetFormat(p.m_format)), static_cast<GLenum>(GetType(p.m_format)), (GLvoid*)0);
+    GL::glTexImage2D(p.m_target, 0, static_cast<GLint>(p.m_format), p.m_size.width(), p.m_size.height(), 0, static_cast<GLenum>(GetFormat(p.m_format)), static_cast<GLenum>(GetType(p.m_format)), (GLvoid*)data);
     break;
   case Texture1D:
   case TextureRectangle:
@@ -125,7 +128,6 @@ void OpenGLTexture::allocate()
     qFatal("Unsupported Texture Type");
     break;
   }
-
 }
 
 int OpenGLTexture::textureId()

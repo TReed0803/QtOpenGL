@@ -13,5 +13,5 @@ uniform sampler2D textureData;
 
 void main()
 {
-  fColor = vec4(vec3(log(texture(textureData, vUv).r)/60.0), 1.0);
+  fColor = texture(textureData, vUv);
 }

@@ -90,6 +90,7 @@ public:
   void setCompareMode(CompareMode mode);
   void setCompareFunction(CompareFunction func);
   void allocate();
+  void allocate(void *data);
   int textureId();
   Target target() const;
 

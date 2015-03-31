@@ -91,3 +91,22 @@ KAbstractLexerBase::size_type KAbstractLexerBase::currLineCount() const
 {
   return m_private->m_currLineCount;
 }
+
+
+bool KAbstractLexerBase::readExpect(const char *str)
+{
+  while (*str)
+  {
+    if (nextChar() != *str)
+    {
+      return false;
+    }
+    ++str;
+  }
+  return true;
+}
+
+void KAbstractLexerBase::forceValidate()
+{
+  m_private->m_initialized = true;
+}

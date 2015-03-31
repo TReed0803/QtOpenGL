@@ -38,6 +38,9 @@
 #include <OpenGLPointLightGroup>
 #include <OpenGLContext>
 #include <OpenGLWidget>
+#include <OpenGLEnvironment>
+
+//#define MULTI_MESH
 
 class SampleScenePrivate
 {
@@ -211,7 +214,7 @@ void SampleScene::start()
   p.m_viewport.activate();
 
   // Initialize the Direction Light Group
-  for (int i = 0; i < 1; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     OpenGLDirectionLight *light = createDirectionLight();
     light->setDiffuse(0.1f, 0.1f, 0.1f);
@@ -219,7 +222,7 @@ void SampleScene::start()
   }
 
   // Initialize the Point Light Group
-  for (int i = 0; i < 5; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     OpenGLPointLight *light = createPointLight();
     light->setRadius(25.0f);
@@ -254,11 +257,13 @@ void SampleScene::start()
 
   // Note: Currently there is no Material System.
   //       All material properties are per-instance.
+  /*
   OpenGLInstance *floor = createInstance();
   floor->setMesh(floorMeshGL);
   floor->setMaterial(floorMaterial);
   floor->transform().setScale(1000.0f);
   floor->transform().setTranslation(0.0f, -1.0f, 0.0f);
+  */
 
   // Create instance data
 #ifdef MULTI_MESH
@@ -269,7 +274,7 @@ void SampleScene::start()
       static const float k = 3.0f;
       OpenGLMaterial material;
       material.create();
-      material.setDiffuse(1.0f, 0.0f, 0.0f);
+      material.setDiffuse(0.75f, 0.75f, 0.75f);
       material.setFresnel(float(i) / 10);
       material.setRoughness(float(j) / 10);
       OpenGLInstance *instance = createInstance();
@@ -283,9 +288,9 @@ void SampleScene::start()
   // Create the instance material
   OpenGLMaterial material;
   material.create();
-  material.setDiffuse(1.0f, 0.0f, 0.0f);
-  material.setFresnel(0.6f);
-  material.setRoughness(0.266f);
+  material.setDiffuse(1.0f, 1.0f, 1.0f);
+  material.setFresnel(0.04f);
+  material.setRoughness(0.4f);
 
   // Create the instance
   OpenGLInstance *instance = createInstance();
@@ -296,6 +301,19 @@ void SampleScene::start()
 
   // Load the SharedMesh
   p.loadObj(":/resources/objects/sphere.obj");
+
+  // Create the environment (for now, assume one global environment)
+  // Note: Implementation could theoretically involve multiple environment maps.
+  //       The current "active envrionment" for an object would be whichever environment
+  //       the object is mostly in. (Blending could be done, but this might be enough.)
+  // Warning: I could not create a resource file for the environment maps. They are too big. :(
+  //          This is obviously not ideal. I would rather distribute an application with the
+  //          environment maps. At the time, this must be hardcoded. (Will have to find a fix later.)
+  //          This means the code will only run on my machine unless you change the path.
+  OpenGLEnvironment *env = environment();
+  env->setToneMappingFunction(new OpenGLStandardToneMapping(1.0f, 1.0f));
+  env->setDirect("C:\\Users\\Trent\\Projects\\QtProjects\\QtOpenGL\\resources\\images\\hamarikyu_direct.hdr");
+  env->setIndirect("C:\\Users\\Trent\\Projects\\QtProjects\\QtOpenGL\\resources\\images\\hamarikyu_indirect.hdr");
 }
 
 void SampleScene::update(KUpdateEvent *event)
@@ -425,6 +443,8 @@ void SampleScene::update(KUpdateEvent *event)
     GToCStr(OpenGLAbstractLightGroup::GFactor()) + "|" +
     DToCStr(OpenGLAbstractLightGroup::DFactor())).c_str())
   );
+
+  //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0, 0.0, 1.0f, 1.0f), environment()->direct());
 }
 
 void SampleScene::end()

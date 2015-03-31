@@ -10,6 +10,7 @@ class OpenGLPointLightGroup;
 class OpenGLSpotLightGroup;
 class OpenGLDirectionLightGroup;
 class OpenGLViewport;
+class OpenGLEnvironment;
 #include <KUniquePointer>
 
 class OpenGLScenePrivate;
@@ -38,6 +39,9 @@ public:
   void renderLights();
   void renderShadowedLights();
   void commit(const OpenGLViewport &view);
+
+  // Scene stats
+  OpenGLEnvironment *environment();
 
 private:
   KUniquePointer<OpenGLScenePrivate> m_private;

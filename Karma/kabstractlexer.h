@@ -30,6 +30,8 @@ public:
   size_type currLineCount() const;
   char_type nextChar();
   void nextLine();
+  bool readExpect(char const *str);
+  void forceValidate();
 
 private:
   KAbstractLexerBasePrivate *m_private;
