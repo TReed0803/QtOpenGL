@@ -161,6 +161,7 @@ void OpenGLLightGroup<T, D>::draw()
   std::string fName = "s" + FToCStr(FFactor());
   std::string gName = "s" + GToCStr(GFactor());
   std::string dName = "s" + DToCStr(DFactor());
+  std::string sName = dName + "Sample";
   unsigned fIndex = GL::glGetSubroutineIndex(m_regularLight->programId(), GL_FRAGMENT_SHADER, fName.c_str());
   unsigned gIndex = GL::glGetSubroutineIndex(m_regularLight->programId(), GL_FRAGMENT_SHADER, gName.c_str());
   unsigned dIndex = GL::glGetSubroutineIndex(m_regularLight->programId(), GL_FRAGMENT_SHADER, dName.c_str());

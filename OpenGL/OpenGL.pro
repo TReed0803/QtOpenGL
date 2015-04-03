@@ -52,7 +52,8 @@ SOURCES += \
     openglblurdata.cpp \
     openglenvironment.cpp \
     opengltonemappingfunction.cpp \
-    openglhdrtexture.cpp
+    openglhdrtexture.cpp \
+    openglhammersleydata.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -118,4 +119,5 @@ HEADERS += \
     openglbindings.h \
     openglenvironment.h \
     opengltonemappingfunction.h \
-    openglhdrtexture.h
+    openglhdrtexture.h \
+    openglhammersleydata.h

@@ -1,6 +1,7 @@
 #ifndef OPENGLENVIRONMENT_H
 #define OPENGLENVIRONMENT_H OpenGLEnvironment
 
+class KSize;
 class OpenGLTexture;
 #include <OpenGLToneMappingFunction>
 
@@ -16,6 +17,7 @@ public:
   void setToneMappingFunction(OpenGLToneMappingFunction *fnc);
   OpenGLTexture &direct();
   OpenGLTexture &indirect();
+  KSize const &directSize() const;
 private:
   OpenGLEnvrionmentPrivate *m_private;
 };

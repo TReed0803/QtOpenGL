@@ -9,179 +9,212 @@
 
 #include <Math.glsl>
 
-float roughness2()
-{
-  return pow(roughness(), 2.0);
-}
+// Forward Declarations
+vec3 F(float NoL);
 
 ////////////////////////////////////////////////////////////////////////////////
 // F: Fresnel Factors
 // Notes: fresnel() = F0(0 degrees)
 //   The Fresnel is the amount
 ////////////////////////////////////////////////////////////////////////////////
-vec3 FNone(vec3 lightDir, vec3 halfDir)
+vec3 FNone(float NoL)
 {
   return fresnel();
 }
 
-vec3 FSchlick2(vec3 lightDir, vec3 halfDir)
+vec3 FSchlick(float NoL)
 {
-  return (vec3(1.0) - fresnel()) * pow(1.0 - dot(lightDir, halfDir), 5.0);
+  return fresnel() + (vec3(1.0) - fresnel()) * pow(1.0 - NoL, 5.0);
 }
 
-vec3 FSchlick(vec3 lightDir, vec3 halfDir)
-{
-  return fresnel() + FSchlick2(lightDir, halfDir);
-}
-
-vec3 FCookTorrance(vec3 lightDir, vec3 halfDir)
+vec3 FCookTorrance(float NoL)
 {
   // Preparation
-  vec3 n = (1.0 + sqrt(fresnel())) / (1.0 - sqrt(fresnel()));
-  vec3 c = vec3(max(dot(lightDir, halfDir), 0.0));
-  vec3 g = sqrt(n * n + c * c - vec3(1.0));
+  float c = NoL;
+  float n = (1.0 + sqrt(fresnel().x)) / (1.0 - sqrt(fresnel().x));
+  float g = sqrt(n * n - 1.0 + c * c);
 
   // Helpers
-  vec3 gMc = g - c;
-  vec3 gPc = g + c;
-  vec3 gMc1= gMc * c + 1.0;
-  vec3 gPc1= gPc * c - 1.0;
-
-  // Factors
-  vec3 factor0 = vec3(0.5);
-  vec3 factor1 = pow(gMc / gPc, vec3(2.0));
-  vec3 factor2 = 1.0 + pow(gPc1 / gMc1, vec3(2.0));
+  float gMc  = g - c;
+  float gPc  = g + c;
+  float gMc1 = gMc * c + 1.0;
+  float gPc1 = gPc * c - 1.0;
+  float factor0 = (gMc * gMc) / (gPc * gPc);
+  float factor1 = 1 + (gPc1 * gPc1) / (gMc1 * gMc1);
 
   // End Result
-  return  max(factor0 * factor1 * factor2, 1.0);
+  return vec3(0.5 * factor0 * factor1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // G: Geometry Occlusion
 // Notes:
 ////////////////////////////////////////////////////////////////////////////////
-float GImplicit(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float GImplicit(float NoL, float NoV, float NoH, float VoH)
 {
-  return max(dot(normal(), lightDir), 0.0) * max(dot(normal(), viewDir), 0.0);
+  return NoL * NoV;
 }
 
-float GNeumann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float GNeumann(float NoL, float NoV, float NoH, float VoH)
 {
-  float nDotL = dot(normal(), lightDir);
-  float nDotV = dot(normal(), viewDir);
-  return (nDotL * nDotV) / max(nDotL, nDotV);
+  return (NoL * NoV) / max(NoL, NoV);
 }
 
-float GCookTorrance(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float GCookTorrance(float NoL, float NoV, float NoH, float VoH)
 {
-  float nDotH = max(dot(normal(), halfDir),0.0);
-  float nDotL = max(dot(normal(), lightDir),0.0);
-  float nDotV = max(dot(normal(), viewDir),0.0);
-  float vDotH = max(dot(viewDir, halfDir),0.0);
-
-  float orig = (2 * nDotH) / vDotH;
-  float minT = nDotV * orig;
-  float maxT = nDotL * orig;
+  float orig = (2 * NoH) / VoH;
+  float minT = NoV * orig;
+  float maxT = NoL * orig;
 
   return min(1.0, min(minT, maxT));
 }
 
-float GKelemen(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float GKelemen(float NoL, float NoV, float NoH, float VoH)
 {
-  float nDotL = dot(normal(), lightDir);
-  float nDotV = dot(normal(), viewDir);
-  float vDotH = dot(viewDir, halfDir);
-
-  return (nDotL * nDotV) / pow(vDotH, 2.0);
+  return min(2.0 * (NoH * NoV) / VoH, 1.0);
 }
 
-float GSmithBeckmann_(vec3 viewDir)
+float GSmithBeckmann_(float NoV, float VoH)
 {
-  float nDotV = max(dot(normal(), viewDir), 0.0);
-  float c = nDotV / (roughness() * roughness() - nDotV * nDotV);
-  float final = (3.535 * c + 2.181 * c * c) / (1.0 + 2.276 * c + 2.577 * c * c);
+  float Krough2 = roughness() * roughness();
+  float c = 1.0 / (Krough2 * (NoV - 1.0));
+  float c2 = c * c;
+  float final = (3.535 * c + 2.181 * c2) / (1.0 + 2.276 * c + 2.577 * c2);
 
   // If c < 1.6, return 1.0, otherwise return 0.0
   float ifCheck = 1.0 - step(1.6, c);
   return (ifCheck * final) + (1.0 - ifCheck);
 }
 
-float GSmithBeckmann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float GSmithBeckmann(float NoL, float NoV, float NoH, float VoH)
 {
-  return GSmithBeckmann_(lightDir) * GSmithBeckmann_(viewDir);
+  return GSmithBeckmann_(NoL, VoH) * GSmithBeckmann_(NoV, VoH);
 }
 
-float GSmithGgx_(vec3 viewDir)
+float GSmithGgx_(float NoV)
 {
-  float nDotV = dot(normal(), viewDir);
-  float numerator = 2.0 * nDotV;
-  float roughness4 = pow(roughness(),4.0);
-  float denominator = nDotV + sqrt(roughness4 + (1.0 - roughness4) * nDotV * nDotV);
+  float numerator = 2.0 * NoV;
+  float NoV2 = NoV * NoV;
+  float Krough2 = roughness() * roughness();
+  float denominator = NoV + sqrt(NoV2 + Krough2 * (1.0 - NoV2));
 
   return numerator / denominator;
 }
 
-float GSmithGgx(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float GSmithGgx(float NoL, float NoV, float NoH, float VoH)
 {
-  return GSmithGgx_(lightDir) * GSmithGgx_(viewDir);
+  return GSmithGgx_(NoL) * GSmithGgx_(NoV);
 }
 
-float GSmithSchlickBeckmann_(vec3 viewDir)
+float GSmithSchlickBeckmann_(float NoV)
 {
-  float k = roughness() * roughness() * sqrt(2.0 / M_PI);
-  float nDotV = max(dot(normal(), viewDir), 0.0);
-  return nDotV / (nDotV * (1.0 - k) + k);
+  float k = roughness() * roughness() * sqrt(pi2);
+  return NoV / (NoV * (1.0 - k) + k);
 }
 
-float GSmithSchlickBeckmann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float GSmithSchlickBeckmann(float NoL, float NoV, float NoH, float VoH)
 {
-  return GSmithSchlickBeckmann_(lightDir) * GSmithSchlickBeckmann_(viewDir);
+  return GSmithSchlickBeckmann_(NoL) * GSmithSchlickBeckmann_(NoV);
+}
+
+float GSmith(float NoL, float NoV, float NoH, float VoH)
+{
+  float Krough2 = roughness() * roughness();
+  float k = sqrt((2.0 * Krough2) / pi);
+  return NoV / (NoV * (1.0 - k) + k);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // D: Microfacet Normal Distribution Functions (NDF)
 // Notes: Krough = Roughness parameter
 ////////////////////////////////////////////////////////////////////////////////
-float DPhong(vec3 halfDir)
+float DPhong(float NoH)
 {
-  float factor0 = (roughness2() + 2.0) / (2.0 * M_PI);
-  float factor1 = pow(dot(normal(), halfDir), roughness2());
-
-  return factor0 * factor1;
+  float Krough2 = roughness() * roughness();
+  float ap = (2.0 / Krough2) - 2.0;
+  return NoH * ((ap + 2.0) / pi2) * pow(NoH, ap);
 }
 
-float DBlinnPhong(vec3 halfDir)
+float DBeckmann(float NoH)
 {
-  float Krough2 = roughness2() * roughness2();
-  float exponent = (2.0 / Krough2) - 2.0;
-
-  return pow(dot(normal(), halfDir), exponent) / (M_PI * Krough2);
+  // Recall that tan2 + 1 = sec2
+  // And that sec = 1 / cos;
+  // Thusly, sec2 = 1 / cos2;
+  //
+  // tan2 = 1 / cos2 - 1
+  // Beckmann distribution w/ Ward modification.
+  float Krough2 = roughness() * roughness();
+  float NoH2 = NoH * NoH;
+  return exp((NoH2 - 1.0) / (NoH2 * Krough2)) / (pi * Krough2 * NoH * NoH2);
 }
 
-float DBeckmann(vec3 halfDir)
+float DGgx(float NoH)
 {
-  float Krough2 = roughness2() * roughness2();
-  float nDotH = max(dot(normal(), halfDir),0.0);
-  float nDotH2 = nDotH * nDotH;
-
-  float factor0 = 1.0 / (M_PI * Krough2 * nDotH2 * nDotH2);
-  float factor1 = exp((nDotH2 - 1.0) / (Krough2 * nDotH2));
-
-  return factor0 * factor1;
+  // Note: Generally sin2 + cos2 = 1
+  // Also: Dgtr = c / (a * cos2 + sin2)
+  // So...
+  float Krough2 = roughness() * roughness();
+  float NoH2 = NoH * NoH;
+  float denom = 1.0 + NoH2 * (Krough2 - 1.0);
+  return Krough2 / (pi * denom * denom);
 }
 
-float DGgx(vec3 halfDir)
+////////////////////////////////////////////////////////////////////////////////
+// DSample: NDF Sampling Functions
+// Notes:
+////////////////////////////////////////////////////////////////////////////////
+vec3 MakeSample(float Theta, float Phi)
 {
-  float Krough2 = roughness2() * roughness2();
-  float nDotH = max(dot(normal(), halfDir), 0.0);
-  float nDotH2= nDotH * nDotH;
+  Phi += randAngle();
+  float SineTheta = sin(Theta);
 
-  return Krough2 / (M_PI * pow(nDotH2 * (Krough2 - 1.0) + 1.0, 2.0));
+  float x = cos(Phi) * SineTheta;
+  float y = sin(Phi) * SineTheta;
+  float z = cos(Theta);
+
+  return vec3(x, y, z);
 }
 
-float DGgxAnisotropic(vec3 halfDir)
+vec3 DPhongSample(vec2 E)
 {
-  return 0.0; // Not Implemented
+  float ap = (2.0 / (roughness() * roughness())) - 2.0;
+  float Theta = acos(pow(E.x, 2.0 / (ap + 2.0))) / pi2;
+  float Phi = pi2 * E.y;
+  return MakeSample(Theta, Phi);
+}
+
+vec3 DBeckmannSample(vec2 E)
+{
+  float a = roughness() * roughness();
+  float Theta = atan(sqrt(-a * log(1.0 - E.x)));
+  float Phi = pi2 * E.y;
+  return MakeSample(Theta, Phi);
+}
+
+vec3 DGgxSample(vec2 E)
+{
+  float a = roughness() * roughness();
+  float Theta = atan(sqrt((a * E.x) / (1.0 - E.x)));
+  float Phi = pi2 * E.y;
+  return MakeSample(Theta, Phi);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Kd: Diffuse Energy Ratio
+////////////////////////////////////////////////////////////////////////////////
+vec3 KNone(float NoL)
+{
+  return vec3(1.0);
+}
+
+vec3 KActual(float NoL)
+{
+  return vec3(1.0) - F(NoL);
+}
+
+vec3 KFresnel(float NoL)
+{
+  return vec3(1.0) - fresnel();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -191,107 +224,115 @@ float DGgxAnisotropic(vec3 halfDir)
 #ifdef   GL_ES
 
 // Embedded System GL does not support subroutines
-# define F_FACTOR FSchlick
-# define G_FACTOR GSmithSchlickBeckmann
-# define D_FACTOR DGgx
+# define uFresnel FSchlick
+# define uGeometry GSmithSchlickBeckmann
+# define uDistribution DGgx
+# define uDistributionSample DGgxSample
 
 #else // GL_ES
 
 // Declaration
-subroutine vec3 FresnelSubroutine(vec3 lightDir, vec3 halfDir);
-subroutine float GeometrySubroutine(vec3 lightDir, vec3 viewDir, vec3 halfDir);
-subroutine float DistributionSubroutine(vec3 halfDir);
+subroutine vec3 FresnelSubroutine(float LoH);
+subroutine float GeometrySubroutine(float NoL, float NoV, float NoH, float VoH);
+subroutine float DistributionSubroutine(float NoH);
+subroutine vec3 DistributionSampleSubroutine(vec2 lightDir);
+subroutine vec3 DiffuseSubroutine(float NoL);
 subroutine uniform FresnelSubroutine uFresnel;
 subroutine uniform GeometrySubroutine uGeometry;
 subroutine uniform DistributionSubroutine uDistribution;
-#define F_FACTOR uFresnel
-#define G_FACTOR uGeometry
-#define D_FACTOR uDistribution
+subroutine uniform DistributionSampleSubroutine uDistributionSample;
 
 // Fresnel Definitions
 subroutine(FresnelSubroutine)
-vec3 sFNone(vec3 lightDir, vec3 halfDir)
+vec3 sFNone(float LoH)
 {
-  return FNone(lightDir, halfDir);
+  return FNone(LoH);
 }
 subroutine(FresnelSubroutine)
-vec3 sFSchlick2(vec3 lightDir, vec3 halfDir)
+vec3 sFSchlick(float LoH)
 {
-  return FSchlick2(lightDir, halfDir);
+  return FSchlick(LoH);
 }
 subroutine(FresnelSubroutine)
-vec3 sFSchlick(vec3 lightDir, vec3 halfDir)
+vec3 sFCookTorrance(float LoH)
 {
-  return FSchlick(lightDir, halfDir);
-}
-subroutine(FresnelSubroutine)
-vec3 sFCookTorrance(vec3 lightDir, vec3 halfDir)
-{
-  return FCookTorrance(lightDir, halfDir);
+  return FCookTorrance(LoH);
 }
 
 // Geometry Definitions
 subroutine(GeometrySubroutine)
-float sGImplicit(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float sGImplicit(float NoL, float NoV, float NoH, float VoH)
 {
-  return GImplicit(lightDir, viewDir, halfDir);
+  return GImplicit(NoL, NoV, NoH, VoH);
 }
 subroutine(GeometrySubroutine)
-float sGNeumann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float sGNeumann(float NoL, float NoV, float NoH, float VoH)
 {
-  return GNeumann(lightDir, viewDir, halfDir);
+  return GNeumann(NoL, NoV, NoH, VoH);
 }
 subroutine(GeometrySubroutine)
-float sGCookTorrance(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float sGCookTorrance(float NoL, float NoV, float NoH, float VoH)
 {
-  return GCookTorrance(lightDir, viewDir, halfDir);
+  return GCookTorrance(NoL, NoV, NoH, VoH);
 }
 subroutine(GeometrySubroutine)
-float sGKelemen(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float sGKelemen(float NoL, float NoV, float NoH, float VoH)
 {
-  return GKelemen(lightDir, viewDir, halfDir);
+  return GKelemen(NoL, NoV, NoH, VoH);
 }
 subroutine(GeometrySubroutine)
-float sGSmithBeckmann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float sGSmithBeckmann(float NoL, float NoV, float NoH, float VoH)
 {
-  return GSmithBeckmann(lightDir, viewDir, halfDir);
+  return GSmithBeckmann(NoL, NoV, NoH, VoH);
 }
 subroutine(GeometrySubroutine)
-float sGSmithGgx(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float sGSmithGgx(float NoL, float NoV, float NoH, float VoH)
 {
-  return GSmithGgx(lightDir, viewDir, halfDir);
+  return GSmithGgx(NoL, NoV, NoH, VoH);
 }
 subroutine(GeometrySubroutine)
-float sGSmithSchlickBeckmann(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float sGSmithSchlickBeckmann(float NoL, float NoV, float NoH, float VoH)
 {
-  return GSmithSchlickBeckmann(lightDir, viewDir, halfDir);
+  return GSmithSchlickBeckmann(NoL, NoV, NoH, VoH);
+}
+subroutine(GeometrySubroutine)
+float sGSmith(float NoL, float NoV, float NoH, float VoH)
+{
+  return GSmith(NoL, NoV, NoH, VoH);
 }
 
 // Distribution Definitions
 subroutine(DistributionSubroutine)
-float sDPhong(vec3 halfDir)
+float sDPhong(float NoH)
 {
-  return DPhong(halfDir);
+  return DPhong(NoH);
 }
 subroutine(DistributionSubroutine)
-float sDBlinnPhong(vec3 halfDir)
+float sDBeckmann(float NoH)
 {
-  return DBlinnPhong(halfDir);
+  return DBeckmann(NoH);
 }
 subroutine(DistributionSubroutine)
-float sDBeckmann(vec3 halfDir)
+float sDGgx(float NoH)
 {
-  return DBeckmann(halfDir);
+  return DGgx(NoH);
 }
-subroutine(DistributionSubroutine)
-float sDGgx(vec3 halfDir)
+
+// Distribution Samples
+subroutine(DistributionSampleSubroutine)
+vec3 sDPhongSample(vec2 random)
 {
-  return DGgx(halfDir);
+  return DPhongSample(random);
 }
-subroutine(DistributionSubroutine)
-float sDGgxAnisotropic(vec3 halfDir)
+subroutine(DistributionSampleSubroutine)
+vec3 sDBeckmannSample(vec2 random)
 {
-  return DGgxAnisotropic(halfDir);
+  return DBeckmannSample(random);
+}
+subroutine(DistributionSampleSubroutine)
+vec3 sDGgxSample(vec2 random)
+{
+  return DGgxSample(random);
 }
 
 #endif // GL_ES
@@ -301,32 +342,57 @@ float sDGgxAnisotropic(vec3 halfDir)
 // Notes: The following defines will be set dynamically, to allow for selecting
 //        different combinations of different factors through C++ code.
 ////////////////////////////////////////////////////////////////////////////////
-vec3 F(vec3 lightDir, vec3 halfDir)
+vec3 F(float NoL)
 {
-  return F_FACTOR(lightDir, halfDir);
+  return uFresnel(NoL);
 }
 
-float G(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+float G(float NoL, float NoV, float NoH, float VoH)
 {
-  return G_FACTOR(lightDir, viewDir, halfDir);
+  return uGeometry(NoL, NoV, NoH, VoH);
 }
 
-float D(vec3 halfDir)
+float D(float NoH)
 {
-  return D_FACTOR(halfDir);
+  return uDistribution(NoH);
 }
 
-vec3 Brdf(vec3 lightDir, vec3 viewDir, vec3 halfDir)
+vec3 S(vec2 random)
 {
-  vec3 color = F(lightDir, halfDir) * G(lightDir, viewDir, halfDir) * D(halfDir);
-  return color / (4 * max(dot(normal(), lightDir), 0.0) * max(dot(normal(), viewDir), 0.0));
+  return uDistributionSample(random);
 }
 
-vec3 L(vec3 lightIntensity, vec3 lightDir, vec3 viewDir)
+vec3 K(float NoL)
 {
-  vec3 halfDir = normalize(lightDir + viewDir);
-  vec3 color = diffuse() / M_PI + Brdf(lightDir, viewDir, halfDir);
-  return color * lightIntensity * max(dot(normal(), lightDir), 0.0);
+  return KActual(NoL);
+}
+
+vec3 f(float NoL, float NoV, float NoH, float VoH)
+{
+  return F(NoL) * G(NoL, NoV, NoH, VoH) * D(NoH);
+}
+
+float Pdf(float NoL, float NoV)
+{
+  return (4.0 * NoL * NoV);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Complete Brdf
+////////////////////////////////////////////////////////////////////////////////
+vec3 Brdf(vec3 Kd, vec3 Li, float NoL, float NoV, float NoH, float VoH)
+{
+  return K(NoL) * Kd / pi + f(NoL, NoV, NoH, VoH) * Li * NoL / Pdf(NoL, NoV);
+}
+
+vec3 Brdf(vec3 Kd, vec3 Li, vec3 L, vec3 V, vec3 N)
+{
+  vec3    H = normalize(L + V);
+  float NoL = saturate(dot(N, L));
+  float NoV = saturate(dot(N, V));
+  float NoH = saturate(dot(N, H));
+  float VoH = saturate(dot(V, H));
+  return Brdf(Kd, Li, NoL, NoV, NoH, VoH);
 }
 
 #endif // PHYSICAL_GLSL

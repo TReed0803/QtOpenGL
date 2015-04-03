@@ -45,7 +45,9 @@ public:
   enum FilterOperation
   {
     Nearest                     = 0x2600,
-    Linear                      = 0x2601
+    Linear                      = 0x2601,
+    NearestMipMap               = 0x2702,
+    LinearMipMap                = 0x2703
   };
 
   enum SwizzleMode
@@ -90,9 +92,12 @@ public:
   void setCompareMode(CompareMode mode);
   void setCompareFunction(CompareFunction func);
   void allocate();
-  void allocate(void *data);
+  void allocate(void *data, int level = 0);
   int textureId();
   Target target() const;
+  void generateMipMaps();
+  int getMaxLevel() const;
+  KSize const &size() const;
 
   // Texture Properties
   static int numTextureUnits();

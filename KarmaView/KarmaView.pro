@@ -47,5 +47,6 @@ HEADERS += \
     debuggbufferpass.h \
     environmentpass.h
 
-RESOURCES +=
-    ../resources.qrc
+RESOURCES += \
+    ../resources.qrc \
+    ../images.qrc

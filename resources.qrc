@@ -19,6 +19,7 @@
         <file>resources/shaders/Bindings.glsl</file>
         <file>resources/shaders/ubo/GlobalBuffer.ubo</file>
         <file>resources/shaders/ubo/LightBuffer.ubo</file>
+        <file>resources/shaders/ubo/Hammersley.ubo</file>
         <file>resources/shaders/ubo/Material.ubo</file>
         <file>resources/shaders/ubo/Object.ubo</file>
         <file>resources/shaders/gbuffer/ambient.frag</file>

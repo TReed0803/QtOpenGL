@@ -24,5 +24,6 @@
 #define K_LIGHT_BINDING         3
 #define K_MATERIAL_BINDING      4
 #define K_OBJECT_BINDING        5
+#define K_HAMMERSLEY_BINDING    6
 
 #endif // BINDINGS_GLSL

@@ -1,0 +1,19 @@
+/*******************************************************************************
+ * ubo/Hammersley.ubo
+ *------------------------------------------------------------------------------
+ * Hammersley random value simulation.
+ ******************************************************************************/
+
+#ifndef HAMMERSLEY_UBO
+#define HAMMERSLEY_UBO
+
+#include <Bindings.glsl>
+
+layout(binding = K_HAMMERSLEY_BINDING,std140)
+uniform HammersleyBuffer
+{
+  highp vec2 data[60];
+  highp float N;
+} HammersleyPreprocessed;
+
+#endif // HAMMERSLEY_UBO

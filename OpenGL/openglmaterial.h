@@ -21,6 +21,7 @@ public:
   int objectId() const;
 
   // Diffuse
+  void setDiffuse(float rgb);
   void setDiffuse(char r, char g, char b);
   void setDiffuse(float r, float g, float b);
   void setDiffuse(KColor const &color);

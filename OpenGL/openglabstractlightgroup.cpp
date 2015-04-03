@@ -12,6 +12,7 @@ bool OpenGLAbstractLightGroup::create()
   m_uFresnel = GL::glGetSubroutineUniformLocation(m_regularLight->programId(), GL_FRAGMENT_SHADER, "uFresnel");
   m_uGeometry = GL::glGetSubroutineUniformLocation(m_regularLight->programId(), GL_FRAGMENT_SHADER, "uGeometry");
   m_uDistribution = GL::glGetSubroutineUniformLocation(m_regularLight->programId(), GL_FRAGMENT_SHADER, "uDistribution");
+  m_uDistributionSample = GL::glGetSubroutineUniformLocation(m_regularLight->programId(), GL_FRAGMENT_SHADER, "uDistributionSample");
   m_regularLight->release();
 #endif
 
@@ -114,12 +115,18 @@ int &OpenGLAbstractLightGroup::FFactor()
 
 int &OpenGLAbstractLightGroup::GFactor()
 {
-  static int g = GSmithSchlickBeckmann;
+  static int g = GSmith;
   return g;
 }
 
 int &OpenGLAbstractLightGroup::DFactor()
 {
   static int d = DGgx;
+  return d;
+}
+
+int &OpenGLAbstractLightGroup::SFactor()
+{
+  static int d = DBeckmann;
   return d;
 }

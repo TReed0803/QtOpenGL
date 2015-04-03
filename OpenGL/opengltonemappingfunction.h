@@ -70,4 +70,10 @@ private:
   float m_exposure, m_contrast;
 };
 
+class OpenGLDefaultToneMapping : public OpenGLToneMappingFunction
+{
+public:
+  virtual RgbF operator()(RgbF input) const;
+};
+
 #endif // OPENGLTONEMAPPINGFUNCTION_H

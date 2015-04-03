@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>resources/images/hamarikyu.hdr</file>
-        <file>resources/images/hamarikyu.ibl</file>
-        <file>resources/images/hamarikyu_irradiance.hdr</file>
+        <file>resources/images/AlexsApt.hdr</file>
+        <file>resources/images/AlexsApt_Env.hdr</file>
     </qresource>
 </RCC>

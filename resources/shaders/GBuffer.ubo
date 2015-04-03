@@ -132,7 +132,7 @@ highp vec3 fresnel()
 
 highp float roughness(highp vec2 uv)
 {
-  return texture(physicalTexture, uv).w;
+  return max(texture(physicalTexture, uv).w, 0.001);
 }
 
 highp float roughness()

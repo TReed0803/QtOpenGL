@@ -84,6 +84,12 @@ int OpenGLMaterial::objectId() const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void OpenGLMaterial::setDiffuse(float rgb)
+{
+  P(OpenGLMaterialPrivate);
+  p.m_diffuse.setRgb(rgb, rgb, rgb);
+}
+
 void OpenGLMaterial::setDiffuse(char r, char g, char b)
 {
   P(OpenGLMaterialPrivate);
@@ -145,13 +151,14 @@ const KColor &OpenGLMaterial::color() const
 void OpenGLMaterial::setRoughness(float xy)
 {
   P(OpenGLMaterialPrivate);
+  xy = xy * xy;
   p.m_roughness = KVector2D(xy, xy);
 }
 
 void OpenGLMaterial::setRoughness(float x, float y)
 {
   P(OpenGLMaterialPrivate);
-  p.m_roughness = KVector2D(x, y);
+  p.m_roughness = KVector2D(x * x, y * y);
 }
 
 const KVector2D &OpenGLMaterial::roughness() const

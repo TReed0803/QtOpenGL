@@ -12,3 +12,9 @@ RgbF OpenGLStandardToneMapping::operator()(RgbF input) const
   return std::pow(eC / (eC + 1.0f), m_contrast / 2.2);
 }
 
+
+
+RgbF OpenGLDefaultToneMapping::operator()(RgbF input) const
+{
+  return input;
+}

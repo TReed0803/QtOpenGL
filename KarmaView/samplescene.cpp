@@ -40,7 +40,7 @@
 #include <OpenGLWidget>
 #include <OpenGLEnvironment>
 
-//#define MULTI_MESH
+#define MULTI_MESH
 
 class SampleScenePrivate
 {
@@ -263,25 +263,23 @@ void SampleScene::start()
   floor->setMaterial(floorMaterial);
   floor->transform().setScale(1000.0f);
   floor->transform().setTranslation(0.0f, -1.0f, 0.0f);
-  */
+  //*/
 
   // Create instance data
 #ifdef MULTI_MESH
-  for (int i = 1; i < 11; ++i)
+  static const int ObjectCount = 10;
+  for (int j = 0; j < ObjectCount; ++j)
   {
-    for (int j = 1; j < 11; ++j)
-    {
-      static const float k = 3.0f;
-      OpenGLMaterial material;
-      material.create();
-      material.setDiffuse(0.75f, 0.75f, 0.75f);
-      material.setFresnel(float(i) / 10);
-      material.setRoughness(float(j) / 10);
-      OpenGLInstance *instance = createInstance();
-      instance->setMaterial(material);
-      instance->currentTransform().setTranslation((-5.0f + i) * k, 0.0f, (-5.0f + j) * k);
-      p.m_instances.push_back(instance);
-    }
+    const float Radians = (Karma::TwoPi * j) / ObjectCount;
+    OpenGLMaterial material;
+    material.create();
+    material.setDiffuse(1.0f);
+    material.setFresnel(1.0f);
+    material.setRoughness(float(j) / ObjectCount);
+    OpenGLInstance *instance = createInstance();
+    instance->setMaterial(material);
+    instance->currentTransform().setTranslation(2 * cos(Radians), 2 * sin(Radians), 0.0f);
+    p.m_instances.push_back(instance);
   }
 #else
 
@@ -289,7 +287,7 @@ void SampleScene::start()
   OpenGLMaterial material;
   material.create();
   material.setDiffuse(1.0f, 1.0f, 1.0f);
-  material.setFresnel(0.04f);
+  material.setFresnel(1.0f);
   material.setRoughness(0.4f);
 
   // Create the instance
@@ -311,9 +309,10 @@ void SampleScene::start()
   //          environment maps. At the time, this must be hardcoded. (Will have to find a fix later.)
   //          This means the code will only run on my machine unless you change the path.
   OpenGLEnvironment *env = environment();
-  env->setToneMappingFunction(new OpenGLStandardToneMapping(1.0f, 1.0f));
-  env->setDirect("C:\\Users\\Trent\\Projects\\QtProjects\\QtOpenGL\\resources\\images\\hamarikyu_direct.hdr");
-  env->setIndirect("C:\\Users\\Trent\\Projects\\QtProjects\\QtOpenGL\\resources\\images\\hamarikyu_indirect.hdr");
+  env->setToneMappingFunction(new OpenGLStandardToneMapping(1.0f, 2.0f));
+  //env->setToneMappingFunction(new OpenGLDefaultToneMapping(1.0f, 2.0f));
+  env->setDirect(":/resources/images/AlexsApt.hdr");
+  env->setIndirect(":/resources/images/AlexsApt_Env.hdr");
 }
 
 void SampleScene::update(KUpdateEvent *event)
@@ -345,6 +344,13 @@ void SampleScene::update(KUpdateEvent *event)
     angle += 2 * 3.1415926 / spotLights().size();
   }
 
+  for (OpenGLInstance *instance : p.m_instances)
+  {
+    static const float radius = 5.0f;
+    instance->currentTransform().setTranslation(cos(angle) * radius, /*5.0f + std::sin(angle * 15.0f) * 5.0f*/ 2.5f, sin(angle) * radius);
+    angle += 2 * 3.1415926 / p.m_instances.size();
+  }
+
   // Camera Selection
   KCamera3D *camera = 0;
   if (KInputManager::buttonPressed(Qt::RightButton))
@@ -362,6 +368,7 @@ void SampleScene::update(KUpdateEvent *event)
     {
       transSpeed = 1.0f;
     }
+    transSpeed *= 0.16f;
 
     // Handle rotations
     camera->rotate(-rotSpeed * KInputManager::mouseDelta().x(), KCamera3D::LocalUp);
@@ -433,15 +440,22 @@ void SampleScene::update(KUpdateEvent *event)
       OpenGLAbstractLightGroup::DFactor() = (OpenGLAbstractLightGroup::DFactor() + amount) % DistributionCount;
     }
 
+    if (KInputManager::keyTriggered(Qt::Key_S))
+    {
+      OpenGLAbstractLightGroup::SFactor() = (OpenGLAbstractLightGroup::SFactor() + amount) % DistributionCount;
+    }
+
     if (OpenGLAbstractLightGroup::FFactor() < 0) OpenGLAbstractLightGroup::FFactor() = FresnelCount - 1;
     if (OpenGLAbstractLightGroup::GFactor() < 0) OpenGLAbstractLightGroup::GFactor() = GeometryCount - 1;
     if (OpenGLAbstractLightGroup::DFactor() < 0) OpenGLAbstractLightGroup::DFactor() = DistributionCount - 1;
+    if (OpenGLAbstractLightGroup::SFactor() < 0) OpenGLAbstractLightGroup::SFactor() = DistributionCount - 1;
   }
 
   Karma::setTitle(
-    KString((FToCStr(OpenGLAbstractLightGroup::FFactor()) + "|" +
+    KString((
+    FToCStr(OpenGLAbstractLightGroup::FFactor()) + "|" +
     GToCStr(OpenGLAbstractLightGroup::GFactor()) + "|" +
-    DToCStr(OpenGLAbstractLightGroup::DFactor())).c_str())
+    DToCStr(OpenGLAbstractLightGroup::DFactor()) + " => Sample: " + DToCStr(OpenGLAbstractLightGroup::SFactor())).c_str())
   );
 
   //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0, 0.0, 1.0f, 1.0f), environment()->direct());

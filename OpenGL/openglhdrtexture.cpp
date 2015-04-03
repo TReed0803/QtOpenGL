@@ -1,6 +1,7 @@
 #include "openglhdrtexture.h"
 
 #include <KMacros>
+#include <KMath>
 #include <OpenGLTexture>
 #include <OpenGLToneMappingFunction>
 
@@ -11,6 +12,7 @@ public:
   OpenGLTexture *m_texture;
   int m_width, m_height;
   std::vector<float> m_textureData;
+  std::vector<float> m_lodData;
   OpenGLToneMappingFunction *m_toneMapping;
 };
 
@@ -57,26 +59,31 @@ float *OpenGLHdrTextureLoader::beginData()
 void OpenGLHdrTextureLoader::endData()
 {
   P(OpenGLHdrTextureLoaderPrivate);
-  /*
+
+  // Apply Tone Mapping
   for (int j=0;  j<p.m_height;  j++)
   {
-    int jk = (j*p.m_width);
+    int jk = (j*p.m_width*3);
     for (int i=0;  i<p.m_width; i++)
     {
       RgbF &color = reinterpret_cast<RgbF&>(p.m_textureData[jk + i * 3]);
       color = (*p.m_toneMapping)(color);
+      color = std::pow(color, 2.2f); // Gamma Correction
     }
   }
-  */
+
+  // Create the textures
   p.m_texture->create(OpenGLTexture::Texture2D);
   p.m_texture->bind();
   p.m_texture->setInternalFormat(OpenGLInternalFormat::Rgb32F);
   p.m_texture->setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
   p.m_texture->setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
-  p.m_texture->setFilter(OpenGLTexture::Magnification, OpenGLTexture::Linear);
-  p.m_texture->setFilter(OpenGLTexture::Minification, OpenGLTexture::Linear);
+  p.m_texture->setFilter(OpenGLTexture::Magnification, OpenGLTexture::NearestMipMap);
+  p.m_texture->setFilter(OpenGLTexture::Minification, OpenGLTexture::NearestMipMap);
   p.m_texture->setSize(p.m_width, p.m_height);
   p.m_texture->setSwizzle(OpenGLTexture::Red, OpenGLTexture::Green, OpenGLTexture::Blue, OpenGLTexture::One);
-  p.m_texture->allocate(p.m_textureData.data());
+  p.m_texture->allocate(p.m_textureData.data(), 0);
+  p.m_texture->generateMipMaps();
+  p.m_texture->getMaxLevel();
   p.m_texture->release();
 }

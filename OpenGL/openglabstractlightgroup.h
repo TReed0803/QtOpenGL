@@ -18,7 +18,6 @@ enum FresnelFactor
 {
   FNone,
   FSchlick,
-  FSchlick2,
   FCookTorrance,
   FresnelCount
 };
@@ -29,7 +28,6 @@ static std::string FToCStr(int f)
   {
   CASE(FNone);
   CASE(FSchlick);
-  CASE(FSchlick2);
   CASE(FCookTorrance);
   }
 }
@@ -43,6 +41,7 @@ enum GeometryFactor
   GSmithBeckmann,
   GSmithGgx,
   GSmithSchlickBeckmann,
+  GSmith,
   GeometryCount
 };
 
@@ -57,13 +56,13 @@ static std::string GToCStr(int g)
   CASE(GSmithBeckmann);
   CASE(GSmithGgx);
   CASE(GSmithSchlickBeckmann);
+  CASE(GSmith);
   }
 }
 
 enum DistributionFactor
 {
   DPhong,
-  DBlinnPhong,
   DBeckmann,
   DGgx,
   DistributionCount
@@ -74,7 +73,6 @@ static std::string DToCStr(int d)
   switch (d)
   {
   CASE(DPhong);
-  CASE(DBlinnPhong);
   CASE(DBeckmann);
   CASE(DGgx);
   }
@@ -104,6 +102,7 @@ public:
   static int &FFactor();
   static int &GFactor();
   static int &DFactor();
+  static int &SFactor();
 
 protected:
   OpenGLMesh m_mesh;
@@ -114,7 +113,7 @@ protected:
   OpenGLShaderProgram *m_shadowCastingLight;
   OpenGLShaderProgram *m_shadowMappingLight;
   OpenGLShaderProgram *m_blurProgram;
-  int m_uFresnel, m_uGeometry, m_uDistribution;
+  int m_uFresnel, m_uGeometry, m_uDistribution, m_uDistributionSample;
 };
 
 #endif // OPENGLABSTRACTLIGHTGROUP_H

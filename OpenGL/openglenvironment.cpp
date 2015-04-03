@@ -76,3 +76,9 @@ OpenGLTexture &OpenGLEnvironment::indirect()
   P(OpenGLEnvrionmentPrivate);
   return p.m_indirectIllumination;
 }
+
+const KSize &OpenGLEnvironment::directSize() const
+{
+  P(const OpenGLEnvrionmentPrivate);
+  return p.m_directIllumination.size();
+}

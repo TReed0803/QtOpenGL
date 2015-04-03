@@ -110,13 +110,13 @@ void OpenGLTexture::allocate()
   allocate(0);
 }
 
-void OpenGLTexture::allocate(void *data)
+void OpenGLTexture::allocate(void *data, int level)
 {
   P(OpenGLTexturePrivate);
   switch (p.m_target)
   {
   case Texture2D:
-    GL::glTexImage2D(p.m_target, 0, static_cast<GLint>(p.m_format), p.m_size.width(), p.m_size.height(), 0, static_cast<GLenum>(GetFormat(p.m_format)), static_cast<GLenum>(GetType(p.m_format)), (GLvoid*)data);
+    GL::glTexImage2D(p.m_target, level, static_cast<GLint>(p.m_format), p.m_size.width(), p.m_size.height(), 0, static_cast<GLenum>(GetFormat(p.m_format)), static_cast<GLenum>(GetType(p.m_format)), (GLvoid*)data);
     break;
   case Texture1D:
   case TextureRectangle:
@@ -140,6 +140,26 @@ OpenGLTexture::Target OpenGLTexture::target() const
 {
   P(OpenGLTexturePrivate);
   return p.m_target;
+}
+
+void OpenGLTexture::generateMipMaps()
+{
+  P(OpenGLTexturePrivate);
+  GL::glGenerateMipmap(p.m_target);
+}
+
+int OpenGLTexture::getMaxLevel() const
+{
+  P(OpenGLTexturePrivate);
+  GLint result;
+  GL::glGetTexParameteriv(p.m_target, GL_TEXTURE_MAX_LEVEL, &result);
+  return result;
+}
+
+const KSize &OpenGLTexture::size() const
+{
+  P(const OpenGLTexturePrivate);
+  return p.m_size;
 }
 
 int OpenGLTexture::numTextureUnits()

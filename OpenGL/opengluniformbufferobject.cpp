@@ -18,6 +18,7 @@ OpenGLUniformBufferObject::OpenGLUniformBufferObject() :
   OpenGLBuffer(OpenGLBuffer::UniformBuffer)
  ,m_private(new OpenGLUniformBufferObjectPrivate)
 {
+  // Intentionally Empty
 }
 
 OpenGLUniformBufferObject::~OpenGLUniformBufferObject()
