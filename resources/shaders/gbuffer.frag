@@ -33,17 +33,12 @@ void main()
 
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 2: Material Buffer
-  // Encode Material information (Diffuse, Diffuse, Diffuse, Specular Color)
-  fMaterial.xyz = Material.Diffuse;
-  fMaterial.w   = encodeSpecularColor(Material.Fresnel);
+  // Encode Material information (BaseColor, BaseColor, BaseColor, Metallic)
+  fMaterial.xyz = Material.BaseColor;
+  fMaterial.w   = Material.Metallic;
 
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 3: Surface Buffer
-  // Encode Dynamics information (Specular Exp.)
-  fSurface = encodeSpecularExponent(Material.Roughness.x * 255.0);
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Deferred Buffer 4: Physical Buffer
-  // Encode Dynamics information (Fresnel, Fresnel, Fresnel, Roughness)
-  fPhysical = vec4(Material.Fresnel, Material.Roughness.x);
+  // Encode Dynamics information (Roughness)
+  fSurface = Material.Roughness;
 }

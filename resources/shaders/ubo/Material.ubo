@@ -12,13 +12,12 @@
 layout(binding = K_MATERIAL_BINDING, std140)
 uniform MaterialBuffer
 {
-  highp vec3 Diffuse;
+  vec3 BaseColor;
+  float Metallic;
+  float Roughness;
   float padding0;
-  highp vec3 Fresnel;
   float padding1;
-  highp vec2 Roughness;
   float padding2;
-  float padding3;
 } Material;
 
 #endif // MATERIAL_UBO

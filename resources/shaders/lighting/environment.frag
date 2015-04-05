@@ -16,69 +16,94 @@ layout(binding = K_TEXTURE_0)
 uniform sampler2D environment;
 layout(binding = K_TEXTURE_1)
 uniform sampler2D irradiance;
-uniform uvec2 Dimensions = uvec2(2400, 1200);
+uniform uvec2 Dimensions = uvec2(1200,2400);
 
 // Light Output
 layout(location = 0) out highp vec4 fFragColor;
 
+// Correct the environment so that it's not flipped around.
+// Normally you would want to have this handled at load time.
 vec3 rEnv(vec3 N)
 {
-  return vec3(N.x, N.z, -N.y);
+  return vec3(-N.x, N.z, -N.y);
 }
 
+// Computes the exact mip-map to reference for the specular contribution.
+// Accessing the proper mip-map allows us to approximate the integral for this
+// angle of incidence on the current object.
 float compute_lod(uint NumSamples, float NoH)
 {
   return 0.5 * (log2(float(Dimensions.x * Dimensions.y) / NumSamples) - log2(D(NoH)));
 }
 
-vec4 radiance(vec3 N, vec3 V)
+// Calculates the specular influence for a surface at the current fragment
+// location. This is an approximation of the lighting integral itself.
+vec3 radiance(vec3 N, vec3 V)
 {
-  // Precalculate Helpers (Note: Must be in World Space)
+  // Precalculate rotation for +Z Hemisphere to microfacet normal.
   vec3 UpVector = abs(N.z) < 0.999 ? ZAxis : XAxis;
   vec3 TangentX = normalize(cross( UpVector, N ));
   vec3 TangentY = cross(N, TangentX);
-  float NoV = saturate(dot(N, V));
 
+  // Note: I ended up using abs() for situations where the normal is
+  // facing a little away from the view to still accept the approximation.
+  // I believe this is due to a separate issue with normal storage, so
+  // you may only need to saturate() each dot value instead of abs().
+  float NoV = abs(dot(N, V));
+
+  // Approximate the integral for lighting contribution.
   vec3 fColor = vec3(0.0);
-  const uint NumSamples = 40;
+  const uint NumSamples = 20;
   for (uint i = 0; i < NumSamples; ++i)
   {
     vec2 Xi = Hammersley(i, NumSamples);
-    vec3 Li = S(Xi);
+    vec3 Li = S(Xi); // Defined elsewhere as subroutine
     vec3 H  = normalize(Li.x * TangentX + Li.y * TangentY + Li.z * N);
     vec3 L  = normalize(-reflect(V, H));
 
+    // Calculate dot products for BRDF
     float NoL = abs(dot(N, L));
-    float NoH = saturate(dot(N, H));
-    float VoH = saturate(dot(V, H));
+    float NoH = abs(dot(N, H));
+    float VoH = abs(dot(V, H));
     float lod = compute_lod(NumSamples, NoH);
 
-      vec3  F_ = F(NoL);
-      float G_ = G(NoL, NoV, NoH, VoH);
-      vec3 LColor = textureSphereLod(environment, rEnv(L), lod).rgb;
-      fColor += abs(F_ * G_ * LColor * VoH / (NoH * NoV));
+    float F_ = F(VoH); // Defined elsewhere as subroutine
+    float G_ = G(NoL, NoV, NoH, VoH); // Defined elsewhere as subroutine
+    vec3 LColor = textureSphereLod(environment, rEnv(L), lod).rgb;
+
+    // Since the sample is skewed towards the Distribution, we don't need
+    // to evaluate all of the factors for the lighting equation. Also note
+    // that this function is calculating the specular portion, so we absolutely
+    // do not add any more diffuse here.
+    fColor += F_ * G_ * LColor * VoH / (NoH * NoV);
   }
 
   // Average the results
-  return vec4(fColor / float(NumSamples), 1.0);
+  return fColor / float(NumSamples);
 }
 
 void main()
 {
-  // Rendering the Environment (Background)
+  vec3 V = normalize((Current.ViewToWorld * vec4(-viewPosition(), 0.0)).xyz);
+  vec3 color;
   if (depth() == 1.0)
   {
-    highp vec3 viewDir = normalize(worldPosition());
-    fFragColor = textureSphereLod(environment, rEnv(viewDir), 0.0);
+    color = textureSphereLod(environment, rEnv(-V), 0.0).rgb;
   }
-
-  // Rendering an Object (Foreground)
   else
   {
-    highp vec3 worldNormal = normalize((Current.ViewToWorld * vec4(normal(), 0.0)).xyz);
-    highp vec3 V = normalize((Current.ViewToWorld * vec4(-viewPosition(), 0.0)).xyz);
-    fFragColor = vec4(K(saturate(dot(worldNormal, V))), 1.0) * vec4(textureSphere(irradiance, rEnv(worldNormal)).rgb * diffuse() / pi, 1.0);
-    fFragColor += radiance(worldNormal, V);
+    vec3 N = normalize((Current.ViewToWorld * vec4(normal(), 0.0)).xyz);
+    vec3 L = normalize(-reflect(V, N));
+    float NoV = saturate(dot(N, V));
+    float NoL = saturate(dot(N, L));
+
+    // Calculate the color
+    vec3 irrMap = textureSphereLod(irradiance, rEnv(N), 0.0).rgb;
+    vec3 Kdiff  = irrMap * baseColor() / pi;
+    vec3 Kspec  = radiance(N, V);
+
+    // Mix the materials
+    color = BlendMaterial(Kdiff, Kspec);
   }
-  fFragColor = l2rgb(fFragColor);
+  fFragColor = vec4(color, 1.0);
 }

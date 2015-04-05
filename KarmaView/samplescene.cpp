@@ -2,6 +2,7 @@
 
 // Standard Template Library
 #include <vector>
+#include <time.h>
 
 // Karma Framework
 #include <KCamera3D>
@@ -41,13 +42,14 @@
 #include <OpenGLEnvironment>
 
 #define MULTI_MESH
+#define SQUARE_GRID
 
 class SampleScenePrivate
 {
 public:
   KCamera3D m_camera;
   OpenGLViewport m_viewport;
-  std::vector<OpenGLInstance *> m_instances;
+  std::vector<std::vector<OpenGLInstance *>> m_instances;
   std::array<KStaticGeometry, 4> m_staticGeometry;
   KAdaptiveOctree m_octree;
   KBspTree m_bspTree;
@@ -169,9 +171,12 @@ void SampleScenePrivate::loadObj(const KString &fileName)
     kDebug() << "Polygons/Frame :" << halfEdgeMesh.numFaces() * m_instances.size();
   }
 
-  for (OpenGLInstance *instance : m_instances)
+  for (std::vector<OpenGLInstance *> layer : m_instances)
   {
-    instance->setMesh(openGLMesh);
+    for (OpenGLInstance *instance : layer)
+    {
+      instance->setMesh(openGLMesh);
+    }
   }
 }
 
@@ -207,25 +212,29 @@ void SampleScene::start()
   P(SampleScenePrivate);
 
   // Initialize the camera
-  p.m_camera.setTranslation(0.0f, 3.0f, 10.0f);
-  p.m_camera.setRotation(-20.0f, 1.0f, 0.0f, 0.0f);
+  p.m_camera.setTranslation(0.0f, -20.0f, 0.0f);
+  p.m_camera.setRotation(90.0f, 1.0f, 0.0f, 0.0f);
   p.m_viewport.create();
   p.m_viewport.setCamera(p.m_camera);
   p.m_viewport.activate();
 
   // Initialize the Direction Light Group
-  for (int i = 0; i < 0; ++i)
+  for (int i = 0; i < 1; ++i)
   {
+    static const float Intensity = 1.0f;
     OpenGLDirectionLight *light = createDirectionLight();
-    light->setDiffuse(0.1f, 0.1f, 0.1f);
+    light->setDiffuse(Intensity, Intensity, Intensity);
     light->setSpecular(0.1f, 0.1f, 0.1f);
   }
 
   // Initialize the Point Light Group
+  srand(time(NULL));
   for (int i = 0; i < 0; ++i)
   {
     OpenGLPointLight *light = createPointLight();
-    light->setRadius(25.0f);
+    light->setRadius(200.0f);
+    light->setAttenuation(1.0f, 0.01f, 0.0f);
+    light->setDiffuse(float(rand())/RAND_MAX,float(rand())/RAND_MAX,float(rand())/RAND_MAX);
   }
 
   // Initialize the Spot Light Group
@@ -251,9 +260,9 @@ void SampleScene::start()
   // Create the floor material
   OpenGLMaterial floorMaterial;
   floorMaterial.create();
-  floorMaterial.setDiffuse(0.0f, 0.0f, 1.0f);
-  floorMaterial.setFresnel(0.04f);
-  floorMaterial.setRoughness(1.0f);
+  floorMaterial.setBaseColor(132.0f / 255.0f, 21.0f / 255.0f, 176.0f / 255.0f);
+  floorMaterial.setMetallic(0.2f);
+  floorMaterial.setRoughness(0.4f);
 
   // Note: Currently there is no Material System.
   //       All material properties are per-instance.
@@ -267,33 +276,38 @@ void SampleScene::start()
 
   // Create instance data
 #ifdef MULTI_MESH
-  static const int ObjectCount = 10;
-  for (int j = 0; j < ObjectCount; ++j)
+  static const int MetallicCount = 4;
+  static const int RoughnessCount = 8;
+  p.m_instances.resize(MetallicCount + 1);
+  for (int i = 0; i <= MetallicCount; ++i)
   {
-    const float Radians = (Karma::TwoPi * j) / ObjectCount;
-    OpenGLMaterial material;
-    material.create();
-    material.setDiffuse(1.0f);
-    material.setFresnel(1.0f);
-    material.setRoughness(float(j) / ObjectCount);
-    OpenGLInstance *instance = createInstance();
-    instance->setMaterial(material);
-    instance->currentTransform().setTranslation(2 * cos(Radians), 2 * sin(Radians), 0.0f);
-    p.m_instances.push_back(instance);
+    for (int j = 0; j <= RoughnessCount; ++j)
+    {
+      OpenGLMaterial material;
+      material.create();
+      material.setBaseColor(255.0f / 255.0f, 191.0f / 255.0f, 0.0f / 255.0f);
+      material.setBaseColor(1.0f, 0.3f, 0.3f);
+      material.setMetallic(float(i) / MetallicCount);
+      material.setRoughness(float(j) / RoughnessCount);
+      OpenGLInstance *instance = createInstance();
+      instance->setMaterial(material);
+      p.m_instances[i].push_back(instance);
+    }
   }
 #else
 
   // Create the instance material
   OpenGLMaterial material;
   material.create();
-  material.setDiffuse(1.0f, 1.0f, 1.0f);
-  material.setFresnel(1.0f);
-  material.setRoughness(0.4f);
+  material.setBaseColor(0.01f);
+  material.setMetallic(0.02f);
+  material.setRoughness(0.1f);
 
   // Create the instance
   OpenGLInstance *instance = createInstance();
   instance->setMaterial(material);
-  p.m_instances.push_back(instance);
+  p.m_instances.resize(1);
+  p.m_instances[0].push_back(instance);
 
 #endif
 
@@ -309,8 +323,7 @@ void SampleScene::start()
   //          environment maps. At the time, this must be hardcoded. (Will have to find a fix later.)
   //          This means the code will only run on my machine unless you change the path.
   OpenGLEnvironment *env = environment();
-  env->setToneMappingFunction(new OpenGLStandardToneMapping(1.0f, 2.0f));
-  //env->setToneMappingFunction(new OpenGLDefaultToneMapping(1.0f, 2.0f));
+  env->setToneMappingFunction(new OpenGLStandardToneMapping(1.0f, 2.2f));
   env->setDirect(":/resources/images/AlexsApt.hdr");
   env->setIndirect(":/resources/images/AlexsApt_Env.hdr");
 }
@@ -323,6 +336,7 @@ void SampleScene::update(KUpdateEvent *event)
   // Update Lights (Scene update)
   static float f = 0.0f;
   f += 0.0016f;
+  f = 0.0f;
   float angle = f;
   for (OpenGLDirectionLight *light : directionLights())
   {
@@ -330,8 +344,8 @@ void SampleScene::update(KUpdateEvent *event)
   }
   for (OpenGLPointLight *instance : pointLights())
   {
-    static const float radius = 5.0f;
-    instance->setTranslation(cos(angle) * radius, 0.0f, sin(angle) * radius);
+    static const float radius = 7.0f;
+    instance->setTranslation(cos(angle) * radius, 2.0f, sin(angle) * radius);
     angle += 2 * 3.1415926 / pointLights().size();
   }
   angle = f;
@@ -344,12 +358,31 @@ void SampleScene::update(KUpdateEvent *event)
     angle += 2 * 3.1415926 / spotLights().size();
   }
 
-  for (OpenGLInstance *instance : p.m_instances)
+#ifdef SQUARE_GRID
+  size_t layerCount = p.m_instances.size();
+  for (int i = 0; i < layerCount; ++i)
   {
-    static const float radius = 5.0f;
-    instance->currentTransform().setTranslation(cos(angle) * radius, /*5.0f + std::sin(angle * 15.0f) * 5.0f*/ 2.5f, sin(angle) * radius);
-    angle += 2 * 3.1415926 / p.m_instances.size();
+    size_t objectCount = p.m_instances[i].size();
+    for (int j = 0; j < objectCount; ++j)
+    {
+      static const float SeparationX = 1.7f * objectCount;
+      static const float SeparationY = 2.0f * layerCount;
+      p.m_instances[i][j]->currentTransform().setTranslation((-0.5 + float(j) / (objectCount - 1)) * SeparationX, 0.0f, (-0.5 + float(i) / (layerCount - 1)) * SeparationY);
+    }
   }
+#else
+angle = 0.0f;
+  for (int i = 0; i < p.m_instances.size(); ++i)
+  {
+    size_t objectCount = p.m_instances[i].size();
+    for (OpenGLInstance *instance : p.m_instances[i])
+    {
+       const float Radius = 4.0f;
+      instance->currentTransform().setTranslation(cos(angle) * Radius, 2.5f * i, sin(angle) * Radius);
+      angle += Karma::TwoPi / objectCount;
+    }
+  }
+#endif
 
   // Camera Selection
   KCamera3D *camera = 0;

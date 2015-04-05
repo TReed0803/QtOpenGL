@@ -18,7 +18,7 @@ enum DisplayBuffer
   NormalBuffer,
   VelocityBuffer,
   DiffuseBuffer,
-  FresnelBuffer,
+  MetallicBuffer,
   RoughnessBuffer,
   BufferCount
 };
@@ -49,7 +49,7 @@ void DebugGBufferPass::initialize()
     ":/resources/shaders/gbuffer/normal.frag",
     ":/resources/shaders/gbuffer/velocity.frag",
     ":/resources/shaders/gbuffer/diffuse.frag",
-    ":/resources/shaders/gbuffer/fresnel.frag",
+    ":/resources/shaders/gbuffer/metallic.frag",
     ":/resources/shaders/gbuffer/roughness.frag"
   };
 

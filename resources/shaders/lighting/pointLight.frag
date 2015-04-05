@@ -23,8 +23,7 @@ void main()
   // GBuffer Access
   highp vec3 viewPos  = viewPosition();
   highp vec3 normal   = normal();
-  highp vec3 diffuse  = diffuse();
-  highp vec4 specular = specular();
+  highp vec3 baseColor= baseColor();
 
   // Light Information
   highp vec3  lightVec   = vLightViewPosition - viewPos;
@@ -38,6 +37,6 @@ void main()
   attenuation *= saturate(1.0 - (lightDist / vLightAttenuation.w));
 
   // Execute Brdf
-  highp vec3 color = Brdf(diffuse, vLightDiffuse, lightDir, viewDir, normal);
-  fFragColor = vec4(attenuation * color, 1.0);
+  highp vec3 color = Brdf(baseColor, vLightDiffuse, lightDir, viewDir, normal);
+  fFragColor = vec4(rgb2l(attenuation * color), 1.0);
 }

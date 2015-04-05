@@ -14,9 +14,9 @@
 class OpenGLMaterialPrivate
 {
 public:
-  KColor m_diffuse;
-  KColor m_fresnel;
-  KVector2D m_roughness;
+  KVector3D m_baseColor;
+  float m_metallic;
+  float m_roughness;
   OpenGLUniformBufferObject m_buffer;
 };
 
@@ -61,10 +61,13 @@ void OpenGLMaterial::commit()
 
   // Send data to the GPU
   {
+    static const float MinValue = 1.0e-2f;
     OpenGLMaterialData *data = (OpenGLMaterialData*)p.m_buffer.mapRange(0, sizeof(OpenGLMaterialData), flags);
-    data->m_diffuse = Karma::ToGlm(p.m_diffuse);
-    data->m_fresnel = Karma::ToGlm(p.m_fresnel);
-    data->m_roughness = Karma::ToGlm(p.m_roughness);
+    data->m_baseColor = Karma::ToGlm(p.m_baseColor);
+    if (glm::length(data->m_baseColor) <= MinValue) data->m_baseColor = Karma::ToGlm(MinValue, MinValue, MinValue);
+    data->m_baseColor = glm::pow(data->m_baseColor, glm::vec3(2.2f));
+    data->m_metallic = p.m_metallic;
+    data->m_roughness = p.m_roughness * p.m_roughness;
     p.m_buffer.unmap();
   }
 
@@ -84,86 +87,86 @@ int OpenGLMaterial::objectId() const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void OpenGLMaterial::setDiffuse(float rgb)
+void OpenGLMaterial::setBaseColor(float rgb)
 {
   P(OpenGLMaterialPrivate);
-  p.m_diffuse.setRgb(rgb, rgb, rgb);
+  p.m_baseColor = KVector3D(rgb, rgb, rgb);
 }
 
-void OpenGLMaterial::setDiffuse(char r, char g, char b)
+void OpenGLMaterial::setBaseColor(float r, float g, float b)
 {
   P(OpenGLMaterialPrivate);
-  p.m_diffuse.setRgb(r, g, b);
+  p.m_baseColor = KVector3D(r, g, b);
 }
 
-void OpenGLMaterial::setDiffuse(float r, float g, float b)
+void OpenGLMaterial::setBaseColor(const KVector3D &color)
 {
   P(OpenGLMaterialPrivate);
-  p.m_diffuse.setRgbF(r, g, b);
+  p.m_baseColor = color;
 }
 
-void OpenGLMaterial::setDiffuse(const KColor &color)
-{
-  P(OpenGLMaterialPrivate);
-  p.m_diffuse = color;
-}
-
-const KColor &OpenGLMaterial::diffuse() const
+const KVector3D &OpenGLMaterial::baseColor() const
 {
   P(const OpenGLMaterialPrivate);
-  return p.m_diffuse;
+  return p.m_baseColor;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void OpenGLMaterial::setFresnel(float rgb)
+// Notes on Metallic Property:
+// Metallic is basically a direct correlation to F0 fresnel term.
+//
+// Dielectrics (Poor conduction materials)
+// --> Total Range: [0.02, 0.2]
+// --> Water/Rubber (0.02)
+// --> Plastic, Glass (0.04~0.045)
+// --> Crystalware, Gems (0.05~0.08)
+// --> Diamond-Like (0.1~0.2)
+//
+// Semiconductors (Conductivity between most metals/insulator)
+// --> Total Range: [0.2, 0.5]
+// --> Crystalline Silicon (0.345, 0.369, 0.426)
+//
+// Metals (Completly conductive materials)
+// --> Total Range: [0.5, 1.0]
+// --> Titanium (~0.496)
+// --> Chromium (~0.553)
+// --> Iron (~0.568)
+// --> Nickel (~0.598)
+// --> Platinum (~0.631)
+// --> Palladium (~0.694)
+// --> Copper (~0.710)
+// --> Gold (~0.716)
+// --> Zinc (~0.779)
+// --> Aluminum (~0.919)
+// --> Silver (~0.949)
+//
+// Because of this physical range, we will tend to clamp the
+// possible reflective values between [0.02~0.95]. In this case
+// I chose to clamp between [0.04~0.95] since I will not be modelling
+// water physically. But it might be worth playing around with.
+void OpenGLMaterial::setMetallic(float m)
 {
   P(OpenGLMaterialPrivate);
-  p.m_fresnel.setRgbF(rgb, rgb, rgb);
+  p.m_metallic = Karma::clamp(m, 0.0, 1.0);
 }
 
-void OpenGLMaterial::setFresnel(char r, char g, char b)
-{
-  P(OpenGLMaterialPrivate);
-  p.m_fresnel.setRgb(r, g, b);
-}
-
-void OpenGLMaterial::setFresnel(float r, float g, float b)
-{
-  P(OpenGLMaterialPrivate);
-  p.m_fresnel.setRgbF(r, g, b);
-}
-
-void OpenGLMaterial::setFresnel(const KColor &color)
-{
-  P(OpenGLMaterialPrivate);
-  p.m_fresnel = color;
-}
-
-const KColor &OpenGLMaterial::color() const
+float OpenGLMaterial::metallic() const
 {
   P(const OpenGLMaterialPrivate);
-  return p.m_fresnel;
+  return p.m_metallic;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void OpenGLMaterial::setRoughness(float xy)
+void OpenGLMaterial::setRoughness(float r)
 {
   P(OpenGLMaterialPrivate);
-  xy = xy * xy;
-  p.m_roughness = KVector2D(xy, xy);
+  p.m_roughness = Karma::clamp(r, 0.0f, 1.0f);
 }
 
-void OpenGLMaterial::setRoughness(float x, float y)
-{
-  P(OpenGLMaterialPrivate);
-  p.m_roughness = KVector2D(x * x, y * y);
-}
-
-const KVector2D &OpenGLMaterial::roughness() const
+float OpenGLMaterial::roughness() const
 {
   P(const OpenGLMaterialPrivate);
   return p.m_roughness;
 }
-

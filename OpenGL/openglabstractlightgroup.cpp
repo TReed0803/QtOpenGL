@@ -109,13 +109,13 @@ void OpenGLAbstractLightGroup::setMesh(const char *filepath)
 
 int &OpenGLAbstractLightGroup::FFactor()
 {
-  static int f = FSchlick;
+  static int f = FSphericalGaussian;
   return f;
 }
 
 int &OpenGLAbstractLightGroup::GFactor()
 {
-  static int g = GSmith;
+  static int g = GCookTorrance;
   return g;
 }
 

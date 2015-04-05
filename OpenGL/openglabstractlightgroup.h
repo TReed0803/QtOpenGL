@@ -19,6 +19,7 @@ enum FresnelFactor
   FNone,
   FSchlick,
   FCookTorrance,
+  FSphericalGaussian,
   FresnelCount
 };
 
@@ -29,6 +30,7 @@ static std::string FToCStr(int f)
   CASE(FNone);
   CASE(FSchlick);
   CASE(FCookTorrance);
+  CASE(FSphericalGaussian);
   }
 }
 

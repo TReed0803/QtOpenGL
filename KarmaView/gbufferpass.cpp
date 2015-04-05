@@ -25,9 +25,8 @@ public:
   // GBuffer
   OpenGLTexture m_gDepth;    // depth
   OpenGLTexture m_gGeometry; // normal normal vel vel
-  OpenGLTexture m_gMaterial; // diff diff diff spec
-  OpenGLTexture m_gSurface;  // exp
-  OpenGLTexture m_gPhysical; // fresnel fresnel fresnel roughness
+  OpenGLTexture m_gMaterial; // base base base metal
+  OpenGLTexture m_gSurface;  // rough
 };
 
 void GBufferPassPrivate::constructTexture(OpenGLTexture &t, OpenGLInternalFormat f, int width, int height)
@@ -74,18 +73,16 @@ void GBufferPass::resize(int width, int height)
   // GBuffer Texture Storage
   p.constructTexture(p.m_gDepth, OpenGLInternalFormat::Depth32F, width, height);   // Depth
   p.constructTexture(p.m_gGeometry, OpenGLInternalFormat::Rgba32F, width, height); // Normal Normal Velocity Velocity
-  p.constructTexture(p.m_gMaterial, OpenGLInternalFormat::Rgba8, width, height);   // Diffuse Diffuse Diffuse SpecularColor
-  p.constructTexture(p.m_gSurface, OpenGLInternalFormat::R8, width, height);       // SpecularExp
-  p.constructTexture(p.m_gPhysical, OpenGLInternalFormat::Rgba32F, width, height); // Fresnel Fresnel Fresnel Roughness
+  p.constructTexture(p.m_gMaterial, OpenGLInternalFormat::Rgba16, width, height);  // BaseColor BaseColor BaseColor Metallic
+  p.constructTexture(p.m_gSurface, OpenGLInternalFormat::R16, width, height);      // Roughness
 
   // GBuffer Framebuffer
   p.m_gFbo.bind();
   p.m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment0, p.m_gGeometry);
   p.m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment1, p.m_gMaterial);
   p.m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment2, p.m_gSurface);
-  p.m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::ColorAttachment3, p.m_gPhysical);
   p.m_gFbo.attachTexture2D(OpenGLFramebufferObject::TargetDraw, OpenGLFramebufferObject::DepthAttachment,  p.m_gDepth);
-  p.m_gFbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2, OpenGLFramebufferObject::ColorAttachment3);
+  p.m_gFbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0, OpenGLFramebufferObject::ColorAttachment1, OpenGLFramebufferObject::ColorAttachment2);
   p.m_gFbo.validate();
   p.m_gFbo.release();
 }
@@ -103,8 +100,6 @@ void GBufferPass::commit(OpenGLViewport &view)
   p.m_gMaterial.bind();
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits() + K_SURFACE_TEXTURE_BINDING);
   p.m_gSurface.bind();
-  GL::glActiveTexture(OpenGLTexture::beginTextureUnits() + K_PHYSICAL_TEXTURE_BINDING);
-  p.m_gPhysical.bind();
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
 }
 

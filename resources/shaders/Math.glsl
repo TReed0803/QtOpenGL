@@ -15,6 +15,7 @@
 #define XAxis vec3(1.0, 0.0, 0.0)
 #define YAxis vec3(0.0, 1.0, 0.0)
 #define ZAxis vec3(0.0, 0.0, 1.0)
+#define KWhite vec3(1.0, 1.0, 1.0)
 
 #include <GlobalBuffer.ubo>
 

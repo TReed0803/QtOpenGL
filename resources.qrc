@@ -22,8 +22,7 @@
         <file>resources/shaders/ubo/Hammersley.ubo</file>
         <file>resources/shaders/ubo/Material.ubo</file>
         <file>resources/shaders/ubo/Object.ubo</file>
-        <file>resources/shaders/gbuffer/ambient.frag</file>
-        <file>resources/shaders/gbuffer/fresnel.frag</file>
+        <file>resources/shaders/gbuffer/metallic.frag</file>
         <file>resources/shaders/gbuffer/roughness.frag</file>
         <file>resources/shaders/gbuffer/backbuffer.frag</file>
         <file>resources/shaders/gbuffer/depth.frag</file>
@@ -39,8 +38,6 @@
         <file>resources/shaders/gbuffer/motionBlur.frag</file>
         <file>resources/shaders/gbuffer/viewport.vert</file>
         <file>resources/shaders/gbuffer/viewport.frag</file>
-        <file>resources/shaders/lighting/ambient.frag</file>
-        <file>resources/shaders/lighting/ambient.vert</file>
         <file>resources/shaders/lighting/pointLight.frag</file>
         <file>resources/shaders/lighting/pointLight.vert</file>
         <file>resources/shaders/lighting/directionLight.frag</file>

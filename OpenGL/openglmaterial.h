@@ -1,8 +1,7 @@
 #ifndef   OPENGLMATERIAL_H
 #define   OPENGLMATERIAL_H OpenGLMaterial
 
-class KColor;
-class KVector2D;
+class KVector3D;
 #include <KSharedPointer>
 
 class OpenGLMaterialPrivate;
@@ -20,24 +19,20 @@ public:
   void release();
   int objectId() const;
 
-  // Diffuse
-  void setDiffuse(float rgb);
-  void setDiffuse(char r, char g, char b);
-  void setDiffuse(float r, float g, float b);
-  void setDiffuse(KColor const &color);
-  KColor const &diffuse() const;
+  // Base Color
+  void setBaseColor(float rgb);
+  void setBaseColor(float r, float g, float b);
+  void setBaseColor(KVector3D const &color);
+  KVector3D const &baseColor() const;
 
-  // Fresnel
-  void setFresnel(float rgb);
-  void setFresnel(char r, char g, char b);
-  void setFresnel(float r, float g, float b);
-  void setFresnel(KColor const &color);
-  KColor const &color() const;
+  // Metallic
+  void setMetallic(float m);
+  float metallic() const;
 
   // Roughness
-  void setRoughness(float xy);
-  void setRoughness(float x, float y);
-  KVector2D const &roughness() const;
+  void setRoughness(float r);
+  float roughness() const;
+
 
 private:
   KSharedPointer<OpenGLMaterialPrivate> m_private;

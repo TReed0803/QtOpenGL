@@ -17,8 +17,6 @@ layout(binding = K_GEOMETRY_TEXTURE_BINDING)
 uniform highp sampler2D geometryTexture;
 layout(binding = K_MATERIAL_TEXTURE_BINDING)
 uniform highp sampler2D materialTexture;
-layout(binding = K_PHYSICAL_TEXTURE_BINDING)
-uniform highp sampler2D physicalTexture;
 layout(binding = K_SURFACE_TEXTURE_BINDING)
 uniform highp sampler2D surfaceTexture;
 layout(binding = K_LIGHT_BUFFER_TEXTURE_BINDING)
@@ -88,26 +86,24 @@ highp vec3 normal()
   return normal(uvCoord());
 }
 
-highp vec3 diffuse(highp vec2 uv)
+highp vec3 baseColor(highp vec2 uv)
 {
-  return texture(materialTexture, uv).xyz;
+  return texture(materialTexture, uv).rgb;
 }
 
-highp vec3 diffuse()
+highp vec3 baseColor()
 {
-  return diffuse(uvCoord());
+  return baseColor(uvCoord());
 }
 
-highp vec4 specular(highp vec2 uv)
+highp float metallic(highp vec2 uv)
 {
-  highp vec3 specColor = decodeSpecularColor(texture(materialTexture, uv).w);
-  highp float specExponent = decodeSpecularExponent(texture(surfaceTexture, uv).r);
-  return vec4(specColor, specExponent);
+  return clamp(texture(materialTexture, uv).w, 0.02, 1.0);
 }
 
-highp vec4 specular()
+highp float metallic()
 {
-  return specular(uvCoord());
+  return metallic(uvCoord());
 }
 
 highp vec2 velocity(highp vec2 uv)
@@ -120,19 +116,9 @@ highp vec2 velocity()
   return velocity(uvCoord());
 }
 
-highp vec3 fresnel(highp vec2 uv)
-{
-  return texture(physicalTexture, uv).xyz;
-}
-
-highp vec3 fresnel()
-{
-  return fresnel(uvCoord());
-}
-
 highp float roughness(highp vec2 uv)
 {
-  return max(texture(physicalTexture, uv).w, 0.001);
+  return max(texture(surfaceTexture, uv).x, 0.01);
 }
 
 highp float roughness()

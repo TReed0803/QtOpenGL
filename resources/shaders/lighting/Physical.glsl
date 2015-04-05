@@ -4,34 +4,42 @@
  * Physically-Based lighting calculations.
  ******************************************************************************/
 
- #ifndef PHYSICAL_GLSL
- #define PHYSICAL_GLSL
+#ifndef PHYSICAL_GLSL
+#define PHYSICAL_GLSL
 
 #include <Math.glsl>
 
-// Forward Declarations
-vec3 F(float NoL);
-
 ////////////////////////////////////////////////////////////////////////////////
 // F: Fresnel Factors
-// Notes: fresnel() = F0(0 degrees)
-//   The Fresnel is the amount
+// Notes:
+//   F0 is the reflectance at an angle of incidence 0 degrees.
+//   (eg. the light is directly hitting the material)
+//   In our physically-based shading model, we represent metallic() as the F0
+//   term. We could also call it fresnel, but these terms are somewhatly
+//   interchangeable. As F0 goes up, we have more metallic objects.
+//
+// General Equation for Fresnel:
+     float F(float VoH);
+//
 ////////////////////////////////////////////////////////////////////////////////
-vec3 FNone(float NoL)
+
+float FNone(float VoH)
 {
-  return fresnel();
+  return metallic();
 }
 
-vec3 FSchlick(float NoL)
+float FSchlick(float VoH)
 {
-  return fresnel() + (vec3(1.0) - fresnel()) * pow(1.0 - NoL, 5.0);
+  float Kmetallic = metallic();
+  return Kmetallic + (1.0 - Kmetallic) * pow(1.0 - VoH, 5.0);
 }
 
-vec3 FCookTorrance(float NoL)
+float FCookTorrance(float VoH)
 {
   // Preparation
-  float c = NoL;
-  float n = (1.0 + sqrt(fresnel().x)) / (1.0 - sqrt(fresnel().x));
+  float c = VoH;
+  float Kmetallic = sqrt(metallic());
+  float n = (1.0 + Kmetallic) / (1.0 - Kmetallic);
   float g = sqrt(n * n - 1.0 + c * c);
 
   // Helpers
@@ -43,12 +51,30 @@ vec3 FCookTorrance(float NoL)
   float factor1 = 1 + (gPc1 * gPc1) / (gMc1 * gMc1);
 
   // End Result
-  return vec3(0.5 * factor0 * factor1);
+  return 0.5 * factor0 * factor1;
+}
+
+float FSphericalGaussian(float VoH)
+{
+  float Kmetallic = metallic();
+  return Kmetallic + (1.0 - Kmetallic) * pow(2.0, (-5.55473 * VoH - 6.98316) * VoH);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // G: Geometry Occlusion
 // Notes:
+//   Geometry Occlusion is a microfacet approximation to the amount of the
+//   surface which undergoes self-shadowing. As you could imagine, some of the
+//   more complete approximations take roughness() of the material into
+//   consideration. However, the more complete a calculation is the more
+//   expensive it becomes (though it looks more physically accurate). I've found
+//   Beckmann to be the best looking approximation, but also the most expensive.
+//   Generally GKelemen looks pretty similar to Smith-Ggx, but it is not
+//   continuous in the second-derivative. So instead I recommend Smith.
+//
+// General Equation for Geometry Occlusion:
+     float G(float NoL, float NoV, float NoH, float VoH);
+//
 ////////////////////////////////////////////////////////////////////////////////
 float GImplicit(float NoL, float NoV, float NoH, float VoH)
 {
@@ -76,14 +102,12 @@ float GKelemen(float NoL, float NoV, float NoH, float VoH)
 
 float GSmithBeckmann_(float NoV, float VoH)
 {
-  float Krough2 = roughness() * roughness();
-  float c = 1.0 / (Krough2 * (NoV - 1.0));
+  float c = 1.0 / (roughness() * sqrt(1.0 + 1.0 / NoV));
   float c2 = c * c;
   float final = (3.535 * c + 2.181 * c2) / (1.0 + 2.276 * c + 2.577 * c2);
-
-  // If c < 1.6, return 1.0, otherwise return 0.0
-  float ifCheck = 1.0 - step(1.6, c);
-  return (ifCheck * final) + (1.0 - ifCheck);
+  float base = saturate(VoH / NoV);
+  if (c < 1.6) return base * final;
+  return base;
 }
 
 float GSmithBeckmann(float NoL, float NoV, float NoH, float VoH)
@@ -125,9 +149,24 @@ float GSmith(float NoL, float NoV, float NoH, float VoH)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// D: Microfacet Normal Distribution Functions (NDF)
-// Notes: Krough = Roughness parameter
+// D: Microfacet Normal Distribution (NDF)
+// Notes:
+//   The other property we need to approximate is the distribution of the
+//   current incident light across our microfacet surface. At any angle, we
+//   should be able to integrate to get 1, which makes sense because at any
+//   angle we should be able to see a whole surface (eg. never more surface than
+//   we expect to see, or less for that matter). The NDF allows us to see the
+//   probability that the incident light reflects back at us. As one would
+//   imagine, similarly to Geometry Occlusion, the best approximations take the
+//   roughness of the material into consideration. (I haven't seen one that
+//   doesn't, actually.) I tend to prefer Ggx for it's simplicity. Though again,
+//   Beckmann looks nicer, Ggx is just faster and not too different looking.
+//
+// General Equation for Micofacet Normal Distribution:
+     float D(float NoH);
+//
 ////////////////////////////////////////////////////////////////////////////////
+
 float DPhong(float NoH)
 {
   float Krough2 = roughness() * roughness();
@@ -160,9 +199,27 @@ float DGgx(float NoH)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// DSample: NDF Sampling Functions
+// S: CDF Sampling
 // Notes:
+//   When doing reflective materials, we tend to sample along a particular
+//   cumulative distribution. This is a direct correlation to the NDFs above,
+//   and can be found by integrating with respects to some point <x, y>. The
+//   idea is if we have a random point E, we skew the randomness of the values
+//   towards a particular distribution. Again Beckmann is best, but in this
+//   case the performance difference between Beckmann and Ggx is minimal. Not to
+//   mention that (in a a less dynamic application) the selection/skewing of
+//   random points can be precalculated - I recommend Beckmann's integral. What
+//   this means is that for IBL, you are using Beckmann distribution, but
+//   regular lights use Ggx. This tends to look the most physically accurate,
+//   and represents a wider spread of metal reflectiveness that appears more
+//   appropriate.
+//
+// General Equation for CDF Sampling:
+     vec3 S(vec2 E);
+//
 ////////////////////////////////////////////////////////////////////////////////
+
+// Helper function (make skewed point into vec3 direction)
 vec3 MakeSample(float Theta, float Phi)
 {
   Phi += randAngle();
@@ -177,8 +234,8 @@ vec3 MakeSample(float Theta, float Phi)
 
 vec3 DPhongSample(vec2 E)
 {
-  float ap = (2.0 / (roughness() * roughness())) - 2.0;
-  float Theta = acos(pow(E.x, 2.0 / (ap + 2.0))) / pi2;
+  float ap = (2.0 / roughness()) - 2.0;
+  float Theta = acos(pow(E.x, 2.0 / (ap + 2.0))) / (pi2 * pi2);
   float Phi = pi2 * E.y;
   return MakeSample(Theta, Phi);
 }
@@ -200,21 +257,57 @@ vec3 DGgxSample(vec2 E)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Kd: Diffuse Energy Ratio
+// K: Diffuse Energy
+// Notes:
+//   When you have a very reflective material, diffuse tends to approach 0 since
+//   all of the light energy bounces off the material. A simple approximation to
+//   this is by taking (1 - F0) at different angles of incidence. The amount of
+//   energy conserved is a product of the light's incident angle to/from the
+//   observer, so better approximations take NoL and NoV into consideration.
+//   Disney has a novel approach that basically recalculates the incident
+//   light according the Schlick's Approximation using varying F0 terms based on
+//   the roughness of the object. This would make sense because as an object
+//   becomes more rough, the light bounces around the microfacet more, losing
+//   it's  intensity ever-so slightly with each bounce.
+//
+// General Diffuse Energy Conservation Function:
+     float K(float NoL, float NoV);
+//
 ////////////////////////////////////////////////////////////////////////////////
-vec3 KNone(float NoL)
+
+// Helper for Disney's roughness conservation approximation
+// Originally: Fd90 = 0.5 + 2 * cos(incident) * roughness
+// But it's use within K() always subtracts one, so I simply propagated this
+// subtraction into the constant 0.5 above. It's the same equation in the end.
+float Fd90(float NoL)
 {
-  return vec3(1.0);
+  return 2.0 * NoL * roughness() + 0.4;
 }
 
-vec3 KActual(float NoL)
+float KNone(float NoL, float NoV)
 {
-  return vec3(1.0) - F(NoL);
+  return 1.0;
 }
 
-vec3 KFresnel(float NoL)
+float KActual(float NoL, float NoV)
 {
-  return vec3(1.0) - fresnel();
+  return (1.0 - F(NoL)) * (1.0 - F(NoV));
+}
+
+float KFresnel(float NoL, float NoV)
+{
+  return 1.0 - F(NoL);
+}
+
+float KDifference(float NoL, float NoV)
+{
+  return 1.0 - metallic();
+}
+
+float KDisney(float NoL, float NoV)
+{
+  return (1.0 + Fd90(NoL) * pow(1.0 - NoL, 5.0)) *
+         (1.0 + Fd90(NoV) * pow(1.0 - NoV, 5.0));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -232,7 +325,7 @@ vec3 KFresnel(float NoL)
 #else // GL_ES
 
 // Declaration
-subroutine vec3 FresnelSubroutine(float LoH);
+subroutine float FresnelSubroutine(float LoH);
 subroutine float GeometrySubroutine(float NoL, float NoV, float NoH, float VoH);
 subroutine float DistributionSubroutine(float NoH);
 subroutine vec3 DistributionSampleSubroutine(vec2 lightDir);
@@ -244,19 +337,24 @@ subroutine uniform DistributionSampleSubroutine uDistributionSample;
 
 // Fresnel Definitions
 subroutine(FresnelSubroutine)
-vec3 sFNone(float LoH)
+float sFNone(float LoH)
 {
   return FNone(LoH);
 }
 subroutine(FresnelSubroutine)
-vec3 sFSchlick(float LoH)
+float sFSchlick(float LoH)
 {
   return FSchlick(LoH);
 }
 subroutine(FresnelSubroutine)
-vec3 sFCookTorrance(float LoH)
+float sFCookTorrance(float LoH)
 {
   return FCookTorrance(LoH);
+}
+subroutine(FresnelSubroutine)
+float sFSphericalGaussian(float LoH)
+{
+  return FSphericalGaussian(LoH);
 }
 
 // Geometry Definitions
@@ -342,7 +440,7 @@ vec3 sDGgxSample(vec2 random)
 // Notes: The following defines will be set dynamically, to allow for selecting
 //        different combinations of different factors through C++ code.
 ////////////////////////////////////////////////////////////////////////////////
-vec3 F(float NoL)
+float F(float NoL)
 {
   return uFresnel(NoL);
 }
@@ -362,14 +460,11 @@ vec3 S(vec2 random)
   return uDistributionSample(random);
 }
 
-vec3 K(float NoL)
+// Note: For some reason, possibly a driver error, I cannot create a subroutine
+//       for this term. Hopefully after an update I will be able to do so.
+float K(float NoL, float NoV)
 {
-  return KActual(NoL);
-}
-
-vec3 f(float NoL, float NoV, float NoH, float VoH)
-{
-  return F(NoL) * G(NoL, NoV, NoH, VoH) * D(NoH);
+  return KDisney(NoL, NoV);
 }
 
 float Pdf(float NoL, float NoV)
@@ -380,9 +475,31 @@ float Pdf(float NoL, float NoV)
 ////////////////////////////////////////////////////////////////////////////////
 // Complete Brdf
 ////////////////////////////////////////////////////////////////////////////////
-vec3 Brdf(vec3 Kd, vec3 Li, float NoL, float NoV, float NoH, float VoH)
+
+vec3 BlendDielectric(vec3 Kdiff, vec3 Kspec, vec3 Kbase)
 {
-  return K(NoL) * Kd / pi + f(NoL, NoV, NoH, VoH) * Li * NoL / Pdf(NoL, NoV);
+  return Kdiff + Kspec;
+}
+
+vec3 BlendMetal(vec3 Kdiff, vec3 Kspec, vec3 Kbase)
+{
+  return Kspec * Kbase;
+}
+
+vec3 BlendMaterial(vec3 Kdiff, vec3 Kspec)
+{
+  vec3  Kbase = baseColor();
+  float scRange = smoothstep(0.2, 0.45, metallic());
+  vec3  dielectric = BlendDielectric(Kdiff, Kspec, Kbase);
+  vec3  metal = BlendMetal(Kdiff, Kspec, Kbase);
+  return mix(dielectric, metal, scRange);
+}
+
+vec3 Brdf(vec3 Kd, float NoL, float NoV, float NoH, float VoH)
+{
+  vec3  Kdiff  = Kd / pi;
+  float Kspec = F(VoH) * G(NoL, NoV, NoH, VoH) * D(NoH) / Pdf(NoL, NoV);
+  return BlendMaterial(Kdiff, vec3(Kspec));
 }
 
 vec3 Brdf(vec3 Kd, vec3 Li, vec3 L, vec3 V, vec3 N)
@@ -392,7 +509,7 @@ vec3 Brdf(vec3 Kd, vec3 Li, vec3 L, vec3 V, vec3 N)
   float NoV = saturate(dot(N, V));
   float NoH = saturate(dot(N, H));
   float VoH = saturate(dot(V, H));
-  return Brdf(Kd, Li, NoL, NoV, NoH, VoH);
+  return Brdf(Kd, NoL, NoV, NoH, VoH) * Li * NoL;
 }
 
 #endif // PHYSICAL_GLSL

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * lighting/pointLight.frag
+ * lighting/shadowDirectionLight.frag
  *------------------------------------------------------------------------------
  * Apply the lighting calculation to a given fragment of incident light.
  * Uses GBuffer information to access statistics about the scene itself.
@@ -16,8 +16,8 @@ void main()
   // GBuffer Access
   highp vec3 viewPos = viewPosition();
   highp vec3 normal   = normal();
-  highp vec3 diffuse  = diffuse();
-  highp vec4 specular = specular();
+  highp vec3 diffuse  = baseColor();
+  highp vec4 specular = vec4(metallic());
 
   // Blinn Phong
   highp float lambertian = max(dot(Light.ViewDirection, normal), 0.0);

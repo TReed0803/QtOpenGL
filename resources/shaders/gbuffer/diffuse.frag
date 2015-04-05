@@ -3,5 +3,5 @@ out highp vec4 fColor;
 
 void main()
 {
-  fColor = vec4(diffuse(), 1.0);
+  fColor = vec4(baseColor(), 1.0);
 }

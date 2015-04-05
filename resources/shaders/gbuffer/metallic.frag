@@ -3,5 +3,5 @@ out highp vec4 fColor;
 
 void main()
 {
-  fColor = vec4(fresnel(), 1.0);
+  fColor = vec4(metallic());
 }
