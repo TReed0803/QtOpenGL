@@ -24,6 +24,7 @@ uniform CurrentRenderBlock
   highp float FarPlane;
   highp float DiffPlane;
   highp float SumPlane;
+  highp float Exposure;
 } Current;
 
 layout(binding = K_PREVIOUS_VIEW_BINDING, std140)
@@ -41,6 +42,7 @@ uniform PreviousRenderBlock
   highp float FarPlane;
   highp float DiffPlane;
   highp float SumPlane;
+  highp float Exposure;
 } Previous;
 
 #endif // GLOBALBUFFER_UBO

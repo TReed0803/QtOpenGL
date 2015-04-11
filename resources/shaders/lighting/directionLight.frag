@@ -21,5 +21,5 @@ void main()
 {
   vec3 viewDir  = normalize(-viewPosition());
   vec3 color = Brdf(baseColor(), vLightDiffuse, vLightDirection, viewDir, normal());
-  fFragColor = vec4(rgb2l(color * (1.0 - linearDepth())), 1.0);
+  fFragColor = vec4(max(color * (1.0 - linearDepth()), 0.0), 1.0);
 }

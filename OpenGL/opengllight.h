@@ -13,11 +13,11 @@ public:
   void setAttenuation(KVector3D const &attn);
   KVector3D const &attenuation() const;
   void setDiffuse(float r, float g, float b);
-  void setDiffuse(KColor const &rgb);
-  KColor const &diffuse() const;
+  void setDiffuse(KVector3D const &rgb);
+  KVector3D const &diffuse() const;
   void setSpecular(float r, float g, float b);
-  void setSpecular(KColor const &rgb);
-  KColor const &specular() const;
+  void setSpecular(KVector3D const &rgb);
+  KVector3D const &specular() const;
   void setShadowCasting(bool sc);
   bool shadowCasting() const;
 
@@ -45,8 +45,8 @@ public:
 protected:
   bool m_shadowCasting;
   KVector3D m_attenuation;
-  KColor m_diffuse;
-  KColor m_specular;
+  KVector3D m_diffuse;
+  KVector3D m_specular;
 };
 
 inline void OpenGLLight::setAttenuation(float c, float ex1, float ex2)
@@ -66,30 +66,30 @@ inline KVector3D const &OpenGLLight::attenuation() const
 
 inline void OpenGLLight::setDiffuse(float r, float g, float b)
 {
-  setDiffuse(KColor(r, g, b));
+  setDiffuse(KVector3D(r, g, b));
 }
 
-inline void OpenGLLight::setDiffuse(KColor const &rgb)
+inline void OpenGLLight::setDiffuse(KVector3D const &rgb)
 {
   m_diffuse = rgb;
 }
 
-inline KColor const &OpenGLLight::diffuse() const
+inline KVector3D const &OpenGLLight::diffuse() const
 {
   return m_diffuse;
 }
 
 inline void OpenGLLight::setSpecular(float r, float g, float b)
 {
-  setSpecular(KColor(r, g, b));
+  setSpecular(KVector3D(r, g, b));
 }
 
-inline void OpenGLLight::setSpecular(KColor const &rgb)
+inline void OpenGLLight::setSpecular(KVector3D const &rgb)
 {
   m_specular = rgb;
 }
 
-inline KColor const &OpenGLLight::specular() const
+inline KVector3D const &OpenGLLight::specular() const
 {
   return m_specular;
 }

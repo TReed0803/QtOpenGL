@@ -91,6 +91,12 @@ void OpenGLScene::renderGeometry()
   p.m_instanceManager.render();
 }
 
+void OpenGLScene::renderAllGeometry()
+{
+  P(OpenGLScenePrivate);
+  p.m_instanceManager.renderAll();
+}
+
 void OpenGLScene::renderLights()
 {
   P(OpenGLScenePrivate);

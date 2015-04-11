@@ -3,6 +3,7 @@
 #include <KHalfEdgeMesh>
 #include <OpenGLShaderProgram>
 #include <OpenGLBlurData>
+#include <OpenGLBindings>
 
 bool OpenGLAbstractLightGroup::create()
 {
@@ -25,7 +26,7 @@ bool OpenGLAbstractLightGroup::create()
   m_shadowTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
   m_shadowTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
   m_shadowTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  m_shadowTexture.setSize(800, 600);
+  m_shadowTexture.setSize(1024, 768);
   m_shadowTexture.allocate();
   m_shadowTexture.release();
 
@@ -38,7 +39,7 @@ bool OpenGLAbstractLightGroup::create()
   m_blurTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
   m_blurTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
   m_blurTexture.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  m_blurTexture.setSize(800, 600);
+  m_blurTexture.setSize(1024, 768);
   m_blurTexture.allocate();
   m_blurTexture.release();
 
@@ -51,7 +52,7 @@ bool OpenGLAbstractLightGroup::create()
   m_shadowDepth.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
   m_shadowDepth.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
   m_shadowDepth.setFilter(OpenGLTexture::Minification, OpenGLTexture::Nearest);
-  m_shadowDepth.setSize(800, 600);
+  m_shadowDepth.setSize(1024, 768);
   m_shadowDepth.allocate();
   m_shadowDepth.release();
 
@@ -70,14 +71,12 @@ bool OpenGLAbstractLightGroup::create()
   m_blurData.bind();
   m_blurData.allocate(&data, sizeof(OpenGLBlurData));
   m_blurData.release();
-  m_blurData.bindBase(4);
 
   // Create the Compute Blur Program
   m_blurProgram = new OpenGLShaderProgram;
   m_blurProgram->addShaderFromSourceFile(QOpenGLShader::Compute, ":/resources/shaders/compute/gaussianBlur.comp");
   m_blurProgram->link();
   m_blurProgram->bind();
-  m_blurProgram->uniformBlockBinding("BlurData", 4);
   m_blurProgram->setUniformValue("src", 0);
   m_blurProgram->setUniformValue("dst", 1);
   m_blurProgram->release();
@@ -109,13 +108,13 @@ void OpenGLAbstractLightGroup::setMesh(const char *filepath)
 
 int &OpenGLAbstractLightGroup::FFactor()
 {
-  static int f = FSphericalGaussian;
+  static int f = FSchlick;
   return f;
 }
 
 int &OpenGLAbstractLightGroup::GFactor()
 {
-  static int g = GCookTorrance;
+  static int g = GSmithSchlickBeckmann;
   return g;
 }
 

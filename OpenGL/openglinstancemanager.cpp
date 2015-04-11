@@ -53,6 +53,7 @@ public:
   InstanceIterator m_begin, m_end;
   void commit(const OpenGLViewport &view);
   void render() const;
+  void renderAll() const;
 };
 
 void OpenGLInstanceManagerPrivate::commit(const OpenGLViewport &view)
@@ -97,6 +98,27 @@ void OpenGLInstanceManagerPrivate::render() const
   }
 }
 
+void OpenGLInstanceManagerPrivate::renderAll() const
+{
+  int currMat  = 0;
+  int currMesh = 0;
+  for (OpenGLInstance *instance : m_instances)
+  {
+    if (currMesh != instance->mesh().objectId())
+    {
+      instance->mesh().bind();
+      currMesh = instance->mesh().objectId();
+    }
+    if (currMat != instance->material().objectId())
+    {
+      instance->material().bind();
+      currMat = instance->material().objectId();
+    }
+    instance->bind();
+    instance->mesh().draw();
+  }
+}
+
 OpenGLInstanceManager::OpenGLInstanceManager() :
   m_private(new OpenGLInstanceManagerPrivate)
 {
@@ -123,6 +145,12 @@ void OpenGLInstanceManager::render() const
 {
   P(const OpenGLInstanceManagerPrivate);
   p.render();
+}
+
+void OpenGLInstanceManager::renderAll() const
+{
+  P(const OpenGLInstanceManagerPrivate);
+  p.renderAll();
 }
 
 OpenGLInstance *OpenGLInstanceManager::createInstance()

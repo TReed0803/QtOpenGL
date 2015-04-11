@@ -19,6 +19,16 @@
 namespace Karma
 {
 
+  inline float saturate(float value)
+  {
+    return std::min(1.0f, std::max(0.0f, value));
+  }
+
+  inline KVector3D saturate(KVector3D const& value)
+  {
+    return KVector3D(saturate(value.x()), saturate(value.y()), saturate(value.z()));
+  }
+
   enum PolygonType
   {
     CoplanarPolygon,

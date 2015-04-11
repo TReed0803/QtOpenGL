@@ -15,6 +15,7 @@
 #include <OpenGLFramebufferObject>
 #include <OpenGLDebugDraw>
 #include <KPoint>
+#include <OpenGLBindings>
 
 class OpenGLRenderBlock;
 
@@ -187,33 +188,40 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
   if (m_lights.empty()) return;
 
   // Activate the shadow texture
-  GL::glActiveTexture(GL_TEXTURE0);
+  GL::glActiveTexture(GL_TEXTURE0 + K_TEXTURE_0);
   m_shadowTexture.bind();
 
   // Render each shadow light
   for (size_t i = 0; i < m_numShadowLights; ++i)
   {
-    m_uniforms.bindRange(BufferType::UniformBuffer, 3, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
+    int W = 1024;
+    int H = 768;
+    m_uniforms.bindRange(BufferType::UniformBuffer, K_LIGHT_BINDING, static_cast<int>(m_uniformOffset * i), static_cast<int>(sizeof(DataType)));
 
     // Draw from Light's Perspective
     OpenGLFramebufferObject::push();
     GL::pushViewport();
-      GL::glViewport(0, 0, 800, 600);
+    GL::glDisable(GL_CULL_FACE);
+      GL::glViewport(0, 0, W, H);
       m_shadowMappingFbo.bind();
       m_shadowMappingLight->bind();
       GL::glClearColor(std::numeric_limits<float>::infinity(), 1.0, 1.0f, 1.0f);
       GL::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       GL::glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-      scene.renderGeometry();
+      scene.renderAllGeometry();
       m_shadowMappingLight->release();
     GL::popViewport();
+    GL::glEnable(GL_CULL_FACE);
     OpenGLFramebufferObject::pop();
 
     // Next: Blur the shadow map
-    int W = 800;
-    int H = 600;
+    OpenGLBlurData data(4, 4.0f);
+    m_blurData.bind();
+    m_blurData.allocate(&data, sizeof(OpenGLBlurData));
+    m_blurData.release();
     GLint loc = m_blurProgram->uniformLocation("Direction");
     m_blurProgram->bind();
+    m_blurData.bindBase(K_BLUR_BINDING);
     GL::glBindImageTexture(0, m_shadowTexture.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
     GL::glBindImageTexture(1, m_blurTexture.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
     GL::glUniform2i(loc, 1, 0);
@@ -235,6 +243,8 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
       GL::glEnable(GL_DEPTH_TEST);
       m_shadowCastingLight->release();
     m_mesh.release();
+
+    //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0, 0.0, 1.0f, 1.0f), m_shadowTexture);
   }
 }
 

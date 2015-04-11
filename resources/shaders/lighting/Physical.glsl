@@ -171,7 +171,7 @@ float DPhong(float NoH)
 {
   float Krough2 = roughness() * roughness();
   float ap = (2.0 / Krough2) - 2.0;
-  return NoH * ((ap + 2.0) / pi2) * pow(NoH, ap);
+  return saturate(NoH) * ((ap + 2.0) / pi2) * pow(NoH, ap);
 }
 
 float DBeckmann(float NoH)

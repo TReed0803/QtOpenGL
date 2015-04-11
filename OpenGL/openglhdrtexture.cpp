@@ -17,7 +17,7 @@ public:
 };
 
 OpenGLHdrTextureLoaderPrivate::OpenGLHdrTextureLoaderPrivate(OpenGLTexture *texture) :
-  m_texture(texture)
+  m_texture(texture), m_toneMapping(0)
 {
   // Intentionally Empty
 }
@@ -67,8 +67,8 @@ void OpenGLHdrTextureLoader::endData()
     for (int i=0;  i<p.m_width; i++)
     {
       RgbF &color = reinterpret_cast<RgbF&>(p.m_textureData[jk + i * 3]);
-      color = (*p.m_toneMapping)(color);
-      color = std::pow(color, 2.2f); // Gamma Correction
+      if (p.m_toneMapping) color = (*p.m_toneMapping)(color);
+      //color = std::pow(color, 2.2f); // Gamma Correction
     }
   }
 

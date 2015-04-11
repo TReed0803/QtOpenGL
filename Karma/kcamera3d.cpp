@@ -91,6 +91,16 @@ float KCamera3D::fieldOfView() const
   return m_fovy;
 }
 
+void KCamera3D::setExposure(float e)
+{
+  m_exposure = e;
+}
+
+float KCamera3D::exposure() const
+{
+  return m_exposure;
+}
+
 void KCamera3D::clean() const
 {
   if (m_dirty)

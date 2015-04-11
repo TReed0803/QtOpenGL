@@ -206,24 +206,51 @@ SampleScene::~SampleScene()
   // Intentionally Empty
 }
 
+static KVector3D k2rgb(int k)
+{
+  KVector3D color;
+  if (k > 6645)
+  {
+    color.setX(1900 / float(k - 3050) + 0.295);
+  }
+  else
+  {
+    color.setX(1.0f);
+  }
+
+  if (k <= 6595)
+  {
+    color.setY(std::pow(k, 0.50276f) / 54.0f - 0.57f);
+  }
+  else
+  {
+    color.setY(1900 / float(k - 3050) + 0.435f);
+  }
+  color.setY(Karma::saturate(color.y()));
+
+  color.setZ(std::pow(float(k + 38000) / 40000, 6.45f) - 1.0f);
+  color.setZ(Karma::saturate(color.z()));
+
+  return color;
+}
+
 void SampleScene::start()
 {
   OpenGLScene::start();
   P(SampleScenePrivate);
 
   // Initialize the camera
-  p.m_camera.setTranslation(0.0f, -20.0f, 0.0f);
-  p.m_camera.setRotation(90.0f, 1.0f, 0.0f, 0.0f);
+  p.m_camera.setTranslation(0.0f, 5.0f, 5.0f);
   p.m_viewport.create();
   p.m_viewport.setCamera(p.m_camera);
   p.m_viewport.activate();
 
   // Initialize the Direction Light Group
-  for (int i = 0; i < 1; ++i)
+  for (int i = 0; i < 0; ++i)
   {
-    static const float Intensity = 1.0f;
+    static const float Intensity = 0.1f;
     OpenGLDirectionLight *light = createDirectionLight();
-    light->setDiffuse(Intensity, Intensity, Intensity);
+    light->setDiffuse(Intensity * k2rgb(1700));
     light->setSpecular(0.1f, 0.1f, 0.1f);
   }
 
@@ -238,14 +265,15 @@ void SampleScene::start()
   }
 
   // Initialize the Spot Light Group
-  for (int i = 0; i < 0; ++i)
+  for (int i = 0; i < 3; ++i)
   {
+    const float Intensity = 1000.0f;
     OpenGLSpotLight *light = createSpotLight();
-    light->setAttenuation(1.0f, 0.01f, 0.0f);
+    light->setAttenuation(1.0f, 0.5f, 0.1f);
     light->setShadowCasting(true);
-    light->setInnerAngle(40.0f);
+    light->setInnerAngle(0.0f);
     light->setOuterAngle(45.0f);
-    light->setDiffuse(1.0f, 1.0f, 1.0f);
+    light->setDiffuse(Intensity * k2rgb(2500 + 2500 * i));
     light->setDepth(25.0f);
   }
 
@@ -260,24 +288,25 @@ void SampleScene::start()
   // Create the floor material
   OpenGLMaterial floorMaterial;
   floorMaterial.create();
-  floorMaterial.setBaseColor(132.0f / 255.0f, 21.0f / 255.0f, 176.0f / 255.0f);
-  floorMaterial.setMetallic(0.2f);
-  floorMaterial.setRoughness(0.4f);
+  //floorMaterial.setBaseColor(132.0f / 255.0f, 45.0f / 255.0f, 176.0f / 255.0f);
+  floorMaterial.setBaseColor(0.6f);
+  floorMaterial.setMetallic(0.25f);
+  floorMaterial.setRoughness(0.8f);
 
   // Note: Currently there is no Material System.
   //       All material properties are per-instance.
-  /*
+  //*
   OpenGLInstance *floor = createInstance();
   floor->setMesh(floorMeshGL);
   floor->setMaterial(floorMaterial);
-  floor->transform().setScale(1000.0f);
+  floor->transform().setScale(10.0f);
   floor->transform().setTranslation(0.0f, -1.0f, 0.0f);
   //*/
 
   // Create instance data
 #ifdef MULTI_MESH
-  static const int MetallicCount = 4;
-  static const int RoughnessCount = 8;
+  static const int MetallicCount = 3;
+  static const int RoughnessCount = 3;
   p.m_instances.resize(MetallicCount + 1);
   for (int i = 0; i <= MetallicCount; ++i)
   {
@@ -285,10 +314,11 @@ void SampleScene::start()
     {
       OpenGLMaterial material;
       material.create();
-      material.setBaseColor(255.0f / 255.0f, 191.0f / 255.0f, 0.0f / 255.0f);
-      material.setBaseColor(1.0f, 0.3f, 0.3f);
+      //material.setBaseColor(255.0f / 255.0f, 191.0f / 255.0f, 0.0f / 255.0f);
+      //material.setBaseColor(1.0f, 0.3f, 0.3f);
+      material.setBaseColor(0.9f);
       material.setMetallic(float(i) / MetallicCount);
-      material.setRoughness(float(j) / RoughnessCount);
+      material.setRoughness(0.1 + float(j) / RoughnessCount);
       OpenGLInstance *instance = createInstance();
       instance->setMaterial(material);
       p.m_instances[i].push_back(instance);
@@ -299,13 +329,14 @@ void SampleScene::start()
   // Create the instance material
   OpenGLMaterial material;
   material.create();
-  material.setBaseColor(0.01f);
-  material.setMetallic(0.02f);
-  material.setRoughness(0.1f);
+  material.setBaseColor(1.0f, 0.3f, 0.3f);
+  material.setMetallic(0.8f);
+  material.setRoughness(0.67f);
 
   // Create the instance
   OpenGLInstance *instance = createInstance();
   instance->setMaterial(material);
+  instance->currentTransform().scale(5.0f);
   p.m_instances.resize(1);
   p.m_instances[0].push_back(instance);
 
@@ -323,9 +354,10 @@ void SampleScene::start()
   //          environment maps. At the time, this must be hardcoded. (Will have to find a fix later.)
   //          This means the code will only run on my machine unless you change the path.
   OpenGLEnvironment *env = environment();
-  env->setToneMappingFunction(new OpenGLStandardToneMapping(1.0f, 2.2f));
   env->setDirect(":/resources/images/AlexsApt.hdr");
   env->setIndirect(":/resources/images/AlexsApt_Env.hdr");
+  env->setDirect("C:/Users/Trent/Downloads/Maps/Ice_Lake.hdr");
+  env->setIndirect("C:/Users/Trent/Downloads/Maps/Ice_Lake_Env.hdr");
 }
 
 void SampleScene::update(KUpdateEvent *event)
@@ -336,7 +368,6 @@ void SampleScene::update(KUpdateEvent *event)
   // Update Lights (Scene update)
   static float f = 0.0f;
   f += 0.0016f;
-  f = 0.0f;
   float angle = f;
   for (OpenGLDirectionLight *light : directionLights())
   {
@@ -352,9 +383,9 @@ void SampleScene::update(KUpdateEvent *event)
 
   for (OpenGLSpotLight *instance : spotLights())
   {
-    static const float radius = 5.0f;
-    instance->setTranslation(cos(angle) * radius, /*5.0f + std::sin(angle * 15.0f) * 5.0f*/ 2.5f, sin(angle) * radius);
-    instance->setDirection(-instance->translation().normalized());
+    static const float radius = 15.0f;
+    instance->setTranslation(cos(angle) * radius, 5.0f /*+ std::abs(std::sin(angle * 15.0f)) * 10.0f*/, sin(angle) * radius);
+    instance->setDirection((KVector3D(0.0f, -5.0f, 0.0f) - instance->translation()).normalized());
     angle += 2 * 3.1415926 / spotLights().size();
   }
 
@@ -490,6 +521,18 @@ angle = 0.0f;
     GToCStr(OpenGLAbstractLightGroup::GFactor()) + "|" +
     DToCStr(OpenGLAbstractLightGroup::DFactor()) + " => Sample: " + DToCStr(OpenGLAbstractLightGroup::SFactor())).c_str())
   );
+
+  // Exposure
+  float exp = 0.025f;
+  if (KInputManager::keyPressed(Qt::Key_Shift)) exp = 1.0f;
+  if (KInputManager::keyPressed(Qt::Key_T))
+  {
+    p.m_camera.setExposure(p.m_camera.exposure() + exp);
+  }
+  if (KInputManager::keyPressed(Qt::Key_R))
+  {
+    p.m_camera.setExposure(p.m_camera.exposure() - exp);
+  }
 
   //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0, 0.0, 1.0f, 1.0f), environment()->direct());
 }

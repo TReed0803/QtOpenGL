@@ -25,6 +25,7 @@ public:
   void setNearFar(float nearPlane, float farPlane);
   void setDimensions(int width, int height);
   void setDimensions(const KSize &size);
+  void setExposure(float e);
 
   // Access Render Block Properties
   const glm::mat4 &worldToView() const;

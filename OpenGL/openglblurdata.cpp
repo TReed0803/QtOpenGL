@@ -16,7 +16,7 @@ OpenGLBlurData::OpenGLBlurData(int width, float deviation) :
   for (int i = 0; i < m_blurWidth; ++i)
   {
     current = Karma::normalDist(float(m_blurWidth - i), 0.0f, deviation);
-    m_weights[i] = m_weights[m_blurWidth2 - i] = current;
+    m_weights[i] = m_weights[(m_blurWidth2 - i)] = current;
     total += 2.0f * current;
   }
   m_weights[m_blurWidth] = Karma::normalDist(0.0f, 0.0f, deviation);

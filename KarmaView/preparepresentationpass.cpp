@@ -49,7 +49,7 @@ void PreparePresentationPass::resize(int width, int height)
   P(PreparePresentationPassPrivate);
 
   // Other Texture Storage
-  p.constructTexture(p.m_lLighting, OpenGLInternalFormat::Rgba16, width, height);
+  p.constructTexture(p.m_lLighting, OpenGLInternalFormat::Rgba16F, width, height);
 
   // Light Buffer
   p.m_lFbo.bind();

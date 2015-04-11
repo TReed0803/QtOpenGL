@@ -14,9 +14,8 @@ in highp vec4 vPrevClipPosition;
 
 // Framebuffer Outputs
 layout(location = 0) out highp vec4 fGeometry;
-layout(location = 1) out highp vec4 fMaterial;
-layout(location = 2) out highp float fSurface;
-layout(location = 3) out highp vec4 fPhysical;
+layout(location = 1) out highp vec3 fMaterial;
+layout(location = 2) out highp vec2 fSurface;
 
 void main()
 {
@@ -35,10 +34,10 @@ void main()
   // Deferred Buffer 2: Material Buffer
   // Encode Material information (BaseColor, BaseColor, BaseColor, Metallic)
   fMaterial.xyz = Material.BaseColor;
-  fMaterial.w   = Material.Metallic;
 
   //////////////////////////////////////////////////////////////////////////////
   // Deferred Buffer 3: Surface Buffer
   // Encode Dynamics information (Roughness)
-  fSurface = Material.Roughness;
+  fSurface.x    = Material.Roughness;
+  fSurface.y    = Material.Metallic;
 }

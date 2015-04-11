@@ -58,5 +58,6 @@
         <file>resources/shaders/lighting/environment.frag</file>
         <file>resources/shaders/lighting/Physical.glsl</file>
         <file>resources/shaders/compute/gaussianBlur.comp</file>
+        <file>resources/shaders/ToneMapping.glsl</file>
     </qresource>
 </RCC>

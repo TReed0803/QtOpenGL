@@ -14,6 +14,7 @@ public:
   void create();
   void commit(const OpenGLViewport &view);
   void render() const;
+  void renderAll() const;
   OpenGLInstance *createInstance();
 private:
   KUniquePointer<OpenGLInstanceManagerPrivate> m_private;

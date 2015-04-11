@@ -61,6 +61,7 @@ void OpenGLSpotLightGroup::translateBuffer(const OpenGLRenderBlock &stats, DataP
     lightDest->m_viewTrans    = glm::vec3(stats.worldToView() * Karma::ToGlm(lightSource->translation(), 1.0f));
     lightDest->m_minFalloff   = 0.0f;
     lightDest->m_nearPlane    = 0.1f;
+    lightDest->m_exponential  = 1.0f;
     ++data;
     ++begin;
   }
@@ -80,7 +81,7 @@ void OpenGLSpotLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byt
     lWorldToView = lightSource->toMatrix();
     lWorldToView.flipCoordinates();
     lViewToPersp.setToIdentity();
-    lViewToPersp.perspective(2.0f * Karma::RadsToDegrees(lightSource->outerAngle()), 1.0f, 0.1f, lightSource->depth());
+    lViewToPersp.perspective(2.0f * Karma::RadsToDegrees(lightSource->outerAngle()), 1.0f, 0.01f, lightSource->depth());
     lightDest->m_innerAngle   = lightSource->innerAngle();
     lightDest->m_outerAngle   = lightSource->outerAngle();
     lightDest->m_diffAngle    = lightSource->outerAngle() - lightSource->innerAngle();
@@ -92,7 +93,7 @@ void OpenGLSpotLightGroup::translateUniforms(const OpenGLRenderBlock &stats, Byt
     lightDest->m_specular     = Karma::ToGlm(lightSource->specular());
     lightDest->m_viewTrans    = glm::vec3(stats.worldToView() * Karma::ToGlm(lightSource->translation(), 1.0f));
     lightDest->m_cViewToLPersp= Karma::ToGlm(lViewToPersp) * glm::inverse(Karma::ToGlm(lWorldToView)) * stats.viewToWorld();
-    lightDest->m_exponential  = 120.0f;
+    lightDest->m_exponential  = 1000.0f;
     lightDest->m_minFalloff   = 0.0f;
     lightDest->m_nearPlane    = 0.1f;
     data += step;

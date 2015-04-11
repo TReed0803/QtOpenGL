@@ -85,6 +85,12 @@ void OpenGLRenderBlock::setDimensions(const KSize &size)
   setDimensions(size.width(), size.height());
 }
 
+void OpenGLRenderBlock::setExposure(float e)
+{
+  P(OpenGLRenderBlockPrivate);
+  p.m_blockData.f_exposure = e;
+}
+
 const glm::mat4 &OpenGLRenderBlock::worldToView() const
 {
   P(const OpenGLRenderBlockPrivate);

@@ -25,6 +25,7 @@ public:
   float f_farPlane;
   float f_diffPlane;
   float f_sumPlane;
+  float f_exposure;
 };
 
 #endif // OPENGLRENDERBLOCKDATA_H

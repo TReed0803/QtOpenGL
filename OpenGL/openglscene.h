@@ -36,6 +36,7 @@ public:
   OpenGLSpotLightGroup &spotLights();
   OpenGLDirectionLightGroup &directionLights();
   void renderGeometry();
+  void renderAllGeometry();
   void renderLights();
   void renderShadowedLights();
   void commit(const OpenGLViewport &view);

@@ -5,7 +5,7 @@ class OpenGLBlurData
 {
 public:
   OpenGLBlurData(int width, float deviation = 1.0f);
-private:
+//private:
   int m_blurWidth;
   int m_blurWidth2;
   float m_weights[65];

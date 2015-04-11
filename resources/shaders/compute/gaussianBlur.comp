@@ -5,9 +5,12 @@
  * Uses GBuffer information to access statistics about the scene itself.
  ******************************************************************************/
 // Thread group size 128x1x1 (1 is implied for y/z)
+#include <Bindings.glsl>
+
 layout (local_size_x = 128) in;
 
 // Blur Information
+layout(binding = K_BLUR_BINDING)
 uniform BlurData
 {
   int Width;          // w
@@ -45,7 +48,8 @@ void main()
   // First 2w threads will load the last 2w texels.
   if (texelIndex < Blur.Width2)
   {
-    v[texelIndex + workWidth] = imageLoad(src, sourceTexel + workWidth * Direction).r;
+    ivec2 uv = clamp(sourceTexel + workWidth * Direction, ivec2(1,1), ivec2(1024, 768));
+    v[texelIndex + workWidth] = imageLoad(src, uv).r;
   }
 
   // We must wait until all information

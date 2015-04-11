@@ -11,6 +11,7 @@
 #include <Bindings.glsl>
 #include <Physical.glsl>
 #include <Hammersley.ubo>
+#include <ToneMapping.glsl>
 
 layout(binding = K_TEXTURE_0)
 uniform sampler2D environment;

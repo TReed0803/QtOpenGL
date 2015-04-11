@@ -73,8 +73,8 @@ void GBufferPass::resize(int width, int height)
   // GBuffer Texture Storage
   p.constructTexture(p.m_gDepth, OpenGLInternalFormat::Depth32F, width, height);   // Depth
   p.constructTexture(p.m_gGeometry, OpenGLInternalFormat::Rgba32F, width, height); // Normal Normal Velocity Velocity
-  p.constructTexture(p.m_gMaterial, OpenGLInternalFormat::Rgba16, width, height);  // BaseColor BaseColor BaseColor Metallic
-  p.constructTexture(p.m_gSurface, OpenGLInternalFormat::R16, width, height);      // Roughness
+  p.constructTexture(p.m_gMaterial, OpenGLInternalFormat::Srgb8, width, height);   // BaseColor BaseColor BaseColor
+  p.constructTexture(p.m_gSurface, OpenGLInternalFormat::Rg8, width, height);     // Roughness Metallic
 
   // GBuffer Framebuffer
   p.m_gFbo.bind();

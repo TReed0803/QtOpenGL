@@ -13,5 +13,5 @@ uniform sampler2D textureData;
 
 void main()
 {
-  fColor = texture(textureData, vUv);
+  fColor = log(texture(textureData, vUv))/60.0;
 }

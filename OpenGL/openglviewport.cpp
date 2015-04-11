@@ -234,6 +234,7 @@ void OpenGLViewport::commit()
     p.currentRenderBlock().setPerspectiveMatrix(persp);
     p.m_camera->setProjection(persp);
     p.currentRenderBlock().setViewMatrix(p.m_camera->toMatrix());
+    p.currentRenderBlock().setExposure(p.m_camera->exposure());
   }
   else
   {
@@ -251,6 +252,12 @@ const OpenGLRenderBlock &OpenGLViewport::previous() const
 {
   P(const OpenGLViewportPrivate);
   return p.currentRenderBlock();
+}
+
+const KCamera3D &OpenGLViewport::camera() const
+{
+  P(const OpenGLViewportPrivate);
+  return *p.m_camera;
 }
 
 const OpenGLRenderBlock &OpenGLViewport::current() const

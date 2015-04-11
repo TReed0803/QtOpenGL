@@ -46,7 +46,12 @@ public:
   KVector3D right() const;
   float fieldOfView() const;
 
+  // Exposure Control
+  void setExposure(float e);
+  float exposure() const;
+
 private:
+  float m_exposure;
   mutable bool m_dirty;
   float m_fovy;
   KVector3D m_translation;
@@ -66,7 +71,7 @@ private:
 Q_DECLARE_TYPEINFO(KCamera3D, Q_MOVABLE_TYPE);
 
 // Constructors
-inline KCamera3D::KCamera3D() : m_dirty(true), m_fovy(45.0f) {}
+inline KCamera3D::KCamera3D() : m_dirty(true), m_fovy(45.0f), m_exposure(1.0f) {}
 
 // Transform By (Add/Scale)
 inline void KCamera3D::translate(float dx, float dy,float dz) { translate(KVector3D(dx, dy, dz)); }

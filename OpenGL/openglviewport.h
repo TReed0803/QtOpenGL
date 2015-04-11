@@ -32,6 +32,7 @@ public:
   void activate();
   const OpenGLRenderBlock &current() const;
   const OpenGLRenderBlock &previous() const;
+  const KCamera3D &camera() const;
 private:
   KSharedPointer<OpenGLViewportPrivate> m_private;
 };

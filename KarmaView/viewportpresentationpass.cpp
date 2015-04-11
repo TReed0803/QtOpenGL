@@ -9,6 +9,7 @@
 #include <OpenGLViewport>
 #include <OpenGLScene>
 #include <OpenGLFramebufferObject>
+#include <KCamera3D>
 
 class ViewportPresentationPassPrivate
 {
