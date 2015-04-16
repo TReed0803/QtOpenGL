@@ -132,7 +132,7 @@ public:
 
   static inline GLenum glCheckFramebufferStatus (GLenum target)
   {
-    GL::getInstance()->glCheckFramebufferStatus (target);
+    return GL::getInstance()->glCheckFramebufferStatus (target);
   }
 
   static inline void glClear (GLbitfield mask)
@@ -846,7 +846,7 @@ public:
 
   static inline void *glMapBufferRange (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
   {
-    GL::getInstance()->glMapBufferRange (target, offset, length, access);
+    return GL::getInstance()->glMapBufferRange (target, offset, length, access);
   }
 
   static inline void glFlushMappedBufferRange (GLenum target, GLintptr offset, GLsizeiptr length)
@@ -1044,6 +1044,11 @@ public:
     GL::getInstance()->glDrawElementsInstanced (mode, count, type, indices, instancecount);
   }
 
+  static inline void glDrawElementsInstancedBaseVertex (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLsizei basevertex)
+  {
+    GL::getInstance()->glDrawElementsInstancedBaseVertex (mode, count, type, indices, instancecount, basevertex);
+  }
+
   static inline GLsync glFenceSync (GLenum condition, GLbitfield flags)
   {
     return GL::getInstance()->glFenceSync (condition, flags);
@@ -1051,7 +1056,7 @@ public:
 
   static inline GLboolean glIsSync (GLsync sync)
   {
-    GL::getInstance()->glIsSync (sync);
+    return GL::getInstance()->glIsSync (sync);
   }
 
   static inline void glDeleteSync (GLsync sync)
@@ -1182,7 +1187,7 @@ public:
 
   static inline GLuint glGetProgramResourceIndex (GLuint program, GLenum programInterface, const GLchar *name)
   {
-    GL::getInstance()->glGetProgramResourceIndex (program, programInterface, name);
+    return GL::getInstance()->glGetProgramResourceIndex (program, programInterface, name);
   }
 
   static inline void glGetProgramResourceName (GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name)
@@ -1197,7 +1202,7 @@ public:
 
   static inline GLint glGetProgramResourceLocation (GLuint program, GLenum programInterface, const GLchar *name)
   {
-    GL::getInstance()->glGetProgramResourceLocation (program, programInterface, name);
+    return GL::getInstance()->glGetProgramResourceLocation (program, programInterface, name);
   }
 
   static inline void glUseProgramStages (GLuint pipeline, GLbitfield stages, GLuint program)
@@ -1232,7 +1237,7 @@ public:
 
   static inline GLboolean glIsProgramPipeline (GLuint pipeline)
   {
-    GL::getInstance()->glIsProgramPipeline (pipeline);
+    return GL::getInstance()->glIsProgramPipeline (pipeline);
   }
 
   static inline void glGetProgramPipelineiv (GLuint pipeline, GLenum pname, GLint *params)
@@ -1481,6 +1486,16 @@ public:
   }
 
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
+
+  static inline void *glMapRange(GLenum target, GLenum access)
+  {
+    return GL::getInstance()->glMapBuffer(target, access);
+  }
+
+  static inline void glShaderStorageBlockBinding(GLuint program​, GLuint storageBlockIndex​, GLuint storageBlockBinding)
+  {
+    GL::getInstance()->glShaderStorageBlockBinding(program​, storageBlockIndex​, storageBlockBinding);
+  }
 
   static inline void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint *params)
   {

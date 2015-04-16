@@ -16,7 +16,7 @@ SHARED_INCLUDES =                       \
 android {
   DEFINES += "QT_OPENGL_ES_3"
 }
-#DEFINES += "GL_DEBUG"
+DEFINES += "GL_DEBUG"
 
 win32:CONFIG(release, debug|release): OUT_SUBDIR = release/
 win32:CONFIG(debug, debug|release): OUT_SUBDIR = debug/

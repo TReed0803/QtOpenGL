@@ -76,7 +76,7 @@ void EnvironmentPass::render(OpenGLScene &scene)
   GL::glActiveTexture(OpenGLTexture::beginTextureUnits() + K_TEXTURE_1);
   scene.environment()->indirect().bind();
   p.m_environmentPass->bind();
-  p.m_environmentPass->setUniformValue("Dimensions", scene.environment()->directSize());
+  //p.m_environmentPass->setUniformValue("Dimensions", scene.environment()->directSize().width(), scene.environment()->directSize().height());
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_2)
   std::string fName = "s" + FToCStr(OpenGLAbstractLightGroup::FFactor());
   std::string gName = "s" + GToCStr(OpenGLAbstractLightGroup::GFactor());
@@ -91,7 +91,7 @@ void EnvironmentPass::render(OpenGLScene &scene)
   if (p.m_uGeometry != -1) locations[p.m_uGeometry] = gIndex;
   if (p.m_uDistribution != -1) locations[p.m_uDistribution] = dIndex;
   if (p.m_uDistributionSample != -1) locations[p.m_uDistributionSample] = sIndex;
-  GL::glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 4, locations);
+  //GL::glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 4, locations);
 #endif
   p.m_quadGL.draw();
   p.m_environmentPass->release();

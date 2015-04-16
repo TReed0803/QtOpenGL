@@ -40,6 +40,10 @@
 #include <OpenGLContext>
 #include <OpenGLWidget>
 #include <OpenGLEnvironment>
+#include <OpenGLSphereLight>
+#include <OpenGLSphereLightGroup>
+#include <OpenGLRectangleLight>
+#include <OpenGLRectangleLightGroup>
 
 #define MULTI_MESH
 #define SQUARE_GRID
@@ -47,6 +51,7 @@
 class SampleScenePrivate
 {
 public:
+  OpenGLInstance *m_mainInstance;
   KCamera3D m_camera;
   OpenGLViewport m_viewport;
   std::vector<std::vector<OpenGLInstance *>> m_instances;
@@ -206,34 +211,6 @@ SampleScene::~SampleScene()
   // Intentionally Empty
 }
 
-static KVector3D k2rgb(int k)
-{
-  KVector3D color;
-  if (k > 6645)
-  {
-    color.setX(1900 / float(k - 3050) + 0.295);
-  }
-  else
-  {
-    color.setX(1.0f);
-  }
-
-  if (k <= 6595)
-  {
-    color.setY(std::pow(k, 0.50276f) / 54.0f - 0.57f);
-  }
-  else
-  {
-    color.setY(1900 / float(k - 3050) + 0.435f);
-  }
-  color.setY(Karma::saturate(color.y()));
-
-  color.setZ(std::pow(float(k + 38000) / 40000, 6.45f) - 1.0f);
-  color.setZ(Karma::saturate(color.z()));
-
-  return color;
-}
-
 void SampleScene::start()
 {
   OpenGLScene::start();
@@ -250,7 +227,7 @@ void SampleScene::start()
   {
     static const float Intensity = 0.1f;
     OpenGLDirectionLight *light = createDirectionLight();
-    light->setDiffuse(Intensity * k2rgb(1700));
+    light->setDiffuse(Intensity * Karma::k2rgb(1700));
     light->setSpecular(0.1f, 0.1f, 0.1f);
   }
 
@@ -264,8 +241,27 @@ void SampleScene::start()
     light->setDiffuse(float(rand())/RAND_MAX,float(rand())/RAND_MAX,float(rand())/RAND_MAX);
   }
 
+  // Initialize Sphere lights
+  for (int i = 0; i < 0; ++i)
+  {
+    OpenGLSphereLight *light = createSphereLight();
+    light->setTranslation(0.0f, 3.0f, 0.0f);
+    light->setIntensity(1200.0f);
+    light->setTemperature(2700.0f);
+  }
+
+  // Initialize Rectangle lights
+  for (int i = 0; i < 1; ++i)
+  {
+    OpenGLRectangleLight *light = createRectangleLight();
+    light->setDimensions(7.0f, 1.0f);
+    light->setTranslation(0.0f, 0.0f, 10.0f);
+    light->setIntensity(5000.0f);
+    light->setTemperature(4500.0f + i*1000.0f);
+  }
+
   // Initialize the Spot Light Group
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 0; ++i)
   {
     const float Intensity = 1000.0f;
     OpenGLSpotLight *light = createSpotLight();
@@ -273,7 +269,7 @@ void SampleScene::start()
     light->setShadowCasting(true);
     light->setInnerAngle(0.0f);
     light->setOuterAngle(45.0f);
-    light->setDiffuse(Intensity * k2rgb(2500 + 2500 * i));
+    light->setDiffuse(Intensity * Karma::k2rgb(2500 + 2500 * i));
     light->setDepth(25.0f);
   }
 
@@ -290,23 +286,23 @@ void SampleScene::start()
   floorMaterial.create();
   //floorMaterial.setBaseColor(132.0f / 255.0f, 45.0f / 255.0f, 176.0f / 255.0f);
   floorMaterial.setBaseColor(0.6f);
-  floorMaterial.setMetallic(0.25f);
-  floorMaterial.setRoughness(0.8f);
+  floorMaterial.setMetallic(0.2f);
+  floorMaterial.setRoughness(0.2f); // 0.8
 
   // Note: Currently there is no Material System.
   //       All material properties are per-instance.
-  //*
+  /*
   OpenGLInstance *floor = createInstance();
   floor->setMesh(floorMeshGL);
   floor->setMaterial(floorMaterial);
-  floor->transform().setScale(10.0f);
-  floor->transform().setTranslation(0.0f, -1.0f, 0.0f);
+  floor->transform().setScale(1000.0f);
+  floor->transform().setTranslation(0.0f, -5.0f, 0.0f);
   //*/
 
   // Create instance data
 #ifdef MULTI_MESH
-  static const int MetallicCount = 3;
-  static const int RoughnessCount = 3;
+  static const int MetallicCount = 4;
+  static const int RoughnessCount = 8;
   p.m_instances.resize(MetallicCount + 1);
   for (int i = 0; i <= MetallicCount; ++i)
   {
@@ -315,12 +311,13 @@ void SampleScene::start()
       OpenGLMaterial material;
       material.create();
       //material.setBaseColor(255.0f / 255.0f, 191.0f / 255.0f, 0.0f / 255.0f);
-      //material.setBaseColor(1.0f, 0.3f, 0.3f);
+      material.setBaseColor(1.0f, 0.3f, 0.3f);
       material.setBaseColor(0.9f);
       material.setMetallic(float(i) / MetallicCount);
       material.setRoughness(0.1 + float(j) / RoughnessCount);
       OpenGLInstance *instance = createInstance();
       instance->setMaterial(material);
+      instance->currentTransform().setScale(5.0f);
       p.m_instances[i].push_back(instance);
     }
   }
@@ -329,12 +326,18 @@ void SampleScene::start()
   // Create the instance material
   OpenGLMaterial material;
   material.create();
-  material.setBaseColor(1.0f, 0.3f, 0.3f);
-  material.setMetallic(0.8f);
-  material.setRoughness(0.67f);
+  //material.setBaseColor(205.0f / 255.0f, 127.0f / 255.0f, 50.0f / 255.0f); // Bronze
+  //material.setBaseColor(255.0f / 255.0f, 215.0f / 255.0f, 0.0f / 255.0f); // Gold
+  material.setBaseColor(0.4f); // Dark Grey
+  //material.setBaseColor(1.0f); // White
+  //material.setMetallic(0.83204f); // Gold
+  material.setMetallic(0.17598f); // Stone
+  //material.setRoughness(0.2f); // Smooth
+  material.setRoughness(0.7f); // Stone
 
   // Create the instance
   OpenGLInstance *instance = createInstance();
+  p.m_mainInstance = instance;
   instance->setMaterial(material);
   instance->currentTransform().scale(5.0f);
   p.m_instances.resize(1);
@@ -356,8 +359,8 @@ void SampleScene::start()
   OpenGLEnvironment *env = environment();
   env->setDirect(":/resources/images/AlexsApt.hdr");
   env->setIndirect(":/resources/images/AlexsApt_Env.hdr");
-  env->setDirect("C:/Users/Trent/Downloads/Maps/Ice_Lake.hdr");
-  env->setIndirect("C:/Users/Trent/Downloads/Maps/Ice_Lake_Env.hdr");
+  //env->setDirect("C:/Users/Trent/Downloads/Maps/Hamarikyu.hdr");
+  //env->setIndirect("C:/Users/Trent/Downloads/Maps/Hamarikyu_Env.hdr");
 }
 
 void SampleScene::update(KUpdateEvent *event)
@@ -389,6 +392,24 @@ void SampleScene::update(KUpdateEvent *event)
     angle += 2 * 3.1415926 / spotLights().size();
   }
 
+  for (OpenGLSphereLight *instance : sphereLights())
+  {
+    static const float radius = 3.0f;
+    instance->setRadius(0.06 + 1.0 * std::abs(std::sin(angle * 15.0f)));
+    //instance->setTranslation(cos(angle) * radius, 3.0f, sin(angle) * radius);
+  }
+
+  //*
+  for (OpenGLRectangleLight *instance : rectangleLights())
+  {
+    static const float radius = 10.0f;
+    instance->setHalfWidth(0.08f + 10.0 * std::abs(std::sin(angle * 15.0f)));
+    //instance->setTranslation(cos(angle) * radius, 1.0f, sin(angle) * radius);
+    //instance->setDirection(instance->translation().normalized(), KVector3D(0.0f, 1.0f, 0.0f));
+    //angle += 2 * 3.1415926 / rectangleLights().size();
+  }
+  //*/
+
 #ifdef SQUARE_GRID
   size_t layerCount = p.m_instances.size();
   for (int i = 0; i < layerCount; ++i)
@@ -396,8 +417,8 @@ void SampleScene::update(KUpdateEvent *event)
     size_t objectCount = p.m_instances[i].size();
     for (int j = 0; j < objectCount; ++j)
     {
-      static const float SeparationX = 1.7f * objectCount;
-      static const float SeparationY = 2.0f * layerCount;
+      static const float SeparationX = 5.0f * 1.8f * objectCount;
+      static const float SeparationY = 5.0f * 1.8f * layerCount;
       p.m_instances[i][j]->currentTransform().setTranslation((-0.5 + float(j) / (objectCount - 1)) * SeparationX, 0.0f, (-0.5 + float(i) / (layerCount - 1)) * SeparationY);
     }
   }
@@ -425,7 +446,7 @@ angle = 0.0f;
   // Camera Transformation
   if (camera)
   {
-    float transSpeed = 3.0f;
+    float transSpeed = 10.0f;
     float rotSpeed   = 0.5f;
 
     if (KInputManager::keyPressed(Qt::Key_Control))
@@ -525,13 +546,27 @@ angle = 0.0f;
   // Exposure
   float exp = 0.025f;
   if (KInputManager::keyPressed(Qt::Key_Shift)) exp = 1.0f;
-  if (KInputManager::keyPressed(Qt::Key_T))
+  if (KInputManager::keyPressed(Qt::Key_I))
   {
     p.m_camera.setExposure(p.m_camera.exposure() + exp);
   }
-  if (KInputManager::keyPressed(Qt::Key_R))
+  if (KInputManager::keyPressed(Qt::Key_P))
   {
     p.m_camera.setExposure(p.m_camera.exposure() - exp);
+  }
+
+  float temp = 1.0f;
+  if(KInputManager::keyPressed(Qt::Key_Shift))
+  {
+    temp = -1.0f;
+  }
+  if(KInputManager::keyPressed(Qt::Key_Z))
+  {
+    p.m_mainInstance->material().setMetallic(p.m_mainInstance->material().metallic() + temp * 0.0016f);
+  }
+  if(KInputManager::keyPressed(Qt::Key_M))
+  {
+    p.m_mainInstance->material().setRoughness(p.m_mainInstance->material().roughness() + temp * 0.0016f);
   }
 
   //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0, 0.0, 1.0f, 1.0f), environment()->direct());

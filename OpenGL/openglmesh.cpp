@@ -8,7 +8,7 @@
 #include <OpenGLVertexArrayObject>
 #include <KAabbBoundingVolume>
 
-class OpenGLMeshPrivate : public OpenGLFunctions
+class OpenGLMeshPrivate
 {
 public:
   OpenGLMeshPrivate();
@@ -27,7 +27,7 @@ public:
 OpenGLMeshPrivate::OpenGLMeshPrivate() :
   m_indexBuffer(OpenGLBuffer::IndexBuffer), m_vertexBuffer(OpenGLBuffer::VertexBuffer)
 {
-  initializeOpenGLFunctions();
+  // Intentionally Empty
 }
 
 void OpenGLMeshPrivate::create(const KHalfEdgeMesh &mesh)
@@ -94,8 +94,8 @@ void OpenGLMeshPrivate::create(const KHalfEdgeMesh &mesh)
 
 void OpenGLMeshPrivate::vertexAttribPointer(int location, int elements, OpenGLElementType type, bool normalized, int stride, int offset)
 {
-  glEnableVertexAttribArray(location);
-  glVertexAttribPointer(location, elements, static_cast<GLenum>(type), normalized ? GL_TRUE : GL_FALSE, stride, ((const GLvoid*)offset));
+  GL::glEnableVertexAttribArray(location);
+  GL::glVertexAttribPointer(location, elements, static_cast<GLenum>(type), normalized ? GL_TRUE : GL_FALSE, stride, ((const GLvoid*)offset));
 }
 
 void OpenGLMeshPrivate::vertexAttribPointer(int location, int elements, int count, OpenGLElementType type, bool normalized, int stride, int offset)
@@ -109,7 +109,7 @@ void OpenGLMeshPrivate::vertexAttribPointer(int location, int elements, int coun
 void OpenGLMeshPrivate::vertexAttribPointerDivisor(int location, int elements, OpenGLElementType type, bool normalized, int stride, int offset, int divisor)
 {
   vertexAttribPointer(location, elements, type, normalized, stride, offset);
-  glVertexAttribDivisor(location, divisor);
+  GL::glVertexAttribDivisor(location, divisor);
 }
 
 void OpenGLMeshPrivate::vertexAttribPointerDivisor(int location, int elements, int count, OpenGLElementType type, bool normalized, int stride, int offset, int divisor)
@@ -163,7 +163,7 @@ void OpenGLMesh::draw()
 {
   P(OpenGLMeshPrivate);
   bind();
-  p.glDrawElements(GL_TRIANGLES, p.m_elementCount, GL_UNSIGNED_INT, (const GLvoid*)0);
+  GL::glDrawElements(GL_TRIANGLES, p.m_elementCount, GL_UNSIGNED_INT, (const GLvoid*)0);
   release();
 }
 
@@ -172,9 +172,9 @@ void OpenGLMesh::drawInstanced(size_t begin, size_t end)
   P(OpenGLMeshPrivate);
   bind();
   if (begin == 0)
-    p.glDrawElementsInstanced(GL_TRIANGLES, p.m_elementCount, GL_UNSIGNED_INT, (const GLvoid*)0, static_cast<GLsizei>(end));
+    GL::glDrawElementsInstanced(GL_TRIANGLES, p.m_elementCount, GL_UNSIGNED_INT, (const GLvoid*)0, static_cast<GLsizei>(end));
   else
-    p.glDrawElementsInstancedBaseVertex(GL_TRIANGLES, p.m_elementCount, GL_UNSIGNED_INT, (const GLvoid*)0, static_cast<int>(end - begin), static_cast<GLsizei>(begin));
+    GL::glDrawElementsInstancedBaseVertex(GL_TRIANGLES, p.m_elementCount, GL_UNSIGNED_INT, (const GLvoid*)0, static_cast<int>(end - begin), static_cast<GLsizei>(begin));
   release();
 }
 

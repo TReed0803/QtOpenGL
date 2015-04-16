@@ -24,6 +24,8 @@ struct OpenGLDebugDraw
   struct World
   {
     static void drawPoint(const KVector3D &point, const KColor &color);
+    static void drawQuad(const KVector3D &bl, const KVector3D &br, const KVector3D &tl, const KVector3D &tr, const KColor &color);
+    static void drawOval(const KVector3D &center, const KVector3D &normal, const KVector3D &minorVector, const KVector3D &majorVector, const KColor &color);
     static void drawOval(const KVector3D &center, const KVector3D &normal, const KVector3D &up, float upRadius, float rightRadius, const KColor &color);
     static void drawOval(const KVector3D &center, const KVector3D &normal, const KVector3D &up, float upRadius, float rightRadius, int segments, const KColor &color);
     static void drawObb(const KVector3D &center, const KMatrix3x3 &axes, const KVector3D &halfLengths, const KColor &color);

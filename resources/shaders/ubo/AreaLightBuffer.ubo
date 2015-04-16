@@ -1,0 +1,27 @@
+/*******************************************************************************
+ * ubo/SpotLight.ubo
+ *------------------------------------------------------------------------------
+ * All of the current rendering spotlight information.
+ ******************************************************************************/
+
+#ifndef LIGHTBUFFER_UBO
+#define LIGHTBUFFER_UBO
+
+#include <Bindings.glsl>
+
+layout(binding = K_LIGHT_BINDING,std140)
+uniform LightBufferProperties
+{
+  mat4 ModelToPersp;
+  mat4 ViewToLightPersp;
+  vec3 ViewPosition;
+  float Radius;
+  vec3 Color;
+  float Intensity;
+  vec4 Data0;
+  vec4 Data1;
+  vec4 Data2;
+  vec4 Data3;
+} AreaLight;
+
+#endif // LIGHTBUFFER_UBO

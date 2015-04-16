@@ -40,6 +40,7 @@ public:
   void setRotation(float angle, const KVector3D &axis);
   void setRotation(float angle, float ax, float ay, float az);
   void lookTowards(const KVector3D &dir);
+  void lookTowards(const KVector3D &dir, const KVector3D &up);
   void lookTowards(float x, float y, float z);
 
   // Component Transform To (Setters)

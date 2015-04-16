@@ -60,7 +60,7 @@ void OpenGLInstanceManagerPrivate::commit(const OpenGLViewport &view)
 {
   m_begin = m_instances.begin();
   m_end = m_instances.end();
-  m_end = std::partition(m_begin, m_end, OpenGLInstancePartitionWithinView(view));
+  //m_end = std::partition(m_begin, m_end, OpenGLInstancePartitionWithinView(view));
   std::sort(m_begin, m_end, OpenGLInstanceSortByMeshMaterial());
 
   InstanceIterator it = m_begin;

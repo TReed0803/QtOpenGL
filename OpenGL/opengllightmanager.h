@@ -4,9 +4,13 @@
 class OpenGLPointLight;
 class OpenGLSpotLight;
 class OpenGLDirectionLight;
+class OpenGLSphereLight;
+class OpenGLRectangleLight;
 class OpenGLPointLightGroup;
 class OpenGLSpotLightGroup;
 class OpenGLDirectionLightGroup;
+class OpenGLSphereLightGroup;
+class OpenGLRectangleLightGroup;
 class OpenGLScene;
 class OpenGLViewport;
 #include <KUniquePointer>
@@ -24,9 +28,13 @@ public:
   OpenGLPointLight *createPointLight();
   OpenGLSpotLight *createSpotLight();
   OpenGLDirectionLight *createDirectionLight();
+  OpenGLSphereLight *createSphereLight();
+  OpenGLRectangleLight *createRectangleLight();
   OpenGLPointLightGroup &pointLights();
   OpenGLSpotLightGroup &spotLights();
   OpenGLDirectionLightGroup &directionLights();
+  OpenGLSphereLightGroup &sphereLights();
+  OpenGLRectangleLightGroup &rectangleLights();
 private:
   KUniquePointer<OpenGLLightManagerPrivate> m_private;
 };

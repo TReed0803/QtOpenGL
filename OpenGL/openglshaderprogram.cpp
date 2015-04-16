@@ -42,7 +42,7 @@ OpenGLShaderProgramUniformUpdate::OpenGLShaderProgramUniformUpdate(unsigned loca
   // Intentionally Empty
 }
 
-class OpenGLShaderProgramPrivate : public OpenGLFunctions
+class OpenGLShaderProgramPrivate
 {
 public:
   std::vector<char const*> m_includePaths;
@@ -51,13 +51,7 @@ public:
   std::vector<OpenGLShaderProgramUniformUpdate> m_uniformUpdate;
   std::vector<OpenGLShaderProgramUniformBufferUpdate> m_bufferUpdate;
   std::string m_defines;
-  OpenGLShaderProgramPrivate();
 };
-
-OpenGLShaderProgramPrivate::OpenGLShaderProgramPrivate()
-{
-  initializeOpenGLFunctions();
-}
 
 /*******************************************************************************
  * OpenGLShaderProgramWrapped
@@ -120,14 +114,12 @@ void OpenGLShaderProgram::uniformBlockBinding(const char *location, unsigned ind
 
 void OpenGLShaderProgram::uniformBlockBinding(unsigned location, unsigned index)
 {
-  P(OpenGLShaderProgramPrivate);
-  p.glUniformBlockBinding(this->programId(), location, index);
+  GL::glUniformBlockBinding(this->programId(), location, index);
 }
 
 unsigned OpenGLShaderProgram::uniformBlockLocation(const char *location)
 {
-  P(OpenGLShaderProgramPrivate);
-  return p.glGetUniformBlockIndex(this->programId(), location);
+  return GL::glGetUniformBlockIndex(this->programId(), location);
 }
 
 void OpenGLShaderProgram::scheduleUniformBlockUpdate(unsigned location, unsigned index)

@@ -5,6 +5,8 @@
 #include <OpenGLSpotLightGroup>
 #include <OpenGLRenderBlock>
 #include <OpenGLDirectionLightGroup>
+#include <OpenGLSphereLightGroup>
+#include <OpenGLRectangleLightGroup>
 
 class OpenGLLightManagerPrivate
 {
@@ -12,6 +14,8 @@ public:
   OpenGLSpotLightGroup m_spotLights;
   OpenGLPointLightGroup m_pointLights;
   OpenGLDirectionLightGroup m_directionLights;
+  OpenGLSphereLightGroup m_sphereLights;
+  OpenGLRectangleLightGroup m_rectangleLights;
 };
 
 OpenGLLightManager::OpenGLLightManager() :
@@ -34,6 +38,8 @@ void OpenGLLightManager::create()
   p.m_pointLights.setMesh(":/resources/objects/pointLight.obj");
   p.m_directionLights.create();
   p.m_directionLights.setMesh(":/resources/objects/quad.obj");
+  p.m_sphereLights.create();
+  p.m_rectangleLights.create();
 }
 
 void OpenGLLightManager::commit(const OpenGLViewport &view)
@@ -42,6 +48,8 @@ void OpenGLLightManager::commit(const OpenGLViewport &view)
   p.m_spotLights.commit(view);
   p.m_pointLights.commit(view);
   p.m_directionLights.commit(view);
+  p.m_sphereLights.commit(view);
+  p.m_rectangleLights.commit(view);
 }
 
 void OpenGLLightManager::render()
@@ -50,6 +58,8 @@ void OpenGLLightManager::render()
   p.m_spotLights.draw();
   p.m_pointLights.draw();
   p.m_directionLights.draw();
+  p.m_sphereLights.draw();
+  p.m_rectangleLights.draw();
 }
 
 void OpenGLLightManager::renderShadowed(OpenGLScene &scene)
@@ -78,6 +88,18 @@ OpenGLDirectionLight *OpenGLLightManager::createDirectionLight()
   return p.m_directionLights.createLight();
 }
 
+OpenGLSphereLight *OpenGLLightManager::createSphereLight()
+{
+  P(OpenGLLightManagerPrivate);
+  return p.m_sphereLights.createLight();
+}
+
+OpenGLRectangleLight *OpenGLLightManager::createRectangleLight()
+{
+  P(OpenGLLightManagerPrivate);
+  return p.m_rectangleLights.createLight();
+}
+
 OpenGLPointLightGroup &OpenGLLightManager::pointLights()
 {
   P(OpenGLLightManagerPrivate);
@@ -94,5 +116,17 @@ OpenGLDirectionLightGroup &OpenGLLightManager::directionLights()
 {
   P(OpenGLLightManagerPrivate);
   return p.m_directionLights;
+}
+
+OpenGLSphereLightGroup &OpenGLLightManager::sphereLights()
+{
+  P(OpenGLLightManagerPrivate);
+  return p.m_sphereLights;
+}
+
+OpenGLRectangleLightGroup &OpenGLLightManager::rectangleLights()
+{
+  P(OpenGLLightManagerPrivate);
+  return p.m_rectangleLights;
 }
 

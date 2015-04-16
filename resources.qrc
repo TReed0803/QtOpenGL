@@ -59,5 +59,13 @@
         <file>resources/shaders/lighting/Physical.glsl</file>
         <file>resources/shaders/compute/gaussianBlur.comp</file>
         <file>resources/shaders/ToneMapping.glsl</file>
+        <file>resources/shaders/ubo/AreaLightBuffer.ubo</file>
+        <file>resources/shaders/lighting/sphereLight.frag</file>
+        <file>resources/shaders/lighting/sphereLight.vert</file>
+        <file>resources/shaders/lighting/rectangleLight.frag</file>
+        <file>resources/shaders/lighting/rectangleLight.vert</file>
+        <file>resources/shaders/lighting/ambientOcclusion.frag</file>
+        <file>resources/shaders/lighting/ambientOcclusion.vert</file>
+        <file>resources/shaders/compute/bilateralBlur.comp</file>
     </qresource>
 </RCC>

@@ -21,7 +21,7 @@ public:
   GL_PROFILE(OpenGLVertexArrayObjectChecked,create);
   GL_PROFILE(OpenGLVertexArrayObjectChecked,destroy);
   GL_PROFILE_CONST(OpenGLVertexArrayObjectChecked,isCreated);
-  GL_PROFILE(OpenGLVertexArrayObjectChecked,objectId);
+  GL_PROFILE_CONST(OpenGLVertexArrayObjectChecked,objectId);
   GL_PROFILE(OpenGLVertexArrayObjectChecked,release);
 };
 

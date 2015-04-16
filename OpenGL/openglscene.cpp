@@ -61,6 +61,18 @@ OpenGLSpotLight *OpenGLScene::createSpotLight()
   return p.m_lightManager.createSpotLight();
 }
 
+OpenGLSphereLight *OpenGLScene::createSphereLight()
+{
+  P(OpenGLScenePrivate);
+  return p.m_lightManager.createSphereLight();
+}
+
+OpenGLRectangleLight *OpenGLScene::createRectangleLight()
+{
+  P(OpenGLScenePrivate);
+  return p.m_lightManager.createRectangleLight();
+}
+
 OpenGLDirectionLight *OpenGLScene::createDirectionLight()
 {
   P(OpenGLScenePrivate);
@@ -83,6 +95,18 @@ OpenGLDirectionLightGroup &OpenGLScene::directionLights()
 {
   P(OpenGLScenePrivate);
   return p.m_lightManager.directionLights();
+}
+
+OpenGLSphereLightGroup &OpenGLScene::sphereLights()
+{
+  P(OpenGLScenePrivate);
+  return p.m_lightManager.sphereLights();
+}
+
+OpenGLRectangleLightGroup &OpenGLScene::rectangleLights()
+{
+  P(OpenGLScenePrivate);
+  return p.m_lightManager.rectangleLights();
 }
 
 void OpenGLScene::renderGeometry()

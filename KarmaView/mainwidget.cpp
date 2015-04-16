@@ -20,6 +20,7 @@
 #include <ViewportPresentationPass>
 #include <DebugGBufferPass>
 #include <EnvironmentPass>
+#include <ScreenSpaceAmbientOcclusion>
 
 // Scenes
 #include <SampleScene>
@@ -64,12 +65,13 @@ void MainWidgetPrivate::initializeGL()
   m_renderer.create();
   m_renderer.bind();
   m_renderer.addPass<GBufferPass>();                      // => Nothing (Constructs Globals)
+  m_renderer.addPass<ScreenSpaceAmbientOcclusion>();      // => SSAO Buffer
   m_renderer.addPass<PreparePresentationPass>();          // => RenderBuffer
   //m_renderer.addPass<DebugGBufferPass>();
   m_renderer.addPass<EnvironmentPass>();
-  m_renderer.addPass<LightAccumulationPass>();            // => RenderBuffer
-  m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
-  m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
+  //m_renderer.addPass<LightAccumulationPass>();            // => RenderBuffer
+  //m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
+  //m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
   m_renderer.addPass<ViewportPresentationPass>();         // => Nothing (Displays RenderBuffer)
 }
 

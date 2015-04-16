@@ -314,7 +314,7 @@ float KDisney(float NoL, float NoV)
 // Subroutines
 // Note: This block of code should be commented out on GLES 3.1.
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef   GL_ES
+#if defined(GL_ES) || !defined(K_SUBROUTINES)
 
 // Embedded System GL does not support subroutines
 # define uFresnel FSchlick
@@ -330,10 +330,6 @@ subroutine float GeometrySubroutine(float NoL, float NoV, float NoH, float VoH);
 subroutine float DistributionSubroutine(float NoH);
 subroutine vec3 DistributionSampleSubroutine(vec2 lightDir);
 subroutine vec3 DiffuseSubroutine(float NoL);
-subroutine uniform FresnelSubroutine uFresnel;
-subroutine uniform GeometrySubroutine uGeometry;
-subroutine uniform DistributionSubroutine uDistribution;
-subroutine uniform DistributionSampleSubroutine uDistributionSample;
 
 // Fresnel Definitions
 subroutine(FresnelSubroutine)
@@ -433,6 +429,11 @@ vec3 sDGgxSample(vec2 random)
   return DGgxSample(random);
 }
 
+subroutine uniform FresnelSubroutine uFresnel;
+subroutine uniform GeometrySubroutine uGeometry;
+subroutine uniform DistributionSubroutine uDistribution;
+subroutine uniform DistributionSampleSubroutine uDistributionSample;
+
 #endif // GL_ES
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -495,10 +496,15 @@ vec3 BlendMaterial(vec3 Kdiff, vec3 Kspec)
   return mix(dielectric, metal, scRange);
 }
 
+float Specular(float NoL, float NoV, float NoH, float VoH)
+{
+  return F(VoH) * G(NoL, NoV, NoH, VoH) * D(NoH) / Pdf(NoL, NoV);
+}
+
 vec3 Brdf(vec3 Kd, float NoL, float NoV, float NoH, float VoH)
 {
   vec3  Kdiff  = Kd / pi;
-  float Kspec = F(VoH) * G(NoL, NoV, NoH, VoH) * D(NoH) / Pdf(NoL, NoV);
+  float Kspec = Specular(NoL, NoV, NoH, VoH);
   return BlendMaterial(Kdiff, vec3(Kspec));
 }
 

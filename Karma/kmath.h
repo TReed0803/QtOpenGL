@@ -29,6 +29,34 @@ namespace Karma
     return KVector3D(saturate(value.x()), saturate(value.y()), saturate(value.z()));
   }
 
+  inline KVector3D k2rgb(float k)
+  {
+    KVector3D color;
+    if (k > 6645)
+    {
+      color.setX(1900 / float(k - 3050) + 0.295);
+    }
+    else
+    {
+      color.setX(1.0f);
+    }
+
+    if (k <= 6595)
+    {
+      color.setY(std::pow(k, 0.50276f) / 54.0f - 0.57f);
+    }
+    else
+    {
+      color.setY(1900 / float(k - 3050) + 0.435f);
+    }
+    color.setY(Karma::saturate(color.y()));
+
+    color.setZ(std::pow(float(k + 38000) / 40000, 6.45f) - 1.0f);
+    color.setZ(Karma::saturate(color.z()));
+
+    return color;
+  }
+
   enum PolygonType
   {
     CoplanarPolygon,

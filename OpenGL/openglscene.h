@@ -4,11 +4,15 @@
 class KUpdateEvent;
 class OpenGLInstance;
 class OpenGLPointLight;
+class OpenGLSphereLight;
+class OpenGLRectangleLight;
 class OpenGLSpotLight;
 class OpenGLDirectionLight;
 class OpenGLPointLightGroup;
+class OpenGLSphereLightGroup;
 class OpenGLSpotLightGroup;
 class OpenGLDirectionLightGroup;
+class OpenGLRectangleLightGroup;
 class OpenGLViewport;
 class OpenGLEnvironment;
 #include <KUniquePointer>
@@ -31,10 +35,14 @@ public:
   OpenGLInstance *createInstance();
   OpenGLPointLight *createPointLight();
   OpenGLSpotLight *createSpotLight();
+  OpenGLSphereLight *createSphereLight();
+  OpenGLRectangleLight *createRectangleLight();
   OpenGLDirectionLight *createDirectionLight();
   OpenGLPointLightGroup &pointLights();
   OpenGLSpotLightGroup &spotLights();
   OpenGLDirectionLightGroup &directionLights();
+  OpenGLSphereLightGroup &sphereLights();
+  OpenGLRectangleLightGroup &rectangleLights();
   void renderGeometry();
   void renderAllGeometry();
   void renderLights();

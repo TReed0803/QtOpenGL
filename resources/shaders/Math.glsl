@@ -144,7 +144,7 @@ float randAngle()
 {
   uint x = uint(gl_FragCoord.x);
   uint y = uint(gl_FragCoord.y);
-  return (30 * x ^ y + 10 * x * y);
+  return (30u * x ^ y + 10u * x * y);
 }
 
 #endif // MATH_GLSL

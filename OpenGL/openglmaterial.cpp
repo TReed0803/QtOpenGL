@@ -67,7 +67,7 @@ void OpenGLMaterial::commit()
     if (glm::length(data->m_baseColor) <= MinValue) data->m_baseColor = Karma::ToGlm(MinValue, MinValue, MinValue);
     data->m_baseColor = glm::pow(data->m_baseColor, glm::vec3(2.2f));
     data->m_metallic = p.m_metallic;
-    data->m_roughness = p.m_roughness * p.m_roughness;
+    data->m_roughness = p.m_roughness * p.m_roughness * p.m_roughness;
     p.m_buffer.unmap();
   }
 

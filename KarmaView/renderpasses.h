@@ -10,6 +10,7 @@ enum RenderPassId
   MotionBlurPassId,
   ViewportPresentationPassId,
   DebugGBufferPassId,
+  ScreenSpaceAmbientOcclusionPassId,
   EnvironmentPassId
 };
 

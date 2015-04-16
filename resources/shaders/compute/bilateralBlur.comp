@@ -1,0 +1,129 @@
+/*******************************************************************************
+ * compute/gaussianBlur.comp
+ *------------------------------------------------------------------------------
+ * Apply the lighting calculation to a given fragment of incident light.
+ * Uses GBuffer information to access statistics about the scene itself.
+ ******************************************************************************/
+// Thread group size 128x1x1 (1 is implied for y/z)
+#include <Bindings.glsl>
+#include <GBuffer.ubo>
+
+layout (local_size_x = 128) in;
+
+// Blur Information
+layout(binding = K_BLUR_BINDING)
+uniform BlurData
+{
+  int Width;          // w
+  int Width2;         // 2w
+  float Weights[65];  // Weight[2w + 1] = { ... }
+} Blur;
+uniform ivec2 Direction;
+
+// Inputs / Outputs
+layout (r32f) uniform readonly  image2D src;
+layout (r32f) uniform writeonly image2D dst;
+
+// Shared Workspace (Max w = 32)
+shared float v[128 + 64];
+shared float d[128 + 64]; // View Depth
+shared vec3  n[128 + 64];
+shared float D[128 + 64]; // Persp Depth
+
+float calculateD(ivec2 texel)
+{
+  vec2 uv = vec2(float(texel.x), float(texel.y)) / Current.Dimensions;
+  return viewPosition(uv).z;
+}
+
+vec3 calculateN(ivec2 texel)
+{
+  vec2 uv = vec2(float(texel.x), float(texel.y)) / Current.Dimensions;
+  return normal(uv);
+}
+
+float calculateDD(ivec2 texel)
+{
+  vec2 uv = vec2(float(texel.x), float(texel.y)) / Current.Dimensions;
+  return depth(uv);
+}
+
+float RangeKernel(uint baseTexel, uint currTexel)
+{
+  float StandardDeviation = 5.0;
+  float Variance = StandardDeviation * StandardDeviation;
+  float N = max(0.0, dot(n[currTexel], n[baseTexel]));
+  float D = sqrt(2.0 * pi * Variance);
+  float delta = d[currTexel] - d[baseTexel];
+  float E = exp(-(delta * delta) / (2.0 * Variance));
+  return N * E / D;
+}
+
+void main()
+{
+  // Note:
+  //   WorkGroupSize = (local_size_x,local_size_y,local_size_z)
+  //     ^- layout declared at top of compute shader.
+  //   WorkGroupId =  [(0,0,0), (num_groups_x,num_groups_y,num_groups_z)]
+  //     ^- Parameters passed in from glDispatchCompute().
+  //   LocalInvocation = [(0,0,0), (local_size_x-1,local_size_y-1,local_size_z-1]
+  //     ^- Essentially the current executing core.
+  //
+  //   GlobalInvocation = GroupId * GroupSize + LocalInvocation
+  ivec2 currTexel = ivec2(gl_GlobalInvocationID.x * Direction + gl_GlobalInvocationID.y * (1 - Direction));
+  vec2 baseUv = vec2(float(currTexel.x), float(currTexel.y)) / Current.Dimensions;
+  uint texelIndex = gl_LocalInvocationID.x;
+  int workWidth = int(gl_WorkGroupSize.x);
+
+  // Load image information into temporary workspace
+  ivec2 sourceTexel = currTexel - Blur.Width * Direction;
+  v[texelIndex] = imageLoad(src, sourceTexel).r;
+  d[texelIndex] = calculateD(sourceTexel);
+  n[texelIndex] = calculateN(sourceTexel);
+  D[texelIndex] = calculateDD(sourceTexel);
+
+  // First 2w threads will load the last 2w texels.
+  if (texelIndex < Blur.Width2)
+  {
+    ivec2 uv = sourceTexel + workWidth * Direction;
+    v[texelIndex + workWidth] = imageLoad(src, uv).r;
+    d[texelIndex + workWidth] = calculateD(uv);
+    n[texelIndex + workWidth] = calculateN(uv);
+    D[texelIndex + workWidth] = calculateDD(uv);
+  }
+
+  // We must wait until all information
+  // is loaded into the shared work group.
+  barrier();
+
+  // Calculate blurred results for each pixel
+  float result = 0.0;
+  float sum = 0.0;
+  uint baseIndex = texelIndex + Blur.Width;
+
+  // If it's the far background, do nothing
+  if(D[baseIndex] == 1.0)
+  {
+    result = 1.0;
+    sum = 1.0;
+  }
+
+  // Otherwise, it's the foreground, blur.
+  else
+  {
+    for (int j = 0; j <= Blur.Width2; ++j)
+    {
+      // Don't account for the background
+      if (D[texelIndex + j] != 1.0)
+      {
+        float S = Blur.Weights[j];
+        float R = RangeKernel(baseIndex, texelIndex + j);
+        float W = S * R;
+        result += v[texelIndex + j] * W;
+        sum += W;
+      }
+    }
+  }
+
+  imageStore(dst, currTexel, vec4(result / sum));
+}

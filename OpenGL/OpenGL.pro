@@ -53,7 +53,12 @@ SOURCES += \
     openglenvironment.cpp \
     opengltonemappingfunction.cpp \
     openglhdrtexture.cpp \
-    openglhammersleydata.cpp
+    openglhammersleydata.cpp \
+    openglspherelight.cpp \
+    openglarealight.cpp \
+    openglspherelightgroup.cpp \
+    openglrectanglelight.cpp \
+    openglrectanglelightgroup.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -120,4 +125,11 @@ HEADERS += \
     openglenvironment.h \
     opengltonemappingfunction.h \
     openglhdrtexture.h \
-    openglhammersleydata.h
+    openglhammersleydata.h \
+    openglspherelight.h \
+    openglarealight.h \
+    openglspherelightgroup.h \
+    openglarealightgroup.h \
+    openglarealightdata.h \
+    openglrectanglelight.h \
+    openglrectanglelightgroup.h

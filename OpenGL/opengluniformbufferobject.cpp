@@ -3,16 +3,11 @@
 
 static GLuint sg_bindings[GL_MAX_UNIFORM_BUFFER_BINDINGS] = { 0 };
 
-class OpenGLUniformBufferObjectPrivate : public OpenGLFunctions
+class OpenGLUniformBufferObjectPrivate
 {
 public:
-  OpenGLUniformBufferObjectPrivate();
+  // Reserved for future use
 };
-
-OpenGLUniformBufferObjectPrivate::OpenGLUniformBufferObjectPrivate()
-{
-  initializeOpenGLFunctions();
-}
 
 OpenGLUniformBufferObject::OpenGLUniformBufferObject() :
   OpenGLBuffer(OpenGLBuffer::UniformBuffer)
@@ -28,9 +23,8 @@ OpenGLUniformBufferObject::~OpenGLUniformBufferObject()
 
 void OpenGLUniformBufferObject::bindBase(unsigned uniformIndex)
 {
-  P(OpenGLUniformBufferObjectPrivate);
   sg_bindings[uniformIndex] = bufferId();
-  p.glBindBufferBase(GL_UNIFORM_BUFFER, uniformIndex, sg_bindings[uniformIndex]);
+  GL::glBindBufferBase(GL_UNIFORM_BUFFER, uniformIndex, sg_bindings[uniformIndex]);
 }
 
 void OpenGLUniformBufferObject::release()

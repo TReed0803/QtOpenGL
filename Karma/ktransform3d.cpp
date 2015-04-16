@@ -62,6 +62,16 @@ void KTransform3D::lookTowards(const KVector3D &dir)
   setRotation(rotAngle * 180.0f / Karma::Pi, rotAxis);
 }
 
+void KTransform3D::lookTowards(const KVector3D &forward, const KVector3D &up)
+{
+  KVector3D right = KVector3D::crossProduct(up, forward);
+  float qw = std::sqrt(1.0f + right.x() + up.y() + forward.z()) / 2.0;
+  float qx = (up.z() - forward.y()) / (4.0 * qw);
+  float qy = (forward.x() - right.z()) / (4.0 * qw);
+  float qz = (right.y() - up.x()) / (4.0 * qw);
+  setRotation(KQuaternion(qw, qx, qy, qz));
+}
+
 void KTransform3D::lookTowards(float x, float y, float z)
 {
   lookTowards(KVector3D(x, y, z));

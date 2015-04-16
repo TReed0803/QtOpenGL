@@ -318,6 +318,7 @@ void OpenGLDebugDraw::initialize()
 void OpenGLDebugDraw::draw()
 {
   sg_vertexBuffer.bind();
+  if (sg_debugGroups.size() == 0) return;
 
   // Send data to GPU
   {
@@ -401,6 +402,21 @@ void OpenGLDebugDraw::Screen::drawTexture(const KRectF &rect, OpenGLTexture &tex
 void OpenGLDebugDraw::World::drawPoint(const KVector3D &point, const KColor &color)
 {
   V(Points).push_back(KDebugVertex(point, color));
+}
+
+void OpenGLDebugDraw::World::drawQuad(const KVector3D &bl, const KVector3D &br, const KVector3D &tl, const KVector3D &tr, const KColor &color)
+{
+  drawLine(bl, br, color);
+  drawLine(br, tr, color);
+  drawLine(tr, tl, color);
+  drawLine(tl, bl, color);
+}
+
+void OpenGLDebugDraw::World::drawOval(const KVector3D &center, const KVector3D &normal, const KVector3D &minorVector, const KVector3D &majorVector, const KColor &color)
+{
+  float majorLength = majorVector.length();
+  float minorLength = minorVector.length();
+  drawOval(center, normal, majorVector / majorLength, majorLength, minorLength, color);
 }
 
 void OpenGLDebugDraw::World::drawOval(const KVector3D &center, const KVector3D &normal, const KVector3D &up, float upRadius, float rightRadius, const KColor &color)

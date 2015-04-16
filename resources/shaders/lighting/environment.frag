@@ -18,6 +18,8 @@ uniform sampler2D environment;
 layout(binding = K_TEXTURE_1)
 uniform sampler2D irradiance;
 uniform uvec2 Dimensions = uvec2(1200,2400);
+layout(binding = K_AMBIENT_OCCLUSION_BINDING)
+uniform sampler2D ambientOcclusion;
 
 // Light Output
 layout(location = 0) out highp vec4 fFragColor;
@@ -106,5 +108,5 @@ void main()
     // Mix the materials
     color = BlendMaterial(Kdiff, Kspec);
   }
-  fFragColor = vec4(color, 1.0);
+  fFragColor = vec4(color * texture(ambientOcclusion, uvCoord()).r, 1.0);
 }

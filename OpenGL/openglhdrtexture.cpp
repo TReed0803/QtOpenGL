@@ -78,7 +78,7 @@ void OpenGLHdrTextureLoader::endData()
   p.m_texture->setInternalFormat(OpenGLInternalFormat::Rgb32F);
   p.m_texture->setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::Repeat);
   p.m_texture->setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::Repeat);
-  p.m_texture->setFilter(OpenGLTexture::Magnification, OpenGLTexture::LinearMipMap);
+  p.m_texture->setFilter(OpenGLTexture::Magnification, OpenGLTexture::Linear);
   p.m_texture->setFilter(OpenGLTexture::Minification, OpenGLTexture::LinearMipMap);
   p.m_texture->setSize(p.m_width, p.m_height);
   p.m_texture->setSwizzle(OpenGLTexture::Red, OpenGLTexture::Green, OpenGLTexture::Blue, OpenGLTexture::One);

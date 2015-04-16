@@ -31,7 +31,8 @@ SOURCES += \
     preparepresentationpass.cpp \
     shadowedlightaccumulationpass.cpp \
     debuggbufferpass.cpp \
-    environmentpass.cpp
+    environmentpass.cpp \
+    screenspaceambientocclusion.cpp
 
 HEADERS += \
     mainwidget.h \
@@ -45,7 +46,8 @@ HEADERS += \
     preparepresentationpass.h \
     shadowedlightaccumulationpass.h \
     debuggbufferpass.h \
-    environmentpass.h
+    environmentpass.h \
+    screenspaceambientocclusion.h
 
 RESOURCES += \
     ../resources.qrc \
