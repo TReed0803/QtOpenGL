@@ -58,7 +58,8 @@ SOURCES += \
     openglarealight.cpp \
     openglspherelightgroup.cpp \
     openglrectanglelight.cpp \
-    openglrectanglelightgroup.cpp
+    openglrectanglelightgroup.cpp \
+    openglrenderpass.cpp
 
 HEADERS += \
     openglprofiler.h \

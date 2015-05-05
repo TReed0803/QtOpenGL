@@ -20,7 +20,6 @@ public:
   void bind();
   void commit(OpenGLViewport const &viewport);
   void release();
-  void draw();
 
   KTransform3D &transform();
   KTransform3D &currentTransform();
@@ -33,6 +32,8 @@ public:
   OpenGLMaterial const &material() const;
   void update();
   KAabbBoundingVolume aabb() const;
+  void setVisible(bool v);
+  bool visible() const;
 private:
   OpenGLInstancePrivate *m_private;
 };

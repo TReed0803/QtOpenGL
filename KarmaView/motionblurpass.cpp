@@ -11,11 +11,25 @@
 class MotionBlurPassPrivate
 {
 public:
+
+  // Settings
+  bool m_dirty;
+  int m_maxSamples;
+  float m_power;
+
+  // Working
   OpenGLMesh m_quadGL;
   OpenGLShaderProgram *m_program;
   OpenGLTexture m_blurTexture;
   OpenGLFramebufferObject m_fbo;
+
+  MotionBlurPassPrivate();
 };
+
+MotionBlurPassPrivate::MotionBlurPassPrivate()
+{
+  // Intentionally Empty
+}
 
 MotionBlurPass::MotionBlurPass()
 {
@@ -45,7 +59,7 @@ void MotionBlurPass::resize(int width, int height)
 
   p.m_blurTexture.create(OpenGLTexture::Texture2D);
   p.m_blurTexture.bind();
-  p.m_blurTexture.setInternalFormat(OpenGLInternalFormat::Rgba16);
+  p.m_blurTexture.setInternalFormat(OpenGLInternalFormat::Rgba16F);
   p.m_blurTexture.setWrapMode(OpenGLTexture::DirectionS, OpenGLTexture::ClampToEdge);
   p.m_blurTexture.setWrapMode(OpenGLTexture::DirectionT, OpenGLTexture::ClampToEdge);
   p.m_blurTexture.setFilter(OpenGLTexture::Magnification, OpenGLTexture::Nearest);
@@ -70,12 +84,19 @@ void MotionBlurPass::commit(OpenGLViewport &view)
 void MotionBlurPass::render(OpenGLScene &scene)
 {
   (void)scene;
+  if (!active()) return;
   P(MotionBlurPassPrivate);
   OpenGLMarkerScoped _("Motion Blur Pass");
 
   // Blur Texture
   p.m_fbo.bind();
   p.m_program->bind();
+  if (p.m_dirty)
+  {
+    p.m_dirty = false;
+    p.m_program->setUniformValue("MaxSamples", p.m_maxSamples);
+    p.m_program->setUniformValue("Power", p.m_power);
+  }
   p.m_quadGL.draw();
   p.m_program->release();
   p.m_fbo.release();
@@ -91,4 +112,18 @@ void MotionBlurPass::teardown()
   P(MotionBlurPassPrivate);
   delete p.m_program;
   delete m_private;
+}
+
+void MotionBlurPass::setPower(float pwr)
+{
+  P(MotionBlurPassPrivate);
+  p.m_power = pwr;
+  p.m_dirty = true;
+}
+
+void MotionBlurPass::setMaxSamples(int s)
+{
+  P(MotionBlurPassPrivate);
+  p.m_maxSamples = s;
+  p.m_dirty = true;
 }

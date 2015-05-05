@@ -17,6 +17,7 @@
 #include <KCommon>
 #include <KInputManager>
 #include <KUpdateEvent>
+#include <KMath>
 
 static OpenGLWidget *sg_widget;
 
@@ -57,8 +58,6 @@ OpenGLWidget::OpenGLWidget(QWidget *parent) :
   grabGesture(Qt::PanGesture);
   grabGesture(Qt::PinchGesture);
   setAttribute(Qt::WA_AcceptTouchEvents);
-  grabKeyboard();
-  grabMouse();
   setMouseTracking(true);
 }
 
@@ -122,6 +121,7 @@ void OpenGLWidget::initializeGL()
     connect(&p.m_profiler, SIGNAL(frameResultsAvailable(OpenGLFrameResults)), &p.m_profilerVisualizer, SLOT(frameResultsAvailable(OpenGLFrameResults)));
   }
   connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
+  connect(this, SIGNAL(frameSwapped()), &p.m_frameTimer, SLOT(frameSwapped()));
 
   // Add a debug messanger if running in debug mode.
 #ifdef    GL_DEBUG
@@ -311,7 +311,10 @@ void OpenGLWidget::update()
 
 void OpenGLWidget::frameTimeout(float fps)
 {
-  QString format("FPS: %1");
+  QString format("KarmaView - %1 FPS");
+  Karma::setTitle(
+    format.arg(std::ceil(fps))
+  );
 }
 
 void OpenGLWidget::messageLogged(const QOpenGLDebugMessage &msg)

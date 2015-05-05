@@ -27,7 +27,10 @@ public:
   // Pass Manipulation
   template <typename T>
   T *addPass();
+  template <typename T>
+  T *pass();
 
+  OpenGLRenderPass *pass(int id);
   void registerViewport(OpenGLViewport *view);
   static void activateViewport(OpenGLViewport *view);
 
@@ -42,6 +45,12 @@ T *OpenGLRenderer::addPass()
   T *pass = new T;
   addPass(pass);
   return pass;
+}
+
+template <typename T>
+T *OpenGLRenderer::pass()
+{
+  return pass(T::passId());
 }
 
 #endif // OPENGLRENDERER_H

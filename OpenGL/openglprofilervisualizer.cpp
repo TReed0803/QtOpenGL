@@ -18,6 +18,7 @@
 #include <KInputManager>
 #include <KRectF>
 #include <KMacros>
+#include <KMath>
 
 /*******************************************************************************
  * OpenGLProfilerVisualizerPrivate
@@ -135,7 +136,7 @@ void OpenGLProfilerVisualizer::paintGL()
     }
     else
     {
-      markerColor = Qt::red;
+      markerColor = Karma::colorShift(Qt::red, float(i) / gpuResults.size());
       if (p.m_currToolTip == result.name())
       {
         p.m_currToolTip.clear();

@@ -82,18 +82,21 @@ void OpenGLInstanceManagerPrivate::render() const
   while (begin != m_end)
   {
     instance = *begin;
-    if (currMesh != instance->mesh().objectId())
+    if (instance->visible())
     {
-      instance->mesh().bind();
-      currMesh = instance->mesh().objectId();
+      if (currMesh != instance->mesh().objectId())
+      {
+        instance->mesh().bind();
+        currMesh = instance->mesh().objectId();
+      }
+      if (currMat != instance->material().objectId())
+      {
+        instance->material().bind();
+        currMat = instance->material().objectId();
+      }
+      instance->bind();
+      instance->mesh().draw();
     }
-    if (currMat != instance->material().objectId())
-    {
-      instance->material().bind();
-      currMat = instance->material().objectId();
-    }
-    instance->bind();
-    instance->mesh().draw();
     ++begin;
   }
 }
@@ -104,18 +107,21 @@ void OpenGLInstanceManagerPrivate::renderAll() const
   int currMesh = 0;
   for (OpenGLInstance *instance : m_instances)
   {
-    if (currMesh != instance->mesh().objectId())
+    if (instance->visible())
     {
-      instance->mesh().bind();
-      currMesh = instance->mesh().objectId();
+      if (currMesh != instance->mesh().objectId())
+      {
+        instance->mesh().bind();
+        currMesh = instance->mesh().objectId();
+      }
+      if (currMat != instance->material().objectId())
+      {
+        instance->material().bind();
+        currMat = instance->material().objectId();
+      }
+      instance->bind();
+      instance->mesh().draw();
     }
-    if (currMat != instance->material().objectId())
-    {
-      instance->material().bind();
-      currMat = instance->material().objectId();
-    }
-    instance->bind();
-    instance->mesh().draw();
   }
 }
 

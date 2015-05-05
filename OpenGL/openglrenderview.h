@@ -26,6 +26,7 @@ public:
   void render(OpenGLScene &scene);
   void teardown();
   void release();
+  OpenGLRenderPassQueue *passes();
 
 private:
   KSharedPointer<OpenGLRenderViewPrivate> m_private;

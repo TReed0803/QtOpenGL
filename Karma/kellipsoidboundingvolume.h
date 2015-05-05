@@ -13,6 +13,7 @@ public:
     PcaMethod
   };
 
+  KEllipsoidBoundingVolume();
   KEllipsoidBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   ~KEllipsoidBoundingVolume();
   void draw(KTransform3D &t, KColor const &color) const;

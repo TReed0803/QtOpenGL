@@ -141,12 +141,14 @@ void OpenGLRectangleLightGroup::draw()
   GL::glBlendFunc(GL_ONE, GL_ONE);
   for (unsigned i = 0; i < p.m_lights.size(); ++i)
   {
+    if (!p.m_lights[i]->active()) continue;
     p.m_uniforms.bindRange(OpenGLUniformBufferObject::UniformBuffer, K_LIGHT_BINDING, static_cast<int>(p.m_uniformOffset * i), static_cast<int>(sizeof(OpenGLAreaLightData)));
     p.m_mesh.draw();
   }
   GL::glDisable(GL_BLEND);
   GL::glEnable(GL_DEPTH_TEST);
 
+  /*
   GL::glBindBuffer(GL_SHADER_STORAGE_BUFFER, p.ssbo);
   GLvoid* pointer = GL::glMapRange(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
   memcpy(&shader_data, pointer, sizeof(shader_data));
@@ -166,7 +168,6 @@ void OpenGLRectangleLightGroup::draw()
   KVector3D topLeft = KVector3D(shader_data.topLeft[0], shader_data.topLeft[1], shader_data.topLeft[2]);
 
   KVector3D mrpUnclamped = KVector3D(shader_data.mrpUnclamped[0], shader_data.mrpUnclamped[1], shader_data.mrpUnclamped[2]);
-  //*
   OpenGLDebugDraw::World::drawSphere(wPos, 0.1f, Qt::green);
   OpenGLDebugDraw::World::drawSphere(sPos, 0.1f, Qt::red);
   OpenGLDebugDraw::World::drawSphere(mrpUnclamped, 0.1f, Qt::yellow);
@@ -175,9 +176,7 @@ void OpenGLRectangleLightGroup::draw()
   OpenGLDebugDraw::World::drawLine(wPos, wPos + rVector, Qt::red);
   OpenGLDebugDraw::World::drawOval(mrpUnclamped, eNormal, eMajor, eMinor, Qt::green);
   OpenGLDebugDraw::World::drawQuad(bottomLeft, bottomRight, topLeft, topRight, Qt::green);
-  //*/
-
-  qDebug() << rVector;
+  */
 }
 
 OpenGLRectangleLight *OpenGLRectangleLightGroup::createLight()
@@ -192,6 +191,12 @@ size_t OpenGLRectangleLightGroup::size() const
 {
   P(const OpenGLRectangleLightGroupPrivate);
   return p.m_lights.size();
+}
+
+OpenGLRectangleLight *OpenGLRectangleLightGroup::operator[](int idx)
+{
+  P(OpenGLRectangleLightGroupPrivate);
+  return p.m_lights[idx];
 }
 
 auto OpenGLRectangleLightGroup::begin() -> LightContainer::iterator

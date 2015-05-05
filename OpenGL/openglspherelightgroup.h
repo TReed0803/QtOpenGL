@@ -21,6 +21,8 @@ public:
 
   LightContainer::iterator begin();
   LightContainer::iterator end();
+  OpenGLSphereLight *operator[](int idx);
+  int size() const;
 private:
   KUniquePointer<OpenGLSphereLightGroupPrivate> m_private;
 };

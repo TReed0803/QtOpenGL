@@ -161,6 +161,12 @@ void KSphereBoundingVolumePrivate::calculateFromCovarianceMatrix(const KHalfEdge
   centroid = (minMax.max + minMax.min) / 2.0f;
 }
 
+KSphereBoundingVolume::KSphereBoundingVolume() :
+  m_private(0)
+{
+  // Intentionally Empty
+}
+
 KSphereBoundingVolume::KSphereBoundingVolume(const KHalfEdgeMesh &mesh, Method method) :
   m_private(new KSphereBoundingVolumePrivate)
 {

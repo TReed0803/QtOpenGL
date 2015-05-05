@@ -71,6 +71,7 @@ public:
   ConstLightReverseIterator crend() const;
   SizeType size() const;
   bool empty() const;
+  LightPointer operator[](int idx);
 
 protected:
   BufferType m_buffer;
@@ -97,7 +98,13 @@ void OpenGLLightGroup<T, D>::commit(const OpenGLViewport &view)
   // Seperate shadow-casters from regular lights
   LightIterator regularLights = std::partition(m_lights.begin(), m_lights.end(), OpenGLLight::ShadowCastingPred<true>());
   m_numShadowLights  = std::distance(m_lights.begin(), regularLights);
-  m_numRegularLights = int(m_lights.size() - m_numShadowLights);
+  m_numRegularLights = m_lights.size() - m_numShadowLights;
+
+  // Find all active ones
+  for (OpenGLLight *light : m_lights)
+  {
+    if (!light->active()) --m_numShadowLights;
+  }
 
   BufferType::RangeAccessFlags flags =
       BufferType::RangeInvalidate
@@ -243,9 +250,13 @@ void OpenGLLightGroup<T, D>::drawShadowed(OpenGLScene &scene)
       GL::glEnable(GL_DEPTH_TEST);
       m_shadowCastingLight->release();
     m_mesh.release();
-
-    //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0, 0.0, 1.0f, 1.0f), m_shadowTexture);
   }
+}
+
+template <typename T, typename D>
+auto OpenGLLightGroup<T, D>::operator[](int idx) -> LightPointer
+{
+  return m_lights[idx];
 }
 
 template <typename T, typename D>

@@ -14,6 +14,9 @@ public:
   virtual void commit(OpenGLViewport &view);
   virtual void render(OpenGLScene &scene);
   virtual void teardown();
+  void setValues(float A, float B, float C, float D, float E, float F, float W);
+  void setExposureBias(float eb);
+  void setExposure(float e);
 private:
   ViewportPresentationPassPrivate *m_private;
 };

@@ -81,6 +81,19 @@ void OpenGLRenderPassQueue::teardown()
   }
 }
 
+OpenGLRenderPass *OpenGLRenderPassQueue::pass(int id)
+{
+  P(OpenGLRenderPassQueuePrivate);
+  for (OpenGLRenderPass *pass : p.m_passes)
+  {
+    if (pass->id() == id)
+    {
+      return pass;
+    }
+  }
+  return nullptr;
+}
+
 OpenGLRenderPassQueue::RenderPassContainer &OpenGLRenderPassQueue::passes()
 {
   P(OpenGLRenderPassQueuePrivate);

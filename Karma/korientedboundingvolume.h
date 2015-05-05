@@ -16,6 +16,7 @@ public:
   };
 
   // Constructors / Destructor
+  KOrientedBoundingVolume();
   KOrientedBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   ~KOrientedBoundingVolume();
 

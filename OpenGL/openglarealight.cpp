@@ -2,7 +2,7 @@
 #include <KMath>
 
 OpenGLAreaLight::OpenGLAreaLight() :
-  m_temperature(2700.0f), m_intensity(1200.0f), m_radius(100.0f)
+  m_active(true), m_temperature(2700.0f), m_intensity(1200.0f), m_radius(100.0f)
 {
   // Intentionally Empty
 }
@@ -135,6 +135,16 @@ float OpenGLAreaLight::intensity() const
 const KMatrix4x4 &OpenGLAreaLight::toMatrix() const
 {
   return m_transform.toMatrix();
+}
+
+void OpenGLAreaLight::setActive(bool a)
+{
+  m_active = a;
+}
+
+bool OpenGLAreaLight::active() const
+{
+  return m_active;
 }
 
 KVector3D OpenGLAreaLight::color() const

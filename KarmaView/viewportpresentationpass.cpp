@@ -14,10 +14,20 @@
 class ViewportPresentationPassPrivate
 {
 public:
+  bool m_dirty;
+  float a, b, c, d, e, f, w, exposure, exposureBias;
   int m_width, m_height, m_x, m_y;
   OpenGLMesh m_quadGL;
   OpenGLShaderProgram *m_program;
+
+  ViewportPresentationPassPrivate();
 };
+
+ViewportPresentationPassPrivate::ViewportPresentationPassPrivate() :
+  m_dirty(true)
+{
+  // Intentionally Empty
+}
 
 ViewportPresentationPass::ViewportPresentationPass()
 {
@@ -60,6 +70,19 @@ void ViewportPresentationPass::render(OpenGLScene &scene)
   OpenGLFramebufferObject::release();
   GL::glViewport(p.m_x, p.m_y, p.m_width, p.m_height);
   p.m_program->bind();
+  if (p.m_dirty)
+  {
+    p.m_dirty = false;
+    p.m_program->setUniformValue("A", p.a);
+    p.m_program->setUniformValue("B", p.b);
+    p.m_program->setUniformValue("C", p.c);
+    p.m_program->setUniformValue("D", p.d);
+    p.m_program->setUniformValue("E", p.e);
+    p.m_program->setUniformValue("F", p.f);
+    p.m_program->setUniformValue("W", p.w);
+    p.m_program->setUniformValue("Exposure", p.exposure);
+    p.m_program->setUniformValue("ExposureBias", p.exposureBias);
+  }
   p.m_quadGL.draw();
   p.m_program->release();
 }
@@ -71,3 +94,29 @@ void ViewportPresentationPass::teardown()
   delete m_private;
 }
 
+void ViewportPresentationPass::setValues(float A, float B, float C, float D, float E, float F, float W)
+{
+  P(ViewportPresentationPassPrivate);
+  p.a = A;
+  p.b = B;
+  p.c = C;
+  p.d = D;
+  p.e = E;
+  p.f = F;
+  p.w = W;
+  p.m_dirty = true;
+}
+
+void ViewportPresentationPass::setExposureBias(float eb)
+{
+  P(ViewportPresentationPassPrivate);
+  p.exposureBias = eb;
+  p.m_dirty = true;
+}
+
+void ViewportPresentationPass::setExposure(float e)
+{
+  P(ViewportPresentationPassPrivate);
+  p.exposure = e;
+  p.m_dirty = true;
+}

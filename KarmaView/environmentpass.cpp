@@ -66,6 +66,7 @@ void EnvironmentPass::commit(OpenGLViewport &view)
 void EnvironmentPass::render(OpenGLScene &scene)
 {
   (void)scene;
+  if (!active()) return;
   P(EnvironmentPassPrivate);
   OpenGLMarkerScoped _("Light Accumulation Pass");
 
@@ -91,7 +92,7 @@ void EnvironmentPass::render(OpenGLScene &scene)
   if (p.m_uGeometry != -1) locations[p.m_uGeometry] = gIndex;
   if (p.m_uDistribution != -1) locations[p.m_uDistribution] = dIndex;
   if (p.m_uDistributionSample != -1) locations[p.m_uDistributionSample] = sIndex;
-  //GL::glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 4, locations);
+  GL::glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 4, locations);
 #endif
   p.m_quadGL.draw();
   p.m_environmentPass->release();

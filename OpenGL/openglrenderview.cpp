@@ -82,3 +82,9 @@ void OpenGLRenderView::release()
   p.m_view.release();
 }
 
+OpenGLRenderPassQueue *OpenGLRenderView::passes()
+{
+  P(OpenGLRenderViewPrivate);
+  return &p.m_passQueue;
+}
+

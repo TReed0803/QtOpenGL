@@ -5,6 +5,8 @@
 
 class OpenGLScene;
 class KUpdateEvent;
+class SampleScene;
+class OpenGLRenderer;
 
 class MainWidgetPrivate;
 class MainWidget : public OpenGLWidget
@@ -15,6 +17,9 @@ public:
   MainWidget(QWidget *parent = 0);
   ~MainWidget();
   void setScene(OpenGLScene *scene);
+  bool isReady() const;
+  SampleScene* sampleScene();
+  OpenGLRenderer* renderer();
 
 protected:
 

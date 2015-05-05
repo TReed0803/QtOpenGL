@@ -5,9 +5,9 @@
 #-------------------------------------------------
 
 TEMPLATE  = app
-CONFIG   += console
 CONFIG   -= app_bundle
 QT       += core gui widgets
+QT       -= console
 TARGET    = KarmaView
 include(../config.pri)
 
@@ -32,7 +32,8 @@ SOURCES += \
     shadowedlightaccumulationpass.cpp \
     debuggbufferpass.cpp \
     environmentpass.cpp \
-    screenspaceambientocclusion.cpp
+    screenspaceambientocclusion.cpp \
+    mainwindow.cpp
 
 HEADERS += \
     mainwidget.h \
@@ -47,8 +48,13 @@ HEADERS += \
     shadowedlightaccumulationpass.h \
     debuggbufferpass.h \
     environmentpass.h \
-    screenspaceambientocclusion.h
+    screenspaceambientocclusion.h \
+    mainwindow.h \
+    main.h
 
 RESOURCES += \
     ../resources.qrc \
     ../images.qrc
+
+FORMS += \
+    mainwindow.ui

@@ -42,7 +42,11 @@ public:
     }
   };
 
+  void setActive(bool b);
+  bool active() const;
+
 protected:
+  bool m_active;
   bool m_shadowCasting;
   KVector3D m_attenuation;
   KVector3D m_diffuse;

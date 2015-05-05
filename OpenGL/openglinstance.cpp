@@ -13,12 +13,21 @@
 class OpenGLInstancePrivate
 {
 public:
+  bool m_visible;
   KTransform3D m_currTransform;
   KTransform3D m_prevTransform;
   OpenGLMaterial m_material;
   OpenGLMesh m_mesh;
   OpenGLUniformBufferObject m_buffer;
+
+  OpenGLInstancePrivate();
 };
+
+OpenGLInstancePrivate::OpenGLInstancePrivate() :
+  m_visible(true)
+{
+  // Intentionally Empty
+}
 
 OpenGLInstance::OpenGLInstance() :
   m_private(new OpenGLInstancePrivate)
@@ -67,11 +76,6 @@ void OpenGLInstance::commit(const OpenGLViewport &viewport)
 void OpenGLInstance::release()
 {
   OpenGLUniformBufferObject::bindBufferId(K_OBJECT_BINDING, 0);
-}
-
-void OpenGLInstance::draw()
-{
-
 }
 
 KTransform3D &OpenGLInstance::transform()
@@ -138,4 +142,16 @@ KAabbBoundingVolume OpenGLInstance::aabb() const
 {
   P(const OpenGLInstancePrivate);
   return p.m_mesh.aabb() * p.m_currTransform.toMatrix();
+}
+
+void OpenGLInstance::setVisible(bool v)
+{
+  P(OpenGLInstancePrivate);
+  p.m_visible = v;
+}
+
+bool OpenGLInstance::visible() const
+{
+  P(const OpenGLInstancePrivate);
+  return p.m_visible;
 }

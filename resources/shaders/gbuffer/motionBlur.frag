@@ -1,6 +1,8 @@
 #include <GBuffer.ubo>
 #include <GlobalBuffer.ubo>
 out highp vec4 fColor;
+uniform int MaxSamples = 20;
+uniform float Power = 1.0;
 
 void main()
 {
@@ -9,10 +11,10 @@ void main()
 
   // Calculate the sample size and velocity
   highp vec2 texelSize = 1.0 / vec2(Current.Dimensions);
-  highp vec2 vel = velocity();
+  highp vec2 vel = Power * velocity();
   // Note: vel *= currFps / targetFps; For more accuracy
   highp float speed = length(vel / texelSize);
-  highp int nSamples = clamp(int(speed), 1, 20);
+  highp int nSamples = clamp(int(speed), 1, MaxSamples);
 
   // Calculate the Iterative motion blur
   highp vec2 adder = vel / float(nSamples);

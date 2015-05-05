@@ -96,6 +96,7 @@ void OpenGLSphereLightGroup::draw()
   GL::glBlendFunc(GL_ONE, GL_ONE);
   for (unsigned i = 0; i < p.m_lights.size(); ++i)
   {
+    if (!p.m_lights[i]->active()) continue;
     p.m_uniforms.bindRange(OpenGLUniformBufferObject::UniformBuffer, K_LIGHT_BINDING, static_cast<int>(p.m_uniformOffset * i), static_cast<int>(sizeof(OpenGLAreaLightData)));
     p.m_mesh.draw();
   }
@@ -109,6 +110,18 @@ OpenGLSphereLight *OpenGLSphereLightGroup::createLight()
   OpenGLSphereLight *light = new OpenGLSphereLight;
   p.m_lights.push_back(light);
   return light;
+}
+
+OpenGLSphereLight *OpenGLSphereLightGroup::operator[](int idx)
+{
+  P(OpenGLSphereLightGroupPrivate);
+  return p.m_lights[idx];
+}
+
+int OpenGLSphereLightGroup::size() const
+{
+  P(const OpenGLSphereLightGroupPrivate);
+  return p.m_lights.size();
 }
 
 auto OpenGLSphereLightGroup::begin() -> LightContainer::iterator

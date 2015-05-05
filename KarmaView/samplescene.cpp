@@ -45,12 +45,35 @@
 #include <OpenGLRectangleLight>
 #include <OpenGLRectangleLightGroup>
 
-#define MULTI_MESH
-#define SQUARE_GRID
+struct LightInfo
+{
+  float m_lightHeight;
+  float m_lightRadius;
+  float m_lightIntensity;
+  bool m_lightsAnimated;
+  int m_lightCount;
+  int m_lightBaseTemp;
+  int m_lightStepTemp;
+};
 
 class SampleScenePrivate
 {
 public:
+  float m_rectLightsWidth, m_rectLightsHeight;
+  KVector3D m_objectRotation;
+  bool m_bvAabb, m_bvObb, m_bvSphereRitters, m_bvSpherePca, m_bvSphereCentroid, m_bvEllipse, m_bvSphereLarssons;
+  LightInfo m_spotlights;
+  LightInfo m_sphereLights;
+  LightInfo m_rectLights;
+  float m_sphereLightRadius;
+  float m_metalSeparation;
+  float m_roughSeparation;
+  float m_metallic;
+  float m_roughness;
+  KVector3D m_baseColor;
+  int m_activeMetals;
+  int m_activeRoughness;
+  OpenGLInstance *m_floorInstance;
   OpenGLInstance *m_mainInstance;
   KCamera3D m_camera;
   OpenGLViewport m_viewport;
@@ -59,6 +82,16 @@ public:
   KAdaptiveOctree m_octree;
   KBspTree m_bspTree;
 
+  KAabbBoundingVolume *m_aabb;
+  KSphereBoundingVolume *m_sphereCentroid;
+  KSphereBoundingVolume *m_sphereLarsons;
+  KSphereBoundingVolume *m_spherePca;
+  KSphereBoundingVolume *m_sphereRitters;
+  KOrientedBoundingVolume *m_obb;
+  KEllipsoidBoundingVolume *m_ellipse;
+
+  SampleScenePrivate();
+
   // Object Manipulation
   void loadObj(const char *fileName);
   void loadObj(const KString &fileName);
@@ -66,6 +99,20 @@ public:
   template <typename T>
   void buildMethod(T &geom, KHalfEdgeMesh const &mesh, typename T::BuildMethod method, typename T::TerminationPred pred);
 };
+
+SampleScenePrivate::SampleScenePrivate() :
+  m_bvAabb(false), m_bvObb(false), m_bvSphereRitters(false),
+  m_bvSpherePca(false), m_bvSphereCentroid(false), m_bvEllipse(false), m_bvSphereLarssons(false),
+  m_aabb(0),
+  m_sphereCentroid(0),
+  m_sphereLarsons(0),
+  m_spherePca(0),
+  m_sphereRitters(0),
+  m_obb(0),
+  m_ellipse(0)
+{
+  // Intentionally Empty
+}
 
 void SampleScenePrivate::loadObj(const char *fileName)
 {
@@ -134,46 +181,28 @@ void SampleScenePrivate::loadObj(const KString &fileName)
     // Generate the Bounding Volumes
     {
       timer.start();
-      KAabbBoundingVolume aabbMinMax(halfEdgeMesh, KAabbBoundingVolume::MinMaxMethod);
-      KSphereBoundingVolume sphereCentroid(halfEdgeMesh, KSphereBoundingVolume::CentroidMethod);
-      KSphereBoundingVolume sphereLarssons(halfEdgeMesh, KSphereBoundingVolume::LarssonsMethod);
-      KSphereBoundingVolume spherePca(halfEdgeMesh, KSphereBoundingVolume::PcaMethod);
-      KSphereBoundingVolume sphereRitter(halfEdgeMesh, KSphereBoundingVolume::RittersMethod);
-      KOrientedBoundingVolume obbPca(halfEdgeMesh, KOrientedBoundingVolume::PcaMethod);
-      KEllipsoidBoundingVolume ellipsoidPca(halfEdgeMesh, KEllipsoidBoundingVolume::PcaMethod);
+      delete m_aabb;
+      delete m_sphereCentroid;
+      delete m_sphereLarsons;
+      delete m_spherePca;
+      delete m_sphereRitters;
+      delete m_obb;
+      delete m_ellipse;
+      m_aabb = new KAabbBoundingVolume(halfEdgeMesh, KAabbBoundingVolume::MinMaxMethod);
+      m_sphereCentroid = new KSphereBoundingVolume(halfEdgeMesh, KSphereBoundingVolume::CentroidMethod);
+      m_sphereLarsons = new KSphereBoundingVolume(halfEdgeMesh, KSphereBoundingVolume::LarssonsMethod);
+      m_spherePca = new KSphereBoundingVolume(halfEdgeMesh, KSphereBoundingVolume::PcaMethod);
+      m_sphereRitters = new KSphereBoundingVolume(halfEdgeMesh, KSphereBoundingVolume::RittersMethod);
+      m_obb = new KOrientedBoundingVolume(halfEdgeMesh, KOrientedBoundingVolume::PcaMethod);
+      m_ellipse = new KEllipsoidBoundingVolume(halfEdgeMesh, KEllipsoidBoundingVolume::PcaMethod);
       ms = timer.elapsed();
       kDebug() << "Bounding Volume Gen. (sec)   :" << float(ms) / 1e3f;
-    }
-    // Generate the Bounding Volume Hierarchy
-    {
-      timer.start();
-      auto depthPred =
-        [](size_t numTriangles, size_t depth)->bool
-        {
-          (void)numTriangles;
-          return depth >= 7;
-        };
-      auto trianglePred =
-        [](size_t numTriangles, size_t depth)->bool
-        {
-          (void)depth;
-          return numTriangles < 300;
-        };
-      //buildMethod(m_staticGeometry[0], halfEdgeMesh, KStaticGeometry::BottomUpMethod, depthPred);
-      //buildMethod(m_staticGeometry[1], halfEdgeMesh, KStaticGeometry::BottomUpMethod, trianglePred);
-      //buildMethod(m_staticGeometry[2], halfEdgeMesh, KStaticGeometry::TopDownMethod, depthPred);
-      //buildMethod(m_staticGeometry[3], halfEdgeMesh, KStaticGeometry::TopDownMethod, trianglePred);
-      //buildMethod(m_octree           , halfEdgeMesh, KAdaptiveOctree::TopDownMethod, trianglePred);
-      //buildMethod(m_bspTree          , halfEdgeMesh, KBspTree::TopDownMethod, trianglePred);
-      ms = timer.elapsed();
-      kDebug() << "BV Hierarchy Gen. (sec)      :" << float(ms) / 1e3f;
     }
     kDebug() << "--------------------------------------";
     kDebug() << "Mesh Vertexes  :" << halfEdgeMesh.numVertices();
     kDebug() << "Mesh Faces     :" << halfEdgeMesh.numFaces();
     kDebug() << "Mesh HalfEdges :" << halfEdgeMesh.numHalfEdges();
     kDebug() << "Boundary Edges :" << boundaries;
-    kDebug() << "Polygons/Frame :" << halfEdgeMesh.numFaces() * m_instances.size();
   }
 
   for (std::vector<OpenGLInstance *> layer : m_instances)
@@ -217,60 +246,23 @@ void SampleScene::start()
   P(SampleScenePrivate);
 
   // Initialize the camera
-  p.m_camera.setTranslation(0.0f, 5.0f, 5.0f);
+  p.m_camera.setTranslation(0.0f, 0.0f, 25.0f);
   p.m_viewport.create();
   p.m_viewport.setCamera(p.m_camera);
   p.m_viewport.activate();
 
-  // Initialize the Direction Light Group
-  for (int i = 0; i < 0; ++i)
-  {
-    static const float Intensity = 0.1f;
-    OpenGLDirectionLight *light = createDirectionLight();
-    light->setDiffuse(Intensity * Karma::k2rgb(1700));
-    light->setSpecular(0.1f, 0.1f, 0.1f);
-  }
-
-  // Initialize the Point Light Group
-  srand(time(NULL));
-  for (int i = 0; i < 0; ++i)
-  {
-    OpenGLPointLight *light = createPointLight();
-    light->setRadius(200.0f);
-    light->setAttenuation(1.0f, 0.01f, 0.0f);
-    light->setDiffuse(float(rand())/RAND_MAX,float(rand())/RAND_MAX,float(rand())/RAND_MAX);
-  }
-
-  // Initialize Sphere lights
-  for (int i = 0; i < 0; ++i)
-  {
-    OpenGLSphereLight *light = createSphereLight();
-    light->setTranslation(0.0f, 3.0f, 0.0f);
-    light->setIntensity(1200.0f);
-    light->setTemperature(2700.0f);
-  }
-
-  // Initialize Rectangle lights
-  for (int i = 0; i < 1; ++i)
-  {
-    OpenGLRectangleLight *light = createRectangleLight();
-    light->setDimensions(7.0f, 1.0f);
-    light->setTranslation(0.0f, 0.0f, 10.0f);
-    light->setIntensity(5000.0f);
-    light->setTemperature(4500.0f + i*1000.0f);
-  }
-
   // Initialize the Spot Light Group
-  for (int i = 0; i < 0; ++i)
+  static const int LightsCount = 10;
+  for (int i = 0; i < LightsCount; ++i)
   {
-    const float Intensity = 1000.0f;
+    createSphereLight();
+    createRectangleLight();
     OpenGLSpotLight *light = createSpotLight();
     light->setAttenuation(1.0f, 0.5f, 0.1f);
     light->setShadowCasting(true);
     light->setInnerAngle(0.0f);
     light->setOuterAngle(45.0f);
-    light->setDiffuse(Intensity * Karma::k2rgb(2500 + 2500 * i));
-    light->setDepth(25.0f);
+    light->setDepth(45.0f);
   }
 
   // Create Floor mesh
@@ -281,28 +273,20 @@ void SampleScene::start()
   floorMeshGL.create(floorMesh);
   OpenGLMeshManager::setMesh("Floor", floorMeshGL);
 
-  // Create the floor material
-  OpenGLMaterial floorMaterial;
-  floorMaterial.create();
-  //floorMaterial.setBaseColor(132.0f / 255.0f, 45.0f / 255.0f, 176.0f / 255.0f);
-  floorMaterial.setBaseColor(0.6f);
-  floorMaterial.setMetallic(0.2f);
-  floorMaterial.setRoughness(0.2f); // 0.8
-
   // Note: Currently there is no Material System.
   //       All material properties are per-instance.
-  /*
-  OpenGLInstance *floor = createInstance();
-  floor->setMesh(floorMeshGL);
-  floor->setMaterial(floorMaterial);
-  floor->transform().setScale(1000.0f);
-  floor->transform().setTranslation(0.0f, -5.0f, 0.0f);
-  //*/
+  OpenGLMaterial floorMaterial;
+  floorMaterial.create();
+  p.m_floorInstance = createInstance();
+  p.m_floorInstance->setMesh(floorMeshGL);
+  p.m_floorInstance->setMaterial(floorMaterial);
+  p.m_floorInstance->transform().setScale(1000.0f);
+  p.m_floorInstance->transform().setTranslation(0.0f, -5.0f, 0.0f);
+  p.m_floorInstance->setVisible(false);
 
   // Create instance data
-#ifdef MULTI_MESH
-  static const int MetallicCount = 4;
-  static const int RoughnessCount = 8;
+  static const int MetallicCount = 20;
+  static const int RoughnessCount = 20;
   p.m_instances.resize(MetallicCount + 1);
   for (int i = 0; i <= MetallicCount; ++i)
   {
@@ -310,40 +294,12 @@ void SampleScene::start()
     {
       OpenGLMaterial material;
       material.create();
-      //material.setBaseColor(255.0f / 255.0f, 191.0f / 255.0f, 0.0f / 255.0f);
-      material.setBaseColor(1.0f, 0.3f, 0.3f);
-      material.setBaseColor(0.9f);
-      material.setMetallic(float(i) / MetallicCount);
-      material.setRoughness(0.1 + float(j) / RoughnessCount);
       OpenGLInstance *instance = createInstance();
       instance->setMaterial(material);
       instance->currentTransform().setScale(5.0f);
       p.m_instances[i].push_back(instance);
     }
   }
-#else
-
-  // Create the instance material
-  OpenGLMaterial material;
-  material.create();
-  //material.setBaseColor(205.0f / 255.0f, 127.0f / 255.0f, 50.0f / 255.0f); // Bronze
-  //material.setBaseColor(255.0f / 255.0f, 215.0f / 255.0f, 0.0f / 255.0f); // Gold
-  material.setBaseColor(0.4f); // Dark Grey
-  //material.setBaseColor(1.0f); // White
-  //material.setMetallic(0.83204f); // Gold
-  material.setMetallic(0.17598f); // Stone
-  //material.setRoughness(0.2f); // Smooth
-  material.setRoughness(0.7f); // Stone
-
-  // Create the instance
-  OpenGLInstance *instance = createInstance();
-  p.m_mainInstance = instance;
-  instance->setMaterial(material);
-  instance->currentTransform().scale(5.0f);
-  p.m_instances.resize(1);
-  p.m_instances[0].push_back(instance);
-
-#endif
 
   // Load the SharedMesh
   p.loadObj(":/resources/objects/sphere.obj");
@@ -359,8 +315,6 @@ void SampleScene::start()
   OpenGLEnvironment *env = environment();
   env->setDirect(":/resources/images/AlexsApt.hdr");
   env->setIndirect(":/resources/images/AlexsApt_Env.hdr");
-  //env->setDirect("C:/Users/Trent/Downloads/Maps/Hamarikyu.hdr");
-  //env->setIndirect("C:/Users/Trent/Downloads/Maps/Hamarikyu_Env.hdr");
 }
 
 void SampleScene::update(KUpdateEvent *event)
@@ -369,72 +323,118 @@ void SampleScene::update(KUpdateEvent *event)
   (void)event;
 
   // Update Lights (Scene update)
-  static float f = 0.0f;
-  f += 0.0016f;
-  float angle = f;
-  for (OpenGLDirectionLight *light : directionLights())
-  {
-    light->setDirection(std::cos(angle), -1, std::sin(angle));
-  }
-  for (OpenGLPointLight *instance : pointLights())
-  {
-    static const float radius = 7.0f;
-    instance->setTranslation(cos(angle) * radius, 2.0f, sin(angle) * radius);
-    angle += 2 * 3.1415926 / pointLights().size();
-  }
-  angle = f;
+  float angle;
+  static float f_spotlight = 0.0f;
+  static float f_spherelight = 0.0f;
+  static float f_rectlight = 0.0f;
+  if (p.m_spotlights.m_lightsAnimated) f_spotlight += 0.016f;
+  if (p.m_sphereLights.m_lightsAnimated) f_spherelight += 0.016f;
+  if (p.m_rectLights.m_lightsAnimated) f_rectlight += 0.016f;
 
-  for (OpenGLSpotLight *instance : spotLights())
+  // Update Spotlights
+  angle = f_spotlight;
+  for (int light = 0; light < spotLights().size(); ++light)
   {
-    static const float radius = 15.0f;
-    instance->setTranslation(cos(angle) * radius, 5.0f /*+ std::abs(std::sin(angle * 15.0f)) * 10.0f*/, sin(angle) * radius);
-    instance->setDirection((KVector3D(0.0f, -5.0f, 0.0f) - instance->translation()).normalized());
-    angle += 2 * 3.1415926 / spotLights().size();
-  }
-
-  for (OpenGLSphereLight *instance : sphereLights())
-  {
-    static const float radius = 3.0f;
-    instance->setRadius(0.06 + 1.0 * std::abs(std::sin(angle * 15.0f)));
-    //instance->setTranslation(cos(angle) * radius, 3.0f, sin(angle) * radius);
+    OpenGLSpotLight *instance = spotLights()[light];
+    if (light >= p.m_spotlights.m_lightCount)
+    {
+      instance->setActive(false);
+      continue;
+    }
+    instance->setActive(true);
+    instance->setTranslation(cos(angle) * p.m_spotlights.m_lightRadius, p.m_spotlights.m_lightHeight, sin(angle) * p.m_spotlights.m_lightRadius);
+    instance->setDirection(-instance->translation().normalized());
+    instance->setDiffuse(p.m_spotlights.m_lightIntensity * Karma::k2rgb(p.m_spotlights.m_lightBaseTemp + p.m_spotlights.m_lightStepTemp * light));
+    angle += 2 * 3.1415926 / p.m_spotlights.m_lightCount;
   }
 
-  //*
-  for (OpenGLRectangleLight *instance : rectangleLights())
+  // Update Spherelights
+  angle = f_spherelight;
+  for (int light = 0; light < sphereLights().size(); ++light)
   {
-    static const float radius = 10.0f;
-    instance->setHalfWidth(0.08f + 10.0 * std::abs(std::sin(angle * 15.0f)));
-    //instance->setTranslation(cos(angle) * radius, 1.0f, sin(angle) * radius);
-    //instance->setDirection(instance->translation().normalized(), KVector3D(0.0f, 1.0f, 0.0f));
-    //angle += 2 * 3.1415926 / rectangleLights().size();
+    OpenGLSphereLight *instance = sphereLights()[light];
+    if (light >= p.m_sphereLights.m_lightCount)
+    {
+      instance->setActive(false);
+      continue;
+    }
+    instance->setActive(true);
+    instance->setTranslation(cos(angle) * p.m_sphereLights.m_lightRadius, p.m_sphereLights.m_lightHeight, sin(angle) * p.m_sphereLights.m_lightRadius);
+    instance->setDirection(-instance->translation().normalized());
+    instance->setIntensity(p.m_sphereLights.m_lightIntensity);
+    instance->setRadius(p.m_sphereLightRadius);
+    instance->setTemperature(p.m_sphereLights.m_lightBaseTemp + p.m_sphereLights.m_lightStepTemp * light);
+    angle += 2 * 3.1415926 / p.m_sphereLights.m_lightCount;
   }
-  //*/
 
-#ifdef SQUARE_GRID
+  // Update Rectlights
+  angle = f_rectlight;
+  for (int light = 0; light < rectangleLights().size(); ++light)
+  {
+    OpenGLRectangleLight *instance = rectangleLights()[light];
+    if (light >= p.m_rectLights.m_lightCount)
+    {
+      instance->setActive(false);
+      continue;
+    }
+    instance->setActive(true);
+    instance->setTranslation(cos(angle) * p.m_rectLights.m_lightRadius, p.m_rectLights.m_lightHeight, sin(angle) * p.m_rectLights.m_lightRadius);
+    instance->setDirection(-instance->translation().normalized());
+    instance->setIntensity(p.m_rectLights.m_lightIntensity);
+    instance->setDimensions(p.m_rectLightsWidth, p.m_rectLightsHeight);
+    instance->setTemperature(p.m_rectLights.m_lightBaseTemp + p.m_rectLights.m_lightStepTemp * light);
+    angle += 2 * 3.1415926 / p.m_rectLights.m_lightCount;
+  }
+
+  OpenGLInstance *instance;
   size_t layerCount = p.m_instances.size();
-  for (int i = 0; i < layerCount; ++i)
+  for (int metal = 0; metal < layerCount; ++metal)
   {
-    size_t objectCount = p.m_instances[i].size();
-    for (int j = 0; j < objectCount; ++j)
+    size_t objectCount = p.m_instances[metal].size();
+    for (int rough = 0; rough < objectCount; ++rough)
     {
-      static const float SeparationX = 5.0f * 1.8f * objectCount;
-      static const float SeparationY = 5.0f * 1.8f * layerCount;
-      p.m_instances[i][j]->currentTransform().setTranslation((-0.5 + float(j) / (objectCount - 1)) * SeparationX, 0.0f, (-0.5 + float(i) / (layerCount - 1)) * SeparationY);
+      instance = p.m_instances[metal][rough];
+
+      // Everyone should rotate to keep in sync
+      instance->currentTransform().rotate(p.m_objectRotation.x(), 1.0f, 0.0f, 0.0f);
+      instance->currentTransform().rotate(p.m_objectRotation.y(), 0.0f, 1.0f, 0.0f);
+      instance->currentTransform().rotate(p.m_objectRotation.z(), 0.0f, 0.0f, 1.0f);
+
+      if (rough >= p.m_activeRoughness || metal >= p.m_activeMetals)
+      {
+        instance->setVisible(false);
+        continue;
+      }
+
+      instance->setVisible(true);
+      const float RoughSep = p.m_roughSeparation * p.m_activeRoughness;
+      const float MetalSep = p.m_metalSeparation * p.m_activeMetals;
+
+      instance->material().setBaseColor(p.m_baseColor);
+      if (p.m_activeMetals == 1)
+        instance->material().setMetallic(p.m_metallic);
+      else
+        instance->material().setMetallic(float(metal + 1) / p.m_activeMetals);
+      if (p.m_activeRoughness == 1)
+        instance->material().setRoughness(p.m_roughness);
+      else
+        instance->material().setRoughness(float(rough + 1) / p.m_activeRoughness);
+
+      float xSep = 0.0f;
+      float ySep = 0.0f;
+      if (p.m_activeRoughness > 1) xSep = (-0.5 + float(rough) / (p.m_activeRoughness - 1)) * RoughSep;
+      if (p.m_activeMetals > 1)  ySep = (-0.5 + float(metal) / (p.m_activeMetals - 1)) * MetalSep;
+      instance->currentTransform().setTranslation(xSep, 0.0f, ySep);
+
+      if (p.m_bvAabb) p.m_aabb->draw(instance->currentTransform(), Qt::red);
+      if (p.m_bvObb) p.m_obb->draw(instance->currentTransform(), Qt::red);
+      if (p.m_bvEllipse) p.m_ellipse->draw(instance->currentTransform(), Qt::yellow);
+      if (p.m_bvSphereCentroid) p.m_sphereCentroid->draw(instance->currentTransform(), Qt::green);
+      if (p.m_bvSpherePca) p.m_spherePca->draw(instance->currentTransform(), Qt::green);
+      if (p.m_bvSphereRitters) p.m_sphereRitters->draw(instance->currentTransform(), Qt::green);
+      if (p.m_bvSphereLarssons) p.m_sphereLarsons->draw(instance->currentTransform(), Qt::green);
     }
   }
-#else
-angle = 0.0f;
-  for (int i = 0; i < p.m_instances.size(); ++i)
-  {
-    size_t objectCount = p.m_instances[i].size();
-    for (OpenGLInstance *instance : p.m_instances[i])
-    {
-       const float Radius = 4.0f;
-      instance->currentTransform().setTranslation(cos(angle) * Radius, 2.5f * i, sin(angle) * Radius);
-      angle += Karma::TwoPi / objectCount;
-    }
-  }
-#endif
 
   // Camera Selection
   KCamera3D *camera = 0;
@@ -487,92 +487,163 @@ angle = 0.0f;
     }
     camera->translate(transSpeed * translation);
   }
-
-  if (KInputManager::keyPressed(Qt::Key_Control))
-  {
-    if (KInputManager::keyTriggered(Qt::Key_O))
-    {
-      OpenGLWidget::sMakeCurrent();
-      QString fileName = OpenGLWidget::openFileName("Open Model", ".", "Wavefront Object File (*.obj))");
-      if (!fileName.isNull())
-      {
-        OpenGLContext::currentContext();
-        p.loadObj(fileName);
-      }
-    }
-  }
-
-  if (!KInputManager::buttonPressed(Qt::RightButton))
-  {
-    int amount = 1;
-    if (KInputManager::keyPressed(Qt::Key_Shift))
-    {
-      amount = -1;
-    }
-
-    if (KInputManager::keyTriggered(Qt::Key_F))
-    {
-      OpenGLAbstractLightGroup::FFactor() = (OpenGLAbstractLightGroup::FFactor() + amount) % FresnelCount;
-    }
-
-    if (KInputManager::keyTriggered(Qt::Key_G))
-    {
-      OpenGLAbstractLightGroup::GFactor() = (OpenGLAbstractLightGroup::GFactor() + amount) % GeometryCount;
-    }
-
-    if (KInputManager::keyTriggered(Qt::Key_D))
-    {
-      OpenGLAbstractLightGroup::DFactor() = (OpenGLAbstractLightGroup::DFactor() + amount) % DistributionCount;
-    }
-
-    if (KInputManager::keyTriggered(Qt::Key_S))
-    {
-      OpenGLAbstractLightGroup::SFactor() = (OpenGLAbstractLightGroup::SFactor() + amount) % DistributionCount;
-    }
-
-    if (OpenGLAbstractLightGroup::FFactor() < 0) OpenGLAbstractLightGroup::FFactor() = FresnelCount - 1;
-    if (OpenGLAbstractLightGroup::GFactor() < 0) OpenGLAbstractLightGroup::GFactor() = GeometryCount - 1;
-    if (OpenGLAbstractLightGroup::DFactor() < 0) OpenGLAbstractLightGroup::DFactor() = DistributionCount - 1;
-    if (OpenGLAbstractLightGroup::SFactor() < 0) OpenGLAbstractLightGroup::SFactor() = DistributionCount - 1;
-  }
-
-  Karma::setTitle(
-    KString((
-    FToCStr(OpenGLAbstractLightGroup::FFactor()) + "|" +
-    GToCStr(OpenGLAbstractLightGroup::GFactor()) + "|" +
-    DToCStr(OpenGLAbstractLightGroup::DFactor()) + " => Sample: " + DToCStr(OpenGLAbstractLightGroup::SFactor())).c_str())
-  );
-
-  // Exposure
-  float exp = 0.025f;
-  if (KInputManager::keyPressed(Qt::Key_Shift)) exp = 1.0f;
-  if (KInputManager::keyPressed(Qt::Key_I))
-  {
-    p.m_camera.setExposure(p.m_camera.exposure() + exp);
-  }
-  if (KInputManager::keyPressed(Qt::Key_P))
-  {
-    p.m_camera.setExposure(p.m_camera.exposure() - exp);
-  }
-
-  float temp = 1.0f;
-  if(KInputManager::keyPressed(Qt::Key_Shift))
-  {
-    temp = -1.0f;
-  }
-  if(KInputManager::keyPressed(Qt::Key_Z))
-  {
-    p.m_mainInstance->material().setMetallic(p.m_mainInstance->material().metallic() + temp * 0.0016f);
-  }
-  if(KInputManager::keyPressed(Qt::Key_M))
-  {
-    p.m_mainInstance->material().setRoughness(p.m_mainInstance->material().roughness() + temp * 0.0016f);
-  }
-
-  //OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0, 0.0, 1.0f, 1.0f), environment()->direct());
 }
 
 void SampleScene::end()
 {
   OpenGLScene::end();
+}
+
+void SampleScene::openMesh()
+{
+  P(SampleScenePrivate);
+  OpenGLWidget::sMakeCurrent();
+  QString fileName = OpenGLWidget::openFileName("Open Model", ".", "Wavefront Object File (*.obj))");
+  if (!fileName.isNull())
+  {
+    OpenGLContext::currentContext();
+    p.loadObj(fileName);
+  }
+}
+
+void SampleScene::setMaterial(float r, float g, float b, float metal, float rough)
+{
+  P(SampleScenePrivate);
+  p.m_baseColor = KVector3D(r, g, b);
+  p.m_metallic = metal;
+  p.m_roughness = rough;
+}
+
+void SampleScene::setRenderer(int fresnel, int geometric, int dist, int sample)
+{
+  OpenGLAbstractLightGroup::FFactor() = fresnel;
+  OpenGLAbstractLightGroup::GFactor() = geometric;
+  OpenGLAbstractLightGroup::DFactor() = dist;
+  OpenGLAbstractLightGroup::SFactor() = sample;
+}
+
+void SampleScene::setFloorActive(bool f)
+{
+  P(SampleScenePrivate);
+  p.m_floorInstance->setVisible(f);
+}
+
+void SampleScene::setFloorMaterial(float r, float g, float b, float metal, float rough)
+{
+  P(SampleScenePrivate);
+  OpenGLMaterial &material = p.m_floorInstance->material();
+  material.setBaseColor(r, g, b);
+  material.setMetallic(metal);
+  material.setRoughness(rough);
+}
+
+void SampleScene::setInstance(int metal, int rough, float mSep, float rSep)
+{
+  P(SampleScenePrivate);
+  p.m_metalSeparation = mSep;
+  p.m_roughSeparation = rSep;
+  p.m_activeMetals = metal;
+  p.m_activeRoughness = rough;
+}
+
+void SampleScene::setLightsAnimated(bool a)
+{
+  P(SampleScenePrivate);
+  p.m_spotlights.m_lightsAnimated = a;
+}
+
+void SampleScene::setLights(int count, int baseTemp, int stepTemp, float intensity, float height, float radius)
+{
+  P(SampleScenePrivate);
+  p.m_spotlights.m_lightCount = count;
+  p.m_spotlights.m_lightBaseTemp = baseTemp;
+  p.m_spotlights.m_lightStepTemp = stepTemp;
+  p.m_spotlights.m_lightIntensity = intensity;
+  p.m_spotlights.m_lightHeight = height;
+  p.m_spotlights.m_lightRadius = radius;
+}
+
+void SampleScene::setSphereLightsAnimated(bool a)
+{
+  P(SampleScenePrivate);
+  p.m_sphereLights.m_lightsAnimated = a;
+}
+
+void SampleScene::setSphereLights(int count, int baseTemp, int stepTemp, float intensity, float height, float radius, float vRadius)
+{
+  P(SampleScenePrivate);
+  p.m_sphereLights.m_lightCount = count;
+  p.m_sphereLights.m_lightBaseTemp = baseTemp;
+  p.m_sphereLights.m_lightStepTemp = stepTemp;
+  p.m_sphereLights.m_lightIntensity = intensity;
+  p.m_sphereLights.m_lightHeight = height;
+  p.m_sphereLights.m_lightRadius = radius;
+  p.m_sphereLightRadius = vRadius;
+}
+
+void SampleScene::setRectLightsAnimated(bool a)
+{
+  P(SampleScenePrivate);
+  p.m_rectLights.m_lightsAnimated = a;
+}
+
+void SampleScene::setRectLights(int count, int baseTemp, int stepTemp, float intensity, float height, float radius, float vWidth, float vHeight)
+{
+  P(SampleScenePrivate);
+  p.m_rectLights.m_lightCount = count;
+  p.m_rectLights.m_lightBaseTemp = baseTemp;
+  p.m_rectLights.m_lightStepTemp = stepTemp;
+  p.m_rectLights.m_lightIntensity = intensity;
+  p.m_rectLights.m_lightHeight = height;
+  p.m_rectLights.m_lightRadius = radius;
+  p.m_rectLightsWidth = vWidth;
+  p.m_rectLightsHeight = vHeight;
+}
+
+void SampleScene::setBvSphereRitters(bool bv)
+{
+  P(SampleScenePrivate);
+  p.m_bvSphereRitters = bv;
+}
+
+void SampleScene::setBvSpherePca(bool bv)
+{
+  P(SampleScenePrivate);
+  p.m_bvSpherePca = bv;
+}
+
+void SampleScene::setBvSphereCentroid(bool bv)
+{
+  P(SampleScenePrivate);
+  p.m_bvSphereCentroid = bv;
+}
+
+void SampleScene::setBvEllipse(bool bv)
+{
+  P(SampleScenePrivate);
+  p.m_bvEllipse = bv;
+}
+
+void SampleScene::setBvSphereLarssons(bool bv)
+{
+  P(SampleScenePrivate);
+  p.m_bvSphereLarssons = bv;
+}
+
+void SampleScene::setObjectRotation(float x, float y, float z)
+{
+  P(SampleScenePrivate);
+  p.m_objectRotation = KVector3D(x, y, z);
+}
+
+void SampleScene::setBvObb(bool bv)
+{
+  P(SampleScenePrivate);
+  p.m_bvObb = bv;
+}
+
+void SampleScene::setBvAabb(bool bv)
+{
+  P(SampleScenePrivate);
+  p.m_bvAabb = bv;
 }

@@ -19,6 +19,7 @@ public:
   };
 
   // Constuctors / Destructor
+  KSphereBoundingVolume();
   KSphereBoundingVolume(KHalfEdgeMesh const &mesh, Method method);
   ~KSphereBoundingVolume();
 

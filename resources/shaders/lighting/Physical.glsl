@@ -314,7 +314,7 @@ float KDisney(float NoL, float NoV)
 // Subroutines
 // Note: This block of code should be commented out on GLES 3.1.
 ////////////////////////////////////////////////////////////////////////////////
-#if defined(GL_ES) || !defined(K_SUBROUTINES)
+#if defined(GL_ES)
 
 // Embedded System GL does not support subroutines
 # define uFresnel FSchlick
@@ -490,7 +490,7 @@ vec3 BlendMetal(vec3 Kdiff, vec3 Kspec, vec3 Kbase)
 vec3 BlendMaterial(vec3 Kdiff, vec3 Kspec)
 {
   vec3  Kbase = baseColor();
-  float scRange = smoothstep(0.2, 0.45, metallic());
+  float scRange = smoothstep(0.25, 0.45, metallic());
   vec3  dielectric = BlendDielectric(Kdiff, Kspec, Kbase);
   vec3  metal = BlendMetal(Kdiff, Kspec, Kbase);
   return mix(dielectric, metal, scRange);

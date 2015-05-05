@@ -87,6 +87,12 @@ void KEllipsoidBoundingVolumePrivate::calculateUsingCovarianceMatrix(const KHalf
   Karma::reconstructMatrixByColumnVectors(&axes, axisA, axisB, axisC);
 }
 
+KEllipsoidBoundingVolume::KEllipsoidBoundingVolume() :
+  m_private(0)
+{
+  // Intentionally Empty
+}
+
 KEllipsoidBoundingVolume::KEllipsoidBoundingVolume(KHalfEdgeMesh const &mesh, Method method) :
   m_private(new KEllipsoidBoundingVolumePrivate)
 {

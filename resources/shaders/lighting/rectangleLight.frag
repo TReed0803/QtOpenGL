@@ -122,7 +122,7 @@ void main()
   vec3  lightDir    = lightVec / lightDist;
   vec3  r           = normalize(reflect(viewDir, normal));
   vec3  r2          = getSpecularDominantDirArea(normal, r, roughness());
-  float sqrLightRadius = AreaLight.Radius * AreaLight.Radius;
+  float sqrLightRadius = AreaLight.Intensity;//AreaLight.Radius * AreaLight.Radius;
   vec3 lightPlaneNormal = forward;
   vec3 lightViewPos = AreaLight.ViewPosition;
   vec3 lightRight = right;
@@ -148,10 +148,12 @@ void main()
   // We also want to calculate the MRP for the area (Most Representative Point)
   // This can be accomplished through similar means, but instead with the r vector.
   float FoR = dot(forward, r);
+  /*
   if (FoR >= 0.0)
   {
     r = reflect(r, forward);
   }
+  */
   vec3 viewPosPlaneRef = viewPos - AreaLight.ViewPosition;
   planeIntersection = inverse(mat3(right, up, r));
   vec3 parametrics  = planeIntersection * viewPosPlaneRef;
@@ -159,6 +161,8 @@ void main()
   vec3 mrpPoint     = AreaLight.ViewPosition +
     clamp(parametrics.x, -halfWidth , halfWidth ) * right +
     clamp(parametrics.y, -halfHeight, halfHeight) * up;
+
+  /*
 
   float minorRadius = abs(parametrics.z * tan(0.25));
   vec3 minorAxis = normalize(cross(forward, r));
@@ -178,19 +182,12 @@ void main()
   vec3 trPoint = mrpUnclamped + verticalAdj * up + horizontalAdj * right;
   vec3 brPoint = mrpUnclamped - verticalAdj * up + horizontalAdj * right;
   vec3 tlPoint = mrpUnclamped + verticalAdj * up - horizontalAdj * right;
+  */
 
   vec3 p0 = lightViewPos + lightRight *  halfWidth + lightUp *  halfHeight;
   vec3 p1 = lightViewPos + lightRight *  halfWidth + lightUp * -halfHeight;
   vec3 p2 = lightViewPos + lightRight * -halfWidth + lightUp * -halfHeight;
   vec3 p3 = lightViewPos + lightRight * -halfWidth + lightUp *  halfHeight;
-  vec3 minPoint= min(min(min(p0, p1), p2), p3);
-  vec3 maxPoint= max(max(max(p0, p1), p2), p3);
-  vec3 minPoint1= min(min(min(blPoint, trPoint), brPoint), tlPoint);
-  vec3 maxPoint1= max(max(max(blPoint, trPoint), brPoint), tlPoint);
-  vec3 bm = max(minPoint, minPoint1);
-  vec3 tr = max(maxPoint, maxPoint1);
-
-  //mrpPoint = smallestAnglePointRect(r, forward, viewPos, right, up, halfWidth, halfHeight);
 
   // Debug Lighting
   if (abs(intersectionParams.x) < halfWidth  &&
@@ -211,7 +208,7 @@ void main()
     float illuminance = 0.0;
     float specular = 0.0;
     float NoL = 0.0;
-    if ( dot(viewPos - lightViewPos, lightPlaneNormal) < 0)
+    if ( dot(viewPos - lightViewPos, lightPlaneNormal) > 0)
     {
       float solidAngle = rectangleSolidAngle(viewPos, p0, p1, p2, p3);
 
@@ -236,9 +233,9 @@ void main()
       specular *= NoL * roughness();
     }
     vec3 KDiff = AreaLight.Color * max(baseColor * illuminance * attenuation, 0.0);
-    vec3 KSpec = AreaLight.Color * max(specular * luminance * attenuation, 0.0);
+    vec3 KSpec = AreaLight.Color * max(specular * luminance * 0.5, 0.0);
 
-    fFragColor = vec4(BlendMaterial(vec3(0.0), KSpec), 1.0);
+    fFragColor = vec4(BlendMaterial(KDiff, KSpec), 1.0);
   }
   if (FoR >= 0.0)
   {
@@ -246,6 +243,7 @@ void main()
   }
 
   // Output into SSBO for debugging
+  /*
   if (ivec2(gl_FragCoord.xy) == Results.SamplePosition.xy)
   {
     Results.WorldPosition = (Current.ViewToWorld * vec4(viewPos, 1.0));
@@ -262,4 +260,5 @@ void main()
     Results.BottomRight = (Current.ViewToWorld * vec4(brPoint, 1.0));
     Results.TopLeft = (Current.ViewToWorld * vec4(tlPoint, 1.0));
   }
+  */
 }

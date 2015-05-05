@@ -48,6 +48,12 @@ void KOrientedBoundingVolumePrivate::calculatePcaMethod(const KHalfEdgeMesh &mes
   centroid += (extremal[2].max + extremal[2].min) / 2.0f;
 }
 
+KOrientedBoundingVolume::KOrientedBoundingVolume() :
+  m_private(0)
+{
+  // Intentionally Empty
+}
+
 KOrientedBoundingVolume::KOrientedBoundingVolume(const KHalfEdgeMesh &mesh, Method method) :
   m_private(new KOrientedBoundingVolumePrivate)
 {

@@ -19,6 +19,7 @@ public:
   ValueReference operator->();
   ConstValueReference operator->() const;
   void operator=(ValuePointer value);
+  inline operator bool() const;
 private:
   ValuePointer m_data;
 };
@@ -72,6 +73,12 @@ void KUniquePointer<T>::operator=(ValuePointer value)
 {
   delete m_data;
   m_data = value;
+}
+
+template <typename T>
+KUniquePointer<T>::operator bool() const
+{
+  return (m_data != 0);
 }
 
 #endif // KUNIQUEPOINTER_H

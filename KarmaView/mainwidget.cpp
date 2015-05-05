@@ -31,6 +31,7 @@
 class MainWidgetPrivate
 {
 public:
+  MainWidgetPrivate();
 
   // GL Methods
   void initializeGL();
@@ -46,6 +47,8 @@ public:
   void updateRenderBlocks();
 
   // Render Data
+  bool m_started;
+  bool m_initialized;
   OpenGLRenderer m_renderer;
   OpenGLSceneManager m_sceneManager;
 };
@@ -53,6 +56,13 @@ public:
 /*******************************************************************************
  * MainWidgetPrivate::OpenGL Methods
  ******************************************************************************/
+MainWidgetPrivate::MainWidgetPrivate() :
+  m_started(false),
+  m_initialized(false)
+{
+  // Intentionally Empty
+}
+
 void MainWidgetPrivate::initializeGL()
 {
   // Global Setup (Rarely Changed)
@@ -67,12 +77,13 @@ void MainWidgetPrivate::initializeGL()
   m_renderer.addPass<GBufferPass>();                      // => Nothing (Constructs Globals)
   m_renderer.addPass<ScreenSpaceAmbientOcclusion>();      // => SSAO Buffer
   m_renderer.addPass<PreparePresentationPass>();          // => RenderBuffer
-  //m_renderer.addPass<DebugGBufferPass>();
-  m_renderer.addPass<EnvironmentPass>();
-  //m_renderer.addPass<LightAccumulationPass>();            // => RenderBuffer
-  //m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
-  //m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
+  m_renderer.addPass<EnvironmentPass>();                  // => Ambient Term
+  m_renderer.addPass<LightAccumulationPass>();            // => Non-Shadowed Lights
+  m_renderer.addPass<ShadowedLightAccumulationPass>();    // => RenderBuffer
+  m_renderer.addPass<MotionBlurPass>();                   // => RenderBuffer
   m_renderer.addPass<ViewportPresentationPass>();         // => Nothing (Displays RenderBuffer)
+
+  m_initialized = true;
 }
 
 void MainWidgetPrivate::resizeGL(int width, int height)
@@ -115,6 +126,22 @@ MainWidget::~MainWidget()
   delete m_private;
 }
 
+bool MainWidget::isReady() const
+{
+  P(const MainWidgetPrivate);
+  return p.m_initialized && p.m_started;
+}
+
+SampleScene* MainWidget::sampleScene()
+{
+  return static_cast<SampleScene*>(m_private->m_sceneManager.currentScene());
+}
+
+OpenGLRenderer *MainWidget::renderer()
+{
+  return &m_private->m_renderer;
+}
+
 /*******************************************************************************
  * OpenGL Methods
  ******************************************************************************/
@@ -152,8 +179,5 @@ void MainWidget::updateEvent(KUpdateEvent *event)
   P(MainWidgetPrivate);
   makeCurrent();
   p.m_sceneManager.update(event);
-  if (KInputManager::keyTriggered(Qt::Key_P))
-  {
-    setProfilerVisible(!profilerVisible());
-  }
+  p.m_started = true;
 }

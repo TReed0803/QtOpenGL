@@ -43,9 +43,12 @@ public:
   float temperature() const;
   float intensity() const;
   KMatrix4x4 const& toMatrix() const;
+  void setActive(bool a);
+  bool active() const;
 
   KVector3D color() const;
 private:
+  bool  m_active;
   float m_radius;
   float m_temperature;
   float m_intensity;

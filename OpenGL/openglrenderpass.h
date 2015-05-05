@@ -8,6 +8,7 @@ class OpenGLRenderer;
 class OpenGLRenderPass
 {
 public:
+  OpenGLRenderPass();
   virtual unsigned id() const = 0;
   virtual void initialize() = 0;
   virtual void resize(int width, int height) = 0;
@@ -15,6 +16,10 @@ public:
   virtual void render(OpenGLScene &scene) = 0;
   virtual void teardown() = 0;
   virtual OpenGLRenderPass *clone() const = 0;
+  void setActive(bool a);
+  bool active() const;
+private:
+  bool m_active;
 };
 
 template <typename PASS, unsigned ID>

@@ -14,6 +14,8 @@ public:
   virtual void commit(OpenGLViewport &view);
   virtual void render(OpenGLScene &scene);
   virtual void teardown();
+  void setPower(float p);
+  void setMaxSamples(int s);
 private:
   MotionBlurPassPrivate *m_private;
 };

@@ -20,14 +20,21 @@
 class ScreenSpaceAmbientOcclusionPrivate
 {
 public:
-  float R;
-  float C;
-  float T;
-  float K;
-  float R2;
+
+  // Settings
+  bool m_dirty;
+  float m_radius;
+  float m_power;
+  float m_threshold;
+  float m_contrast;
+  int m_samples;
+  bool m_blur;
+
+  // Properties
   int width, height;
-  int NumSamples;
-  bool OnOff;
+  bool m_lastActive;
+
+  // Working
   OpenGLMesh m_quadGL;
   OpenGLTexture m_texture;
   OpenGLTexture m_working;
@@ -35,8 +42,17 @@ public:
   OpenGLShaderProgram *m_ssaoPass;
   OpenGLShaderProgram *m_blurProgram;
   OpenGLUniformBufferObject m_blurData;
+
+  // Helper functions
+  ScreenSpaceAmbientOcclusionPrivate();
   void constructTexture(OpenGLTexture &t, OpenGLInternalFormat f, int width, int height);
 };
+
+ScreenSpaceAmbientOcclusionPrivate::ScreenSpaceAmbientOcclusionPrivate() :
+  m_lastActive(false), m_dirty(true), m_blur(true)
+{
+  // Intentionally Empty
+}
 
 void ScreenSpaceAmbientOcclusionPrivate::constructTexture(OpenGLTexture &t, OpenGLInternalFormat f, int width, int height)
 {
@@ -86,12 +102,6 @@ void ScreenSpaceAmbientOcclusion::initialize()
   p.m_blurData.bind();
   p.m_blurData.allocate(&data, sizeof(OpenGLBlurData));
   p.m_blurData.release();
-
-  p.C = 1.3;
-  p.R = 1.0;
-  p.T = 0.0025;
-  p.K = 0.5;
-  p.NumSamples = 20;
 }
 
 void ScreenSpaceAmbientOcclusion::resize(int width, int height)
@@ -111,75 +121,49 @@ void ScreenSpaceAmbientOcclusion::resize(int width, int height)
   p.m_fbo.drawBuffers(OpenGLFramebufferObject::ColorAttachment0);
   p.m_fbo.validate();
   p.m_fbo.release();
+
+  // Force a pass to clear SSAO buffer
+  p.m_lastActive = true;
 }
 
 void ScreenSpaceAmbientOcclusion::commit(OpenGLViewport &view)
 {
   P(ScreenSpaceAmbientOcclusionPrivate);
-  GL::glActiveTexture(OpenGLTexture::beginTextureUnits() + K_AMBIENT_OCCLUSION_BINDING);
-  p.m_texture.bind();
-  GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
+  if (active() || p.m_lastActive)
+  {
+    GL::glActiveTexture(OpenGLTexture::beginTextureUnits() + K_AMBIENT_OCCLUSION_BINDING);
+    p.m_texture.bind();
+    GL::glActiveTexture(OpenGLTexture::beginTextureUnits());
+  }
 }
 
 void ScreenSpaceAmbientOcclusion::render(OpenGLScene &scene)
 {
   P(ScreenSpaceAmbientOcclusionPrivate);
+  if (!active() && !p.m_lastActive) return;
+
   OpenGLMarkerScoped _("Screen Space Ambient Occlusion");
-
-  float dir = 1.0;
-  if (KInputManager::keyPressed(Qt::Key_Shift))
-  {
-    dir = -1.0;
-  }
-
-  if (KInputManager::keyPressed(Qt::Key_R))
-  {
-    p.R += 0.016 * dir;
-  }
-  if (KInputManager::keyPressed(Qt::Key_Y))
-  {
-    p.R2 += 0.016 * dir;
-  }
-  if (KInputManager::keyPressed(Qt::Key_T))
-  {
-    p.T += 0.00016 * dir;
-  }
-  if (KInputManager::keyPressed(Qt::Key_C))
-  {
-    p.C += 0.016 * dir;
-  }
-  if (KInputManager::keyPressed(Qt::Key_N))
-  {
-    p.NumSamples += int(1.0 * dir);
-  }
-  if (KInputManager::keyPressed(Qt::Key_K))
-  {
-    p.K += 0.016 * dir;
-  }
-
-  if (KInputManager::keyTriggered(Qt::Key_X))
-  {
-    p.OnOff = !p.OnOff;
-  }
-
   OpenGLFramebufferObject::push();
   p.m_fbo.bind();
-  if (p.OnOff)
+  if (active())
   {
+
+    // Create the SSAO Buffer
     p.m_ssaoPass->bind();
-    p.m_ssaoPass->setUniformValue("SampleRadius", p.R);
-    p.m_ssaoPass->setUniformValue("ShadowScalar", p.C * p.R);
-    p.m_ssaoPass->setUniformValue("DepthThreshold", p.T);
-    p.m_ssaoPass->setUniformValue("ShadowContrast", p.K);
-    p.m_ssaoPass->setUniformValue("NumSamples", p.NumSamples);
+    if (p.m_dirty)
+    {
+      p.m_dirty = false;
+      p.m_ssaoPass->setUniformValue("SampleRadius", p.m_radius);
+      p.m_ssaoPass->setUniformValue("ShadowScalar", p.m_power);
+      p.m_ssaoPass->setUniformValue("DepthThreshold", p.m_threshold);
+      p.m_ssaoPass->setUniformValue("ShadowContrast", p.m_contrast);
+      p.m_ssaoPass->setUniformValue("NumSamples", p.m_samples);
+    }
     p.m_quadGL.draw();
     p.m_ssaoPass->release();
 
-    int W = p.width;
-    int H = p.height;
-
     // Next: Blur the SSAO
-    if (!KInputManager::keyPressed(Qt::Key_B))
+    if (p.m_blur)
     {
       OpenGLBlurData data(5, 5.0f);
       p.m_blurData.bind();
@@ -191,11 +175,11 @@ void ScreenSpaceAmbientOcclusion::render(OpenGLScene &scene)
       GL::glBindImageTexture(0, p.m_texture.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
       GL::glBindImageTexture(1, p.m_working.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
       GL::glUniform2i(loc, 1, 0);
-      GL::glDispatchCompute(std::ceil(float(W) / 128), H, 1);
+      GL::glDispatchCompute(std::ceil(float(p.width) / 128), p.height, 1);
       GL::glBindImageTexture(0, p.m_working.textureId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
       GL::glBindImageTexture(1, p.m_texture.textureId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
       GL::glUniform2i(loc, 0, 1);
-      GL::glDispatchCompute(std::ceil(float(H) / 128), W, 1);
+      GL::glDispatchCompute(std::ceil(float(p.height) / 128), p.width, 1);
       p.m_blurProgram->release();
     }
   }
@@ -207,14 +191,52 @@ void ScreenSpaceAmbientOcclusion::render(OpenGLScene &scene)
   p.m_fbo.release();
   OpenGLFramebufferObject::pop();
 
-  if (KInputManager::keyPressed(Qt::Key_L))
-  {
-    OpenGLDebugDraw::Screen::drawTexture(KRectF(0.0f, 0.0f, 1.0f, 1.0f), p.m_texture);
-  }
+  p.m_lastActive = active();
 }
 
 void ScreenSpaceAmbientOcclusion::teardown()
 {
   delete m_private->m_ssaoPass;
   delete m_private;
+}
+
+void ScreenSpaceAmbientOcclusion::setRadius(float r)
+{
+  P(ScreenSpaceAmbientOcclusionPrivate);
+  p.m_radius = r;
+  p.m_dirty = true;
+}
+
+void ScreenSpaceAmbientOcclusion::setThreshold(float t)
+{
+  P(ScreenSpaceAmbientOcclusionPrivate);
+  p.m_threshold = t;
+  p.m_dirty = true;
+}
+
+void ScreenSpaceAmbientOcclusion::setSamples(int s)
+{
+  P(ScreenSpaceAmbientOcclusionPrivate);
+  p.m_samples = s;
+  p.m_dirty = true;
+}
+
+void ScreenSpaceAmbientOcclusion::setBlur(bool b)
+{
+  P(ScreenSpaceAmbientOcclusionPrivate);
+  p.m_blur = b;
+}
+
+void ScreenSpaceAmbientOcclusion::setPower(float c)
+{
+  P(ScreenSpaceAmbientOcclusionPrivate);
+  p.m_power = c;
+  p.m_dirty = true;
+}
+
+void ScreenSpaceAmbientOcclusion::setContrast(float k)
+{
+  P(ScreenSpaceAmbientOcclusionPrivate);
+  p.m_contrast = k;
+  p.m_dirty = true;
 }

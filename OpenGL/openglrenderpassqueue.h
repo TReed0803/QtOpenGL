@@ -28,6 +28,7 @@ public:
   void render(OpenGLScene &scene);
   void teardown();
 
+  OpenGLRenderPass *pass(int id);
   RenderPassContainer &passes();
   void addPass(OpenGLRenderPass *pass);
   ConstRenderPassContainer &passes() const;

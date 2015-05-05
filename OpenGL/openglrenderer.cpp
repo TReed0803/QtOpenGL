@@ -105,6 +105,17 @@ bool OpenGLRenderer::isPaused() const
   return p.m_paused;
 }
 
+OpenGLRenderPass *OpenGLRenderer::pass(int id)
+{
+  // For now, just return the first view's pass
+  P(OpenGLRendererPrivate);
+  for (OpenGLRenderView &view : p.m_renderViews)
+  {
+    return view.passes()->pass(id);
+  }
+  return 0;
+}
+
 void OpenGLRenderer::registerViewport(OpenGLViewport *view)
 {
   P(OpenGLRendererPrivate);

@@ -39,7 +39,7 @@ void main()
   // Debug Lighting
   vec3  viewRay  = normalize(viewPos);
   float distArea = length(cross(viewRay, AreaLight.ViewPosition));
-  if (distArea < sphereRadius)
+  if (distArea < sphereRadius && AreaLight.ViewPosition.z > viewPos.z)
   {
     fFragColor = vec4(AreaLight.Color * 1000.0, 1.0);
   }
@@ -68,8 +68,8 @@ void main()
         (cos(Beta) * acos(y) - x * sin(Beta) * sqrt(1.0 - y * y)) +
         atan(sin(Beta) * sqrt(1.0 - y * y) / x) / pi;
     }
-    illuminance *= pi * luminance;
-    vec3 Kdiff = AreaLight.Color * max(baseColor * illuminance * attenuation, 0.0);
+    illuminance *= pi;
+    vec3 Kdiff = AreaLight.Color * luminance * max(baseColor * illuminance * attenuation, 0.0);
 
     // Specular Contribution
     {

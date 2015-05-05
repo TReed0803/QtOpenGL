@@ -22,6 +22,7 @@ public:
   LightContainer::iterator begin();
   LightContainer::iterator end();
   size_t size() const;
+  OpenGLRectangleLight *operator[](int idx);
 private:
   KUniquePointer<OpenGLRectangleLightGroupPrivate> m_private;
 };

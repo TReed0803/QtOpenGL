@@ -99,7 +99,7 @@ highp vec3 baseColor()
 
 highp float metallic(highp vec2 uv)
 {
-  return clamp(texture(surfaceTexture, uv).y, 0.02, 1.0);
+  return clamp(texture(surfaceTexture, uv).y, 0.02, 0.99);
 }
 
 highp float metallic()
