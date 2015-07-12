@@ -59,7 +59,11 @@ SOURCES += \
     openglspherelightgroup.cpp \
     openglrectanglelight.cpp \
     openglrectanglelightgroup.cpp \
-    openglrenderpass.cpp
+    openglrenderpass.cpp \
+    openglupdateevent.cpp \
+    ../Karma/kabstractlexer.cpp \
+    ../Karma/kabstracthdrparser.cpp \
+    ../Karma/kbufferedbinaryfilereader.cpp
 
 HEADERS += \
     openglprofiler.h \
@@ -133,4 +137,5 @@ HEADERS += \
     openglarealightgroup.h \
     openglarealightdata.h \
     openglrectanglelight.h \
-    openglrectanglelightgroup.h
+    openglrectanglelightgroup.h \
+    openglupdateevent.h

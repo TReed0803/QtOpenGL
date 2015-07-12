@@ -5,6 +5,7 @@ class OpenGLViewport;
 class OpenGLRectangleLight;
 #include <KUniquePointer>
 #include <vector>
+#include <cstdlib>
 
 class OpenGLRectangleLightGroupPrivate;
 class OpenGLRectangleLightGroup

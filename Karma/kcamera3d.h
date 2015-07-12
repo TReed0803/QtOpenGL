@@ -51,9 +51,9 @@ public:
   float exposure() const;
 
 private:
-  float m_exposure;
   mutable bool m_dirty;
   float m_fovy;
+  float m_exposure;
   KVector3D m_translation;
   KQuaternion m_rotation;
   mutable KMatrix4x4 m_world;

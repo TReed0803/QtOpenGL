@@ -1,6 +1,6 @@
 #include "openglmaterial.h"
 
-#include <Kmath>
+#include <KMath>
 #include <KColor>
 #include <KMacros>
 #include <KVector2D>

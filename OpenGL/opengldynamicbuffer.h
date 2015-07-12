@@ -30,7 +30,7 @@ template <typename T>
 void OpenGLDynamicBuffer<T>::reserve(size_t elements)
 {
   size_t sizeInBytes = sizeof(ElementType) * elements;
-  if (!isCreated() || size() < sizeInBytes)
+  if (!isCreated() || size() < static_cast<int>(sizeInBytes))
   {
     allocate(sizeInBytes);
   }

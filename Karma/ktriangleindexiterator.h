@@ -5,15 +5,22 @@
 #include <KTriangleIndexCloud>
 #include <KIntermediateIterator>
 
-class KTriangleIndexIterator : public KIntermediateIterator<KTriangleIndexCloud::ElementType::ConstIterator, KTriangleIndexCloud::ConstIterator>
+class KTriangleIndexIterator : public KIntermediateIterator<KTriangleIndexCloud::ElementType::ConstIterator, KTriangleIndexCloud::Iterator, KTriangleIndexCloud::ConstIterator>
 {
 public:
   KTriangleIndexIterator(FromIterator it);
+  KTriangleIndexIterator(FromIteratorConst it);
   void operator++();
   void validate();
 };
 
 inline KTriangleIndexIterator::KTriangleIndexIterator(FromIterator it) :
+  KIntermediateIterator(it)
+{
+  // Intentionally Empty
+}
+
+inline KTriangleIndexIterator::KTriangleIndexIterator(FromIteratorConst it) :
   KIntermediateIterator(it)
 {
   // Intentionally Empty

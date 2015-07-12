@@ -67,11 +67,11 @@ void OpenGLMeshPrivate::create(const KHalfEdgeMesh &mesh)
   const KHalfEdgeMesh::HalfEdge *halfEdge;
 
   // Construct Mesh
-  for (int i = 0; i < vertices.size(); ++i)
+  for (size_t i = 0; i < vertices.size(); ++i)
   {
     vertDest[i] = KVertex(vertices[i].position, vertices[i].normal);
   }
-  for (int i = 0; i < faces.size(); ++i)
+  for (size_t i = 0; i < faces.size(); ++i)
   {
     baseIndDest = &indDest[3 * i];
     halfEdge = mesh.halfEdge(faces[i].first);

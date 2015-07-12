@@ -2,6 +2,7 @@
 #define OPENGLELEMENTTYPE_H OpenGLElementType
 
 #include <cstdint>
+#include <cstdlib>
 
 enum class OpenGLElementType
 {

@@ -11,7 +11,7 @@ public:
   SampleScene();
   ~SampleScene();
   void start();
-  void update(KUpdateEvent *event);
+  void update(OpenGLUpdateEvent *event);
   void end();
   void openMesh();
   void setMaterial(float r, float g, float b, float metal, float rough);

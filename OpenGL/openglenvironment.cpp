@@ -1,9 +1,9 @@
 #include "openglenvironment.h"
 
-#include <KBufferedBinaryFileReader>
 #include <KMacros>
 #include <OpenGLTexture>
 #include <OpenGLHdrTexture>
+#include <KBufferedBinaryFileReader>
 
 class OpenGLEnvrionmentPrivate
 {

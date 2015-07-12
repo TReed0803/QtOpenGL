@@ -2,6 +2,7 @@
 # QtOpenGL Build Configuration
 #-------------------------------------------------------------------------------
 
+CONFIG += c++11
 SOURCE_ROOT = $${PWD}
 include($${SOURCE_ROOT}/config.pri.user)
 

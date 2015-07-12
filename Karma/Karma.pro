@@ -11,7 +11,6 @@ QT += widgets
 include(../config.pri)
 
 SOURCES += \
-    kupdateevent.cpp \
     kcamera3d.cpp \
     ktransform3d.cpp \
     kinputmanager.cpp \
@@ -42,7 +41,6 @@ HEADERS += \
     kcolor.h \
     kcommon.h \
     kmacros.h \
-    kupdateevent.h \
     kcamera3d.h \
     ktransform3d.h \
     kvertex.h \

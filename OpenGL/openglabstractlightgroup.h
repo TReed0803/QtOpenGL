@@ -32,6 +32,7 @@ static std::string FToCStr(int f)
   CASE(FCookTorrance);
   CASE(FSphericalGaussian);
   }
+  return "N/A";
 }
 
 enum GeometryFactor
@@ -60,6 +61,7 @@ static std::string GToCStr(int g)
   CASE(GSmithSchlickBeckmann);
   CASE(GSmith);
   }
+  return "N/A";
 }
 
 enum DistributionFactor
@@ -78,6 +80,7 @@ static std::string DToCStr(int d)
   CASE(DBeckmann);
   CASE(DGgx);
   }
+  return "N/A";
 }
 
 #undef CASE

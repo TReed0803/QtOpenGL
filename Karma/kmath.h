@@ -421,7 +421,7 @@ KVector3D Karma::calculateCentroid(It begin, It end, Func f, KVector3D axes[N], 
 }
 
 template <typename It1, typename It2, typename Func1, typename Func2>
-std::vector<KVector3D> findExtremalPoints(It1 origBeginPoints, It1 endPoints, It2 beginNorms, It2 endNorms, Func1 pointAccessor)
+std::vector<KVector3D> findExtremalPoints(It1 origBeginPoints, It1 endPoints, It2 beginNorms, It2 endNorms, Func1 pointsAccessor)
 {
   It1 beginPoints;
   KVector3D minimum, maximum;
@@ -434,6 +434,7 @@ std::vector<KVector3D> findExtremalPoints(It1 origBeginPoints, It1 endPoints, It
     points.push_back(maximum);
     ++beginNorms;
   }
+  return points;
 }
 
 inline float Karma::RadsToDegrees(float rads)

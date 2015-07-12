@@ -16,7 +16,7 @@
 
 #include <KCommon>
 #include <KInputManager>
-#include <KUpdateEvent>
+#include <OpenGLUpdateEvent>
 #include <KMath>
 
 static OpenGLWidget *sg_widget;
@@ -179,9 +179,9 @@ bool OpenGLWidget::event(QEvent *e)
     errorEventGL(static_cast<OpenGLError*>(e));
     return true;
   }
-  else if (e->type() == KUpdateEvent::type())
+  else if (e->type() == OpenGLUpdateEvent::eventType())
   {
-    updateEvent(static_cast<KUpdateEvent*>(e));
+    updateEvent(static_cast<OpenGLUpdateEvent*>(e));
     return true;
   }
   else if (e->type() == QEvent::Gesture)
@@ -278,7 +278,7 @@ void OpenGLWidget::gestureEvent(QGestureEvent *event)
   KInputManager::registerGestureEvent(event);
 }
 
-void OpenGLWidget::updateEvent(KUpdateEvent *event)
+void OpenGLWidget::updateEvent(OpenGLUpdateEvent *event)
 {
   (void)event;
 }
@@ -302,7 +302,7 @@ void OpenGLWidget::update()
 
   // Update Logic
   {
-    KUpdateEvent ev;
+    OpenGLUpdateEvent ev;
     QCoreApplication::sendEvent(this, &ev);
   }
 

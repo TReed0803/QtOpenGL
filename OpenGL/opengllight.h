@@ -20,28 +20,6 @@ public:
   KVector3D const &specular() const;
   void setShadowCasting(bool sc);
   bool shadowCasting() const;
-
-  template <bool pointer>
-  struct ShadowCastingPred;
-
-  template <>
-  struct ShadowCastingPred<true> : public std::unary_function<bool, const OpenGLLight*>
-  {
-    bool operator()(const OpenGLLight *light) const
-    {
-      return light->shadowCasting();
-    }
-  };
-
-  template <>
-  struct ShadowCastingPred<false> : public std::unary_function<bool, const OpenGLLight&>
-  {
-    bool operator()(const OpenGLLight &light) const
-    {
-      return light.shadowCasting();
-    }
-  };
-
   void setActive(bool b);
   bool active() const;
 
@@ -107,5 +85,26 @@ inline bool OpenGLLight::shadowCasting() const
 {
   return m_shadowCasting;
 }
+
+template <bool pointer>
+struct ShadowCastingPred;
+
+template <>
+struct ShadowCastingPred<true> : public std::unary_function<bool, const OpenGLLight*>
+{
+  bool operator()(const OpenGLLight *light) const
+  {
+    return light->shadowCasting();
+  }
+};
+
+template <>
+struct ShadowCastingPred<false> : public std::unary_function<bool, const OpenGLLight&>
+{
+  bool operator()(const OpenGLLight &light) const
+  {
+    return light.shadowCasting();
+  }
+};
 
 #endif // OPENGLLIGHT_H

@@ -317,7 +317,7 @@ void SampleScene::start()
   env->setIndirect(":/resources/images/AlexsApt_Env.hdr");
 }
 
-void SampleScene::update(KUpdateEvent *event)
+void SampleScene::update(OpenGLUpdateEvent *event)
 {
   P(SampleScenePrivate);
   (void)event;

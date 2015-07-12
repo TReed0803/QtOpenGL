@@ -33,8 +33,7 @@ public:
 };
 
 KBspTreeNode::KBspTreeNode(size_t depth, KPointCloud &cloud) :
-  m_depth(depth), m_left(0), m_right(0), m_pointCloud(cloud),
-  m_color(float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX)
+  m_depth(depth), m_color(float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX), m_left(0), m_right(0), m_pointCloud(cloud)
 {
   // Intentionally Empty
 }
@@ -93,7 +92,7 @@ public:
 };
 
 KBspTreePrivate::KBspTreePrivate(KGeometryCloud &parent) :
-  m_parent(parent), m_root(0)
+  m_root(0), m_parent(parent)
 {
   // Intentionally Empty
 }
@@ -155,7 +154,7 @@ KPlane KBspTreePrivate::pickSplittingPlane(TriangleIterator begin, TriangleItera
   float bestScore = std::numeric_limits<float>::max();
   size_t numPolygons = std::distance(begin, end);
   size_t skipSize = numPolygons * skipWeight;
-  skipSize = Karma::clamp(skipSize, 1, numPolygons);
+  skipSize = Karma::clamp(skipSize, static_cast<size_t>(1), numPolygons);
 
   // For analysis
   float score;
@@ -274,7 +273,8 @@ void KBspTree::build(KGeometryCloud::BuildMethod method, KGeometryCloud::Termina
 
 void KBspTree::debugDraw(size_t min, size_t max)
 {
-  debugDraw(KTransform3D(), min, max);
+  KTransform3D trans;
+  debugDraw(trans, min, max);
 }
 
 void KBspTree::debugDraw(KTransform3D &trans, size_t min, size_t max)

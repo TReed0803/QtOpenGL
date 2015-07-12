@@ -9,6 +9,7 @@ static size_t FormatSize(KImage::Format fmt)
   case KImage::Float:
     return sizeof(float);
   }
+  return 0;
 }
 
 class KImagePrivate
@@ -16,7 +17,7 @@ class KImagePrivate
 public:
   KImagePrivate();
   ~KImagePrivate();
-  void *m_data;
+  KImage::Byte *m_data;
 };
 
 KImagePrivate::KImagePrivate() :
@@ -43,7 +44,6 @@ KImage::~KImage()
 
 void KImage::allocate(int width, int height, KImage::Format fmt, int channels)
 {
-  P(KImagePrivate);
   m_private = new KImagePrivate;
   m_private->m_data = new Byte[FormatSize(fmt)*width*height*channels];
 }

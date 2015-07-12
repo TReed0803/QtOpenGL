@@ -4,7 +4,7 @@
 #include <OpenGLWidget>
 
 class OpenGLScene;
-class KUpdateEvent;
+class OpenGLUpdateEvent;
 class SampleScene;
 class OpenGLRenderer;
 
@@ -29,7 +29,7 @@ protected:
   void paintGL();
 
   // Events
-  void updateEvent(KUpdateEvent *event);
+  void updateEvent(OpenGLUpdateEvent *event);
 
 private:
   MainWidgetPrivate *m_private;

@@ -174,7 +174,7 @@ void MainWidget::paintGL()
 /*******************************************************************************
  * Events
  ******************************************************************************/
-void MainWidget::updateEvent(KUpdateEvent *event)
+void MainWidget::updateEvent(OpenGLUpdateEvent *event)
 {
   P(MainWidgetPrivate);
   makeCurrent();

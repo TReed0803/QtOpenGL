@@ -2,21 +2,20 @@
 #define KINTERMEDIATEITERATOR_H KIntermediateIterator
 
 #include <iterator>
+#include <type_traits>
 
-template <typename To, typename From>
-class KIntermediateIterator :
-    public std::iterator<
-      typename To::iterator_category,
-      typename To::value_type,
-      typename To::difference_type,
-      typename To::pointer,
-      typename To::reference>
+template <typename To, typename From, typename FromConst>
+class KIntermediateIterator
 {
 public:
+  typedef size_t difference_type;
   typedef From FromIterator;
+  typedef FromConst FromIteratorConst;
   typedef To ToIterator;
+  typedef typename std::remove_pointer<To>::type& reference;
 
   explicit KIntermediateIterator(FromIterator from);
+  explicit KIntermediateIterator(FromIteratorConst from);
   virtual void validate() = 0;
   bool operator!=(KIntermediateIterator const &rhs) const;
   reference operator*();
@@ -31,47 +30,54 @@ private:
   void makeValid();
 };
 
-template <typename To, typename From>
-KIntermediateIterator<To, From>::KIntermediateIterator(FromIterator from) :
+template <typename To, typename From, typename FromConst>
+KIntermediateIterator<To, From, FromConst>::KIntermediateIterator(FromIterator from) :
   m_from(from), m_valid(false)
 {
   // Intentionally Empty
 }
 
-template <typename To, typename From>
-inline bool KIntermediateIterator<To, From>::operator!=(KIntermediateIterator const &rhs) const
+template <typename To, typename From, typename FromConst>
+KIntermediateIterator<To, From, FromConst>::KIntermediateIterator(FromIteratorConst from) :
+  m_from(*reinterpret_cast<FromIterator*>(&from)), m_valid(false)
+{
+  // Intentionally Empty
+}
+
+template <typename To, typename From, typename FromConst>
+inline bool KIntermediateIterator<To, From, FromConst>::operator!=(KIntermediateIterator const &rhs) const
 {
   return (m_from != rhs.m_from);
 }
 
-template <typename To, typename From>
-auto KIntermediateIterator<To, From>::operator*() -> reference
+template <typename To, typename From, typename FromConst>
+auto KIntermediateIterator<To, From, FromConst>::operator*() -> reference
 {
   makeValid();
   return *m_to;
 }
 
-template <typename To, typename From>
-auto KIntermediateIterator<To, From>::toIterator() const -> ToIterator const &
+template <typename To, typename From, typename FromConst>
+auto KIntermediateIterator<To, From, FromConst>::toIterator() const -> ToIterator const &
 {
   makeValid();
   return m_to;
 }
 
-template <typename To, typename From>
-auto KIntermediateIterator<To, From>::fromIterator() const -> FromIterator const &
+template <typename To, typename From, typename FromConst>
+auto KIntermediateIterator<To, From, FromConst>::fromIterator() const -> FromIterator const &
 {
   return m_from;
 }
 
-template <typename To, typename From>
-inline void KIntermediateIterator<To, From>::invalidate()
+template <typename To, typename From, typename FromConst>
+inline void KIntermediateIterator<To, From, FromConst>::invalidate()
 {
   m_valid = false;
 }
 
-template <typename To, typename From>
-inline void KIntermediateIterator<To, From>::makeValid()
+template <typename To, typename From, typename FromConst>
+inline void KIntermediateIterator<To, From, FromConst>::makeValid()
 {
   if (!m_valid)
   {

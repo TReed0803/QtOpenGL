@@ -53,7 +53,7 @@ void OpenGLSceneManager::popScene()
   p.m_sceneStack.pop();
 }
 
-void OpenGLSceneManager::update(KUpdateEvent *event)
+void OpenGLSceneManager::update(OpenGLUpdateEvent *event)
 {
   P(OpenGLSceneManagerPrivate);
   OpenGLScene *nextScene = p.m_sceneStack.empty() ? 0 : p.m_sceneStack.front();

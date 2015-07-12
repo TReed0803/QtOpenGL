@@ -7,6 +7,8 @@ template <typename T>
 class KStandardAccessor : public KAccessor<T, T>
 {
 public:
+  typedef typename KAccessor<T, T>::ReturnType ReturnType;
+  typedef typename KAccessor<T, T>::ContainedType ContainedType;
   ReturnType const &operator()(ContainedType const &elm) const;
 };
 

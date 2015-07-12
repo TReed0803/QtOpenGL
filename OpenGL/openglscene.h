@@ -1,7 +1,7 @@
 #ifndef OPENGLSCENE_H
 #define OPENGLSCENE_H OpenGLScene
 
-class KUpdateEvent;
+class OpenGLUpdateEvent;
 class OpenGLInstance;
 class OpenGLPointLight;
 class OpenGLSphereLight;
@@ -28,7 +28,7 @@ public:
 
   // Virtual Scene functions
   virtual void start();
-  virtual void update(KUpdateEvent *event);
+  virtual void update(OpenGLUpdateEvent *event);
   virtual void end();
 
   // Object Creation

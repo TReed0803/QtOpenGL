@@ -96,7 +96,7 @@ void OpenGLLightGroup<T, D>::commit(const OpenGLViewport &view)
   if (m_lights.empty()) return;
 
   // Seperate shadow-casters from regular lights
-  LightIterator regularLights = std::partition(m_lights.begin(), m_lights.end(), OpenGLLight::ShadowCastingPred<true>());
+  LightIterator regularLights = std::partition(m_lights.begin(), m_lights.end(), ShadowCastingPred<true>());
   m_numShadowLights  = std::distance(m_lights.begin(), regularLights);
   m_numRegularLights = m_lights.size() - m_numShadowLights;
 
@@ -106,7 +106,7 @@ void OpenGLLightGroup<T, D>::commit(const OpenGLViewport &view)
     if (!light->active()) --m_numShadowLights;
   }
 
-  BufferType::RangeAccessFlags flags =
+  typename BufferType::RangeAccessFlags flags =
       BufferType::RangeInvalidate
     | BufferType::RangeUnsynchronized
     | BufferType::RangeWrite;

@@ -74,25 +74,25 @@ typedef OpenGLUniformMap<OpenGLUniformBufferMapping> OpenGLUniformBufferMap;
 static OpenGLUniformBufferMap sg_uniformBufferMap;
 
 template <>
-static OpenGLUniformMapping<OpenGLUniformBufferIndex> &resolveMapping<OpenGLUniformBufferIndex>(const std::string &name)
+OpenGLUniformMapping<OpenGLUniformBufferIndex> &resolveMapping<OpenGLUniformBufferIndex>(const std::string &name)
 {
   return sg_uniformBufferMap[name];
 }
 
 template <>
-static void scheduleUpdate<OpenGLUniformBufferIndex>(OpenGLShaderProgram *program, unsigned location, const OpenGLUniformBufferIndex &value)
+void scheduleUpdate<OpenGLUniformBufferIndex>(OpenGLShaderProgram *program, unsigned location, const OpenGLUniformBufferIndex &value)
 {
   program->scheduleUniformBlockUpdate(location, value.internal);
 }
 
 template <>
-static unsigned resolveLocation<OpenGLUniformBufferIndex>(OpenGLShaderProgram *program, const std::string &name)
+unsigned resolveLocation<OpenGLUniformBufferIndex>(OpenGLShaderProgram *program, const std::string &name)
 {
   return program->uniformBlockLocation(name.c_str());
 }
 
 template <>
-static bool validLocation<OpenGLUniformBufferIndex>(unsigned location)
+bool validLocation<OpenGLUniformBufferIndex>(unsigned location)
 {
   return location != OpenGLUniformBufferObject::InvalidLocation;
 }
@@ -107,25 +107,25 @@ typedef OpenGLUniformMap<OpenGLTextureSamplerMapping> OpenGLTextureSamplerMap;
 static OpenGLTextureSamplerMap sg_textureSamplerMap;
 
 template <>
-static OpenGLUniformMapping<OpenGLTextureSampler> &resolveMapping<OpenGLTextureSampler>(const std::string &name)
+OpenGLUniformMapping<OpenGLTextureSampler> &resolveMapping<OpenGLTextureSampler>(const std::string &name)
 {
   return sg_textureSamplerMap[name];
 }
 
 template <>
-static void scheduleUpdate<OpenGLTextureSampler>(OpenGLShaderProgram *program, unsigned location, const OpenGLTextureSampler &value)
+void scheduleUpdate<OpenGLTextureSampler>(OpenGLShaderProgram *program, unsigned location, const OpenGLTextureSampler &value)
 {
   program->scheduleUniformUpdate(location, value.internal);
 }
 
 template <>
-static unsigned resolveLocation<OpenGLTextureSampler>(OpenGLShaderProgram *program, const std::string &name)
+unsigned resolveLocation<OpenGLTextureSampler>(OpenGLShaderProgram *program, const std::string &name)
 {
   return program->uniformLocation(name.c_str());
 }
 
 template <>
-static bool validLocation<OpenGLTextureSampler>(unsigned location)
+bool validLocation<OpenGLTextureSampler>(unsigned location)
 {
   return location != -1;
 }

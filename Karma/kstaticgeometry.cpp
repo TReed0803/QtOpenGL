@@ -62,14 +62,14 @@ public:
 
 KStaticGeometryNode::KStaticGeometryNode(size_t d, ConstIterator begin, ConstIterator end, KPointCloud const &pointCloud) :
   aabb(KTrianglePointIterator(begin, pointCloud), KTrianglePointIterator(end, pointCloud)),
-  left(0), right(0), instance(0), depth(d)
+  left(0), right(0), depth(d), instance(0)
 {
   // Intentionally Empty
 }
 
 KStaticGeometryNode::KStaticGeometryNode(size_t d, KStaticGeometryNode *left, KStaticGeometryNode *right) :
   aabb(left->aabb, right->aabb),
-  left(left), right(right), instance(0), depth(d)
+  left(left), right(right), depth(d), instance(0)
 {
   left->depth = depth + 1;
   right->depth = depth + 1;
@@ -160,12 +160,12 @@ void KStaticGeometryPrivate::buildBottomUp(TerminationPred pred)
   size_t numTriangles = triangleCloud.size();
   nodes.reserve(numTriangles);
 
-  int leafCount;
+  size_t leafCount;
   int depthEstimate;
   int leafSize = static_cast<int>(numTriangles);
   do
   {
-    leafCount = static_cast<int>(numTriangles / leafSize);
+    leafCount = numTriangles / leafSize;
     depthEstimate = std::ceil(std::log(leafSize) / Karma::Log2);
     leafSize /= 2;
     if (leafSize == 1) break;

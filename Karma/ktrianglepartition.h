@@ -52,8 +52,8 @@ public:
   }
 
 protected:
-  float m_midDot;
   KVector3D m_axis;
+  float m_midDot;
 };
 
 /*******************************************************************************

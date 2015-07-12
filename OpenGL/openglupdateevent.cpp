@@ -1,9 +1,9 @@
-#include "kupdateevent.h"
+#include "openglupdateevent.h"
 
 /*******************************************************************************
  * OpenGLError methods
  ******************************************************************************/
-QEvent::Type KUpdateEvent::type()
+QEvent::Type OpenGLUpdateEvent::eventType()
 {
   static QEvent::Type customEventType =
     static_cast<QEvent::Type>(QEvent::registerEventType());

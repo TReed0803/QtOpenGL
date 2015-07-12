@@ -33,7 +33,7 @@ void OpenGLScene::start()
   p.m_environment.create();
 }
 
-void OpenGLScene::update(KUpdateEvent *event)
+void OpenGLScene::update(OpenGLUpdateEvent *event)
 {
   (void)event;
 }

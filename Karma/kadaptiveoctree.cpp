@@ -24,14 +24,14 @@ public:
 
   size_t m_depth;
   KColor m_color;
+  KPointCloud &m_pointCloud;
   KAabbBoundingVolume m_aabb;
   KAdaptiveOctreeNode *m_children[8];
   KTriangleIndexCloud m_objects;
-  KPointCloud &m_pointCloud;
 };
 
 KAdaptiveOctreeNode::KAdaptiveOctreeNode(size_t depth, KAabbBoundingVolume const &aabb, KPointCloud &cloud) :
-  m_depth(depth), m_aabb(aabb), m_pointCloud(cloud), m_color(float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX)
+  m_depth(depth), m_color(float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX), m_pointCloud(cloud), m_aabb(aabb)
 {
   for (int i = 0; i < 8; ++i)
   {
@@ -81,10 +81,10 @@ public:
   void buildTopDown(TerminationPred pred);
   KAdaptiveOctreeNode* recursiveTopDown(size_t depth, KAabbBoundingVolume aabb, TriangleIterator begin, TriangleIterator end, TerminationPred pred);
 
-  KAdaptiveOctreeNode *m_root;
   size_t m_maxDepth;
   KGeometryCloud m_parent;
   KPointCloud m_pointCloud;
+  KAdaptiveOctreeNode *m_root;
 };
 
 KAdaptiveOctreePrivate::KAdaptiveOctreePrivate(KGeometryCloud &parent) :
@@ -209,7 +209,8 @@ void KAdaptiveOctree::build(BuildMethod method, TerminationPred pred)
 
 void KAdaptiveOctree::debugDraw(size_t min, size_t max)
 {
-  debugDraw(KTransform3D(), min, max);
+  KTransform3D trans;
+  debugDraw(trans, min, max);
 }
 
 void KAdaptiveOctree::debugDraw(KTransform3D &trans, size_t min, size_t max)

@@ -1217,7 +1217,7 @@ public:
 
   static inline GLuint glCreateShaderProgramv (GLenum type, GLsizei count, const GLchar *const*strings)
   {
-    GL::getInstance()->glCreateShaderProgramv (type, count, strings);
+    return GL::getInstance()->glCreateShaderProgramv (type, count, strings);
   }
 
   static inline void glBindProgramPipeline (GLuint pipeline)
@@ -1492,9 +1492,9 @@ public:
     return GL::getInstance()->glMapBuffer(target, access);
   }
 
-  static inline void glShaderStorageBlockBinding(GLuint program​, GLuint storageBlockIndex​, GLuint storageBlockBinding)
+  static inline void glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding)
   {
-    GL::getInstance()->glShaderStorageBlockBinding(program​, storageBlockIndex​, storageBlockBinding);
+    GL::getInstance()->glShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
   }
 
   static inline void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint *params)

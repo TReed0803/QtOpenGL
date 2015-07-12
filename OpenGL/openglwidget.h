@@ -5,7 +5,7 @@
 #include <QOpenGLWidget>
 #include <KString>
 
-class KUpdateEvent;
+class OpenGLUpdateEvent;
 class OpenGLError;
 class OpenGLFrameResults;
 class QEvent;
@@ -56,7 +56,7 @@ protected:
   virtual void moveEvent(QMoveEvent *event);
   virtual void touchEvent(QTouchEvent *event);
   virtual void gestureEvent(QGestureEvent *event);
-  virtual void updateEvent(KUpdateEvent *event);
+  virtual void updateEvent(OpenGLUpdateEvent *event);
 
 public slots:
   void update();

@@ -2,7 +2,7 @@
 #define OPENGLSCENEMANAGER_H OpenGLSceneManager
 
 #include <KUniquePointer>
-class KUpdateEvent;
+class OpenGLUpdateEvent;
 class OpenGLScene;
 
 class OpenGLSceneManagerPrivate;
@@ -15,7 +15,7 @@ public:
   void setScene(OpenGLScene *scene);
   void pushScene(OpenGLScene *scene);
   void popScene();
-  void update(KUpdateEvent *event);
+  void update(OpenGLUpdateEvent *event);
   bool empty();
   bool activeScene();
 private:
