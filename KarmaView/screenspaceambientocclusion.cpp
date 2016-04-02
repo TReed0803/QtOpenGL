@@ -49,7 +49,7 @@ public:
 };
 
 ScreenSpaceAmbientOcclusionPrivate::ScreenSpaceAmbientOcclusionPrivate() :
-  m_lastActive(false), m_dirty(true), m_blur(true)
+  m_dirty(true), m_blur(true), m_lastActive(false)
 {
   // Intentionally Empty
 }
@@ -126,7 +126,7 @@ void ScreenSpaceAmbientOcclusion::resize(int width, int height)
   p.m_lastActive = true;
 }
 
-void ScreenSpaceAmbientOcclusion::commit(OpenGLViewport &view)
+void ScreenSpaceAmbientOcclusion::commit(OpenGLViewport &)
 {
   P(ScreenSpaceAmbientOcclusionPrivate);
   if (active() || p.m_lastActive)
@@ -137,7 +137,7 @@ void ScreenSpaceAmbientOcclusion::commit(OpenGLViewport &view)
   }
 }
 
-void ScreenSpaceAmbientOcclusion::render(OpenGLScene &scene)
+void ScreenSpaceAmbientOcclusion::render(OpenGLScene &)
 {
   P(ScreenSpaceAmbientOcclusionPrivate);
   if (!active() && !p.m_lastActive) return;

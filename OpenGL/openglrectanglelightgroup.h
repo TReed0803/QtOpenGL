@@ -12,6 +12,7 @@ class OpenGLRectangleLightGroup
 {
 public:
   typedef std::vector<OpenGLRectangleLight*> LightContainer;
+  typedef LightContainer::size_type SizeType;
   OpenGLRectangleLightGroup();
   ~OpenGLRectangleLightGroup();
 
@@ -22,7 +23,7 @@ public:
 
   LightContainer::iterator begin();
   LightContainer::iterator end();
-  size_t size() const;
+  SizeType size() const;
   OpenGLRectangleLight *operator[](int idx);
 private:
   KUniquePointer<OpenGLRectangleLightGroupPrivate> m_private;

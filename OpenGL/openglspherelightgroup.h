@@ -11,6 +11,7 @@ class OpenGLSphereLightGroup
 {
 public:
   typedef std::vector<OpenGLSphereLight*> LightContainer;
+  typedef LightContainer::size_type SizeType;
   OpenGLSphereLightGroup();
   ~OpenGLSphereLightGroup();
 
@@ -22,7 +23,7 @@ public:
   LightContainer::iterator begin();
   LightContainer::iterator end();
   OpenGLSphereLight *operator[](int idx);
-  int size() const;
+  SizeType size() const;
 private:
   KUniquePointer<OpenGLSphereLightGroupPrivate> m_private;
 };

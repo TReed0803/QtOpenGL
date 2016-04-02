@@ -26,7 +26,7 @@ void LightAccumulationPass::initialize()
   m_private = new LightAccumulationPassPrivate;
 }
 
-void LightAccumulationPass::resize(int width, int height)
+void LightAccumulationPass::resize(int, int)
 {
   // Intentionally Empty
 }
@@ -40,7 +40,6 @@ void LightAccumulationPass::commit(OpenGLViewport &view)
 void LightAccumulationPass::render(OpenGLScene &scene)
 {
   (void)scene;
-  P(LightAccumulationPassPrivate);
   OpenGLMarkerScoped _("Light Accumulation Pass");
 
   GL::glDisable(GL_DEPTH_TEST);

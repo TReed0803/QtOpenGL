@@ -40,7 +40,7 @@ OpenGLEnvironment::~OpenGLEnvironment()
 
 void OpenGLEnvironment::create()
 {
-  P(OpenGLEnvrionmentPrivate);
+  // Intentionally Empty
 }
 
 void OpenGLEnvironment::setDirect(const char *filePath)

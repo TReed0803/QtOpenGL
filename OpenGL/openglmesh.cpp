@@ -95,7 +95,7 @@ void OpenGLMeshPrivate::create(const KHalfEdgeMesh &mesh)
 void OpenGLMeshPrivate::vertexAttribPointer(int location, int elements, OpenGLElementType type, bool normalized, int stride, int offset)
 {
   GL::glEnableVertexAttribArray(location);
-  GL::glVertexAttribPointer(location, elements, static_cast<GLenum>(type), normalized ? GL_TRUE : GL_FALSE, stride, ((const GLvoid*)offset));
+  GL::glVertexAttribPointer(location, elements, static_cast<GLenum>(type), normalized ? GL_TRUE : GL_FALSE, stride, reinterpret_cast<const GLvoid*>(offset));
 }
 
 void OpenGLMeshPrivate::vertexAttribPointer(int location, int elements, int count, OpenGLElementType type, bool normalized, int stride, int offset)

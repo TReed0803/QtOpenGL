@@ -68,7 +68,7 @@ void OpenGLSphereLightGroup::commit(const OpenGLViewport &view)
   OpenGLSphereLight *src;
   OpenGLAreaLightData *dest;
   OpenGLRenderBlock const &stats = view.current();
-  for (int i = 0; i < p.m_lights.size(); ++i)
+  for (std::vector<OpenGLSphereLight*>::size_type i = 0; i < p.m_lights.size(); ++i)
   {
     src = p.m_lights[i];
     dest = reinterpret_cast<OpenGLAreaLightData*>(data);
@@ -118,7 +118,7 @@ OpenGLSphereLight *OpenGLSphereLightGroup::operator[](int idx)
   return p.m_lights[idx];
 }
 
-int OpenGLSphereLightGroup::size() const
+OpenGLSphereLightGroup::SizeType OpenGLSphereLightGroup::size() const
 {
   P(const OpenGLSphereLightGroupPrivate);
   return p.m_lights.size();

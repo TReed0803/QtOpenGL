@@ -131,6 +131,8 @@ KAbstractObjParserPrivate::token_id KAbstractObjParserPrivate::lexToken(token_ty
   case PT_MATERIAL:
     nextLine();
     break;
+  default:
+    break;
   }
 
   // Tokenization
@@ -307,6 +309,8 @@ bool KAbstractObjParserPrivate::parse()
     case PT_FACE:
       parseFace();
     case PT_ENDSTATEMENT:
+      break;
+    default:
       break;
     }
   }

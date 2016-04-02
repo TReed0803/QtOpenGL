@@ -87,7 +87,7 @@ void GBufferPass::resize(int width, int height)
   p.m_gFbo.release();
 }
 
-void GBufferPass::commit(OpenGLViewport &view)
+void GBufferPass::commit(OpenGLViewport &)
 {
   P(GBufferPassPrivate);
 

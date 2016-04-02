@@ -41,12 +41,15 @@ void MotionBlurPass::initialize()
   m_private = new MotionBlurPassPrivate;
   P(MotionBlurPassPrivate);
 
+  // Initialize
+  p.m_maxSamples = 20;
+  p.m_power = 1.0f;
+
   // Motion Blur Shader
   p.m_program = new OpenGLShaderProgram();
   p.m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/resources/shaders/gbuffer/main.vert");
   p.m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/resources/shaders/gbuffer/motionBlur.frag");
   p.m_program->link();
-
   p.m_fbo.create();
 
   // Quad

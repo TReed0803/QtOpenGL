@@ -127,7 +127,7 @@ unsigned resolveLocation<OpenGLTextureSampler>(OpenGLShaderProgram *program, con
 template <>
 bool validLocation<OpenGLTextureSampler>(unsigned location)
 {
-  return location != -1;
+  return location != std::numeric_limits<unsigned>::max();
 }
 
 ///////////////////////////////////////////////////////////////////////////

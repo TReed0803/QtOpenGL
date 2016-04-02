@@ -135,7 +135,7 @@ OpenGLSLParserPrivate::token_id OpenGLSLParserPrivate::lexCode(token_type &token
   (void)token;
 
   // Re-append whitespace
-  for (int i = 1; i < this->currCharCount(); ++i)
+  for (size_type i = 1; i < this->currCharCount(); ++i)
   {
     token.m_lexicon.push_back(' ');
   }
@@ -392,6 +392,8 @@ bool OpenGLSLParserPrivate::parse()
     case PT_PP_UNKNOWN:
     case PT_CODE:
       m_writer->append(currToken().m_lexicon.c_str());
+      break;
+    default:
       break;
     }
   }

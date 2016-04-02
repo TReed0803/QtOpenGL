@@ -59,7 +59,7 @@ void PreparePresentationPass::resize(int width, int height)
   p.m_lFbo.release();
 }
 
-void PreparePresentationPass::commit(OpenGLViewport &view)
+void PreparePresentationPass::commit(OpenGLViewport &)
 {
   P(PreparePresentationPassPrivate);
   // Bind Lightbuffer

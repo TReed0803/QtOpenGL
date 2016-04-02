@@ -21,19 +21,18 @@ void ShadowedLightAccumulationPass::initialize()
 
 }
 
-void ShadowedLightAccumulationPass::resize(int width, int height)
+void ShadowedLightAccumulationPass::resize(int, int)
 {
 
 }
 
-void ShadowedLightAccumulationPass::commit(OpenGLViewport &view)
+void ShadowedLightAccumulationPass::commit(OpenGLViewport &)
 {
 
 }
 
 void ShadowedLightAccumulationPass::render(OpenGLScene &scene)
 {
-  P(ShadowedLightAccumulationPassPrivate);
   OpenGLMarkerScoped _("Shadow-Casting Light Accumulation Pass");
   scene.renderShadowedLights();
 }

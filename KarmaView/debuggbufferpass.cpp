@@ -115,6 +115,5 @@ void DebugGBufferPass::render(OpenGLScene &scene)
 
 void DebugGBufferPass::teardown()
 {
-  P(DebugGBufferPassPrivate);
   delete m_private;
 }

@@ -21,10 +21,10 @@ static float asFloat(T const &element)
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
+  m_initialized(false),
   ui(new Ui::MainWindow),
   m_currentColor(255, 30, 30),
-  m_currentFloorColor(200, 200, 200),
-  m_initialized(false)
+  m_currentFloorColor(200, 200, 200)
 {
   ui->setupUi(this);
   setupSignals();

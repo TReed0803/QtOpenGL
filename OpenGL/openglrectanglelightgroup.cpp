@@ -95,7 +95,7 @@ void OpenGLRectangleLightGroup::commit(const OpenGLViewport &view)
   OpenGLRectangleLight *src;
   OpenGLAreaLightData *dest;
   OpenGLRenderBlock const &stats = view.current();
-  for (int i = 0; i < p.m_lights.size(); ++i)
+  for (SizeType i = 0; i < p.m_lights.size(); ++i)
   {
     src = p.m_lights[i];
     dest = reinterpret_cast<OpenGLAreaLightData*>(data);
@@ -187,7 +187,7 @@ OpenGLRectangleLight *OpenGLRectangleLightGroup::createLight()
   return light;
 }
 
-size_t OpenGLRectangleLightGroup::size() const
+OpenGLRectangleLightGroup::SizeType OpenGLRectangleLightGroup::size() const
 {
   P(const OpenGLRectangleLightGroupPrivate);
   return p.m_lights.size();

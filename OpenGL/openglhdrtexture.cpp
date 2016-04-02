@@ -35,7 +35,7 @@ bool OpenGLHdrTextureLoader::parse(OpenGLToneMappingFunction *toneMap)
   return KAbstractHdrParser::parse();
 }
 
-void OpenGLHdrTextureLoader::onKeyValue(const char *key, const char *value)
+void OpenGLHdrTextureLoader::onKeyValue(const char *, const char *)
 {
   // Handle key/value pairs here
 }

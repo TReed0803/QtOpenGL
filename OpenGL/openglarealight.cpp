@@ -2,7 +2,7 @@
 #include <KMath>
 
 OpenGLAreaLight::OpenGLAreaLight() :
-  m_active(true), m_temperature(2700.0f), m_intensity(1200.0f), m_radius(100.0f)
+  m_active(true), m_radius(100.0f), m_temperature(2700.0f), m_intensity(1200.0f)
 {
   // Intentionally Empty
 }

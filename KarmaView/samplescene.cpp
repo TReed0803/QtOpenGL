@@ -81,6 +81,7 @@ public:
   std::array<KStaticGeometry, 4> m_staticGeometry;
   KAdaptiveOctree m_octree;
   KBspTree m_bspTree;
+  bool m_openModel;
 
   KAabbBoundingVolume *m_aabb;
   KSphereBoundingVolume *m_sphereCentroid;
@@ -101,15 +102,26 @@ public:
 };
 
 SampleScenePrivate::SampleScenePrivate() :
+  m_rectLightsWidth(0.0f), m_rectLightsHeight(0.0f),
   m_bvAabb(false), m_bvObb(false), m_bvSphereRitters(false),
   m_bvSpherePca(false), m_bvSphereCentroid(false), m_bvEllipse(false), m_bvSphereLarssons(false),
+  m_sphereLightRadius(0.0f),
+  m_metalSeparation(0.0f),
+  m_roughSeparation(0.0f),
+  m_metallic(0.0f),
+  m_roughness(0.0f),
+  m_activeMetals(0),
+  m_activeRoughness(0),
+  m_floorInstance(nullptr),
+  m_mainInstance(nullptr),
   m_aabb(0),
   m_sphereCentroid(0),
   m_sphereLarsons(0),
   m_spherePca(0),
   m_sphereRitters(0),
   m_obb(0),
-  m_ellipse(0)
+  m_ellipse(0),
+  m_openModel(false)
 {
   // Intentionally Empty
 }
@@ -322,6 +334,17 @@ void SampleScene::update(OpenGLUpdateEvent *event)
   P(SampleScenePrivate);
   (void)event;
 
+  if (p.m_openModel) {
+    QString fileName = OpenGLWidget::openFileName("Open Model", ".", "Wavefront Object File (*)");
+    OpenGLWidget::sMakeCurrent();
+    if (!fileName.isNull())
+    {
+      OpenGLContext::currentContext();
+      p.loadObj(fileName);
+    }
+    p.m_openModel = false;
+  }
+
   // Update Lights (Scene update)
   float angle;
   static float f_spotlight = 0.0f;
@@ -333,10 +356,10 @@ void SampleScene::update(OpenGLUpdateEvent *event)
 
   // Update Spotlights
   angle = f_spotlight;
-  for (int light = 0; light < spotLights().size(); ++light)
+  for (OpenGLSpotLightGroup::SizeType light = 0; light < spotLights().size(); ++light)
   {
     OpenGLSpotLight *instance = spotLights()[light];
-    if (light >= p.m_spotlights.m_lightCount)
+    if (light >= static_cast<unsigned>(p.m_spotlights.m_lightCount))
     {
       instance->setActive(false);
       continue;
@@ -350,10 +373,10 @@ void SampleScene::update(OpenGLUpdateEvent *event)
 
   // Update Spherelights
   angle = f_spherelight;
-  for (int light = 0; light < sphereLights().size(); ++light)
+  for (OpenGLSphereLightGroup::SizeType light = 0; light < sphereLights().size(); ++light)
   {
     OpenGLSphereLight *instance = sphereLights()[light];
-    if (light >= p.m_sphereLights.m_lightCount)
+    if (light >= static_cast<unsigned>(p.m_sphereLights.m_lightCount))
     {
       instance->setActive(false);
       continue;
@@ -369,10 +392,10 @@ void SampleScene::update(OpenGLUpdateEvent *event)
 
   // Update Rectlights
   angle = f_rectlight;
-  for (int light = 0; light < rectangleLights().size(); ++light)
+  for (OpenGLRectangleLightGroup::SizeType light = 0; light < rectangleLights().size(); ++light)
   {
     OpenGLRectangleLight *instance = rectangleLights()[light];
-    if (light >= p.m_rectLights.m_lightCount)
+    if (light >= static_cast<unsigned>(p.m_rectLights.m_lightCount))
     {
       instance->setActive(false);
       continue;
@@ -388,10 +411,10 @@ void SampleScene::update(OpenGLUpdateEvent *event)
 
   OpenGLInstance *instance;
   size_t layerCount = p.m_instances.size();
-  for (int metal = 0; metal < layerCount; ++metal)
+  for (size_t metal = 0; metal < layerCount; ++metal)
   {
     size_t objectCount = p.m_instances[metal].size();
-    for (int rough = 0; rough < objectCount; ++rough)
+    for (size_t rough = 0; rough < objectCount; ++rough)
     {
       instance = p.m_instances[metal][rough];
 
@@ -400,7 +423,7 @@ void SampleScene::update(OpenGLUpdateEvent *event)
       instance->currentTransform().rotate(p.m_objectRotation.y(), 0.0f, 1.0f, 0.0f);
       instance->currentTransform().rotate(p.m_objectRotation.z(), 0.0f, 0.0f, 1.0f);
 
-      if (rough >= p.m_activeRoughness || metal >= p.m_activeMetals)
+      if (rough >= static_cast<unsigned>(p.m_activeRoughness) || metal >= static_cast<unsigned>(p.m_activeMetals))
       {
         instance->setVisible(false);
         continue;
@@ -497,13 +520,7 @@ void SampleScene::end()
 void SampleScene::openMesh()
 {
   P(SampleScenePrivate);
-  OpenGLWidget::sMakeCurrent();
-  QString fileName = OpenGLWidget::openFileName("Open Model", ".", "Wavefront Object File (*.obj))");
-  if (!fileName.isNull())
-  {
-    OpenGLContext::currentContext();
-    p.loadObj(fileName);
-  }
+  p.m_openModel = true;
 }
 
 void SampleScene::setMaterial(float r, float g, float b, float metal, float rough)

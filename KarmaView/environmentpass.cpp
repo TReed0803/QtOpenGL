@@ -52,7 +52,7 @@ void EnvironmentPass::initialize()
   p.m_quadGL.create(":/resources/objects/quad.obj");
 }
 
-void EnvironmentPass::resize(int width, int height)
+void EnvironmentPass::resize(int, int)
 {
   // Intentionally Empty
 }

@@ -196,7 +196,7 @@ KAbstractHdrParserPrivate::token_id KAbstractHdrParserPrivate::lexToken(KAbstrac
   }
 }
 
-KAbstractHdrParserPrivate::token_id KAbstractHdrParserPrivate::lexTokenKeyValue(KAbstractLexer::token_type &token)
+KAbstractHdrParserPrivate::token_id KAbstractHdrParserPrivate::lexTokenKeyValue(KAbstractLexer::token_type &)
 {
   // Read Key
   m_key = currChar();
@@ -260,6 +260,8 @@ bool KAbstractHdrParserPrivate::parse()
     case PT_KEYVALUE:
       m_parser->onKeyValue(m_key.c_str(), m_value.c_str());
     case PT_ENDOFHEADER:
+      break;
+    default:
       break;
     }
   }

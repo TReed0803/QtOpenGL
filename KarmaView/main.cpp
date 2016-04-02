@@ -33,7 +33,7 @@ static QSurfaceFormat* getFirstSupported(std::vector<QSurfaceFormat> &formats)
   return NULL;
 }
 
-static void handleMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+static void handleMessageOutput(QtMsgType type, const QMessageLogContext &, const QString &msg)
 {
   //in this function, you can write the message to any stream!
   switch (type) {
@@ -49,6 +49,8 @@ static void handleMessageOutput(QtMsgType type, const QMessageLogContext &contex
   case QtFatalMsg:
     if (sg_console) sg_console->appendPlainText(msg);
       abort();
+  default:
+    break;
   }
 }
 
@@ -90,10 +92,6 @@ int main(int argc, char *argv[])
   format->setOption(QSurfaceFormat::DebugContext);
 #endif // GL_DEBUG
   format->setDepthBufferSize(0);
-
-  // Set the widget up
-  MainWidget *widget = new MainWidget;
-  widget->setFormat(*format);
 
   // Set the window up
   MainWindow *window = new MainWindow;
