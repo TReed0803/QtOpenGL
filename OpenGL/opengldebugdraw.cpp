@@ -308,8 +308,8 @@ void OpenGLDebugDraw::initialize()
   sg_vertexBuffer.setUsagePattern(OpenGLBuffer::DynamicDraw);
   GL::glEnableVertexAttribArray(0);
   GL::glEnableVertexAttribArray(1);
-  GL::glVertexAttribPointer(0, KDebugVertex::PositionTupleSize, GL_FLOAT, GL_FALSE, KDebugVertex::stride(), (void*)KDebugVertex::positionOffset());
-  GL::glVertexAttribPointer(1, KDebugVertex::ColorTupleSize, GL_FLOAT, GL_FALSE, KDebugVertex::stride(), (void*)KDebugVertex::colorOffset());
+  GL::glVertexAttribPointer(0, KDebugVertex::PositionTupleSize, GL_FLOAT, GL_FALSE, KDebugVertex::stride(), (void*)(intptr_t)KDebugVertex::positionOffset());
+  GL::glVertexAttribPointer(1, KDebugVertex::ColorTupleSize, GL_FLOAT, GL_FALSE, KDebugVertex::stride(), (void*)(intptr_t)KDebugVertex::colorOffset());
 
   // Release (unbind) all
   sg_vertexArrayObject->release();

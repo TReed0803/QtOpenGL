@@ -23,7 +23,7 @@ enum FresnelFactor
   FresnelCount
 };
 
-static std::string FToCStr(int f)
+static inline std::string FToCStr(int f)
 {
   switch (f)
   {
@@ -48,7 +48,7 @@ enum GeometryFactor
   GeometryCount
 };
 
-static std::string GToCStr(int g)
+static inline std::string GToCStr(int g)
 {
   switch (g)
   {
@@ -72,7 +72,7 @@ enum DistributionFactor
   DistributionCount
 };
 
-static std::string DToCStr(int d)
+static inline std::string DToCStr(int d)
 {
   switch (d)
   {

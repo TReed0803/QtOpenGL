@@ -2,6 +2,8 @@
 #define OPENGLTONEMAPPINGFUNCTION_H OpenGLToneMappingFunction
 
 #include <algorithm>
+#include <cmath>
+#include <functional>
 
 struct RgbF
 {
@@ -58,6 +60,7 @@ namespace std
 class OpenGLToneMappingFunction : public std::unary_function<RgbF, RgbF>
 {
 public:
+  virtual ~OpenGLToneMappingFunction() = 0;
   virtual RgbF operator()(RgbF input) const = 0;
 };
 

@@ -8,7 +8,7 @@ class KAbstractBoundingVolume
 {
 public:
   KAbstractBoundingVolume();
-  ~KAbstractBoundingVolume();
+  virtual ~KAbstractBoundingVolume();
   virtual void draw(KTransform3D &t, KColor const &color) const = 0;
 };
 

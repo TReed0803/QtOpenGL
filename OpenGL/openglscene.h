@@ -24,7 +24,7 @@ public:
 
   // Constructors / Destructor
   OpenGLScene();
-  ~OpenGLScene();
+  virtual ~OpenGLScene();
 
   // Virtual Scene functions
   virtual void start();

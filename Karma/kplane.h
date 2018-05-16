@@ -1,6 +1,7 @@
 #ifndef KPLANE_H
 #define KPLANE_H KPlane
 
+#include <cmath>
 #include <KVector3D>
 
 class KPlane

@@ -1,6 +1,7 @@
 #ifndef OPENGLUNIFORMBUFFEROBJECT_H
 #define OPENGLUNIFORMBUFFEROBJECT_H OpenGLUniformBufferObject
 
+#include <cmath>
 #include <OpenGLBuffer>
 
 class OpenGLUniformBufferObjectPrivate;

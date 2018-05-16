@@ -60,6 +60,7 @@ public:
 
   // Constructors / Destructor
   OpenGLSLParserPrivate(OpenGLSLParser *parent, KAbstractReader *reader, KAbstractWriter *writer);
+  virtual ~OpenGLSLParserPrivate();
 
   // Lexer
   token_id lexToken(token_type &token);
@@ -104,6 +105,11 @@ private:
 
 OpenGLSLParserPrivate::OpenGLSLParserPrivate(OpenGLSLParser *parent, KAbstractReader *reader, KAbstractWriter *writer) :
   KAbstractLexer<ParseToken>(reader), m_parent(parent), m_writer(writer)
+{
+  // Intentionally Empty
+}
+
+OpenGLSLParserPrivate::~OpenGLSLParserPrivate()
 {
   // Intentionally Empty
 }

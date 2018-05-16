@@ -13,7 +13,7 @@ public:
   typedef std::vector<std::string> Autoresolver;
   typedef std::vector<std::string> Autosampler;
   OpenGLSLParser(KAbstractReader *reader, KAbstractWriter *writer);
-  ~OpenGLSLParser();
+  virtual ~OpenGLSLParser();
 
   void initialize();
   void setFilePath(char const *filePath);

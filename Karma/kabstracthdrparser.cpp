@@ -53,6 +53,7 @@ class KAbstractHdrParserPrivate : public KAbstractLexer<ParseToken>
 public:
   typedef KAbstractHdrParser::PixelOrder PixelOrder;
   KAbstractHdrParserPrivate(KAbstractHdrParser *parser, KAbstractReader *reader);
+  virtual ~KAbstractHdrParserPrivate();
 
   // Helpers
   int readInteger();
@@ -80,6 +81,11 @@ private:
 
 KAbstractHdrParserPrivate::KAbstractHdrParserPrivate(KAbstractHdrParser *parser, KAbstractReader *reader) :
   KAbstractLexer<ParseToken>(reader), m_parser(parser)
+{
+  // Intentionally Empty
+}
+
+KAbstractHdrParserPrivate::~KAbstractHdrParserPrivate()
 {
   // Intentionally Empty
 }

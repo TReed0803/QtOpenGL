@@ -114,14 +114,14 @@ SampleScenePrivate::SampleScenePrivate() :
   m_activeRoughness(0),
   m_floorInstance(nullptr),
   m_mainInstance(nullptr),
+  m_openModel(false),
   m_aabb(0),
   m_sphereCentroid(0),
   m_sphereLarsons(0),
   m_spherePca(0),
   m_sphereRitters(0),
   m_obb(0),
-  m_ellipse(0),
-  m_openModel(false)
+  m_ellipse(0)
 {
   // Intentionally Empty
 }
