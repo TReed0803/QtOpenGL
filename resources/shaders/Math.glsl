@@ -56,8 +56,13 @@ highp vec4 saturate(highp vec4 v)
 
 highp vec2 uvCoord()
 {
+#ifdef COMPUTE_SHADER
+  return vec2(0.0, 0.0);
+#else
   return gl_FragCoord.xy / Current.Dimensions;
+#endif
 }
+
 
 highp vec2 ndcCoord()
 {
@@ -142,9 +147,13 @@ float l2rgb(float c)
 
 float randAngle()
 {
+#ifdef COMPUTE_SHADER
+  return 0.0;
+#else
   uint x = uint(gl_FragCoord.x);
   uint y = uint(gl_FragCoord.y);
   return (30u * x ^ y + 10u * x * y);
+#endif
 }
 
 #endif // MATH_GLSL

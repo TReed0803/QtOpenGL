@@ -170,6 +170,15 @@ void OpenGLMesh::draw()
 void OpenGLMesh::drawInstanced(size_t begin, size_t end)
 {
   P(OpenGLMeshPrivate);
+
+  // Some GPUs don't play nice with NOP calls to drawing instances.
+  // If the call isn't going to end up drawing anythnig, simply return.
+  // According to the GL standards this should be fine,
+  // however I have seen this fail in practice:
+  // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glDrawElementsInstanced.xhtml
+  if (begin == end)
+    return;
+
   bind();
   if (begin == 0)
     GL::glDrawElementsInstanced(GL_TRIANGLES, p.m_elementCount, GL_UNSIGNED_INT, (const GLvoid*)0, static_cast<GLsizei>(end));

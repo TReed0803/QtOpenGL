@@ -183,6 +183,7 @@ public:
   void scheduleUniformBlockUpdate(unsigned location, unsigned index);
   void scheduleUniformUpdate(unsigned location, unsigned index);
   QString getVersionComment();
+  QString getShaderTypeDefine(QOpenGLShader::ShaderType type);
   void addShaderDefines(char const *defs);
   bool link();
   bool bind();

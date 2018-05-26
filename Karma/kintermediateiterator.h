@@ -12,7 +12,15 @@ public:
   typedef From FromIterator;
   typedef FromConst FromIteratorConst;
   typedef To ToIterator;
-  typedef typename std::remove_pointer<To>::type& reference;
+
+  // IMPORTANT:
+  // std::array::iterator was originally implemented as just a pointer.
+  // This means some compilers may/may-not have the To::reference
+  // typedef (which is what we want).
+  // To account for this, we will abuse declype by dereferencing
+  // a NULL value to "produce" the reference type.
+  // C++17>= code should probably opt for To::reference typedef.
+  typedef decltype(**((typename To*)NULL))& reference;
 
   explicit KIntermediateIterator(FromIterator from);
   explicit KIntermediateIterator(FromIteratorConst from);

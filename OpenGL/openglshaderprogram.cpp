@@ -50,7 +50,7 @@ public:
   std::vector<std::string> m_autosampler;
   std::vector<OpenGLShaderProgramUniformUpdate> m_uniformUpdate;
   std::vector<OpenGLShaderProgramUniformBufferUpdate> m_bufferUpdate;
-  std::string m_defines;
+  QString m_defines;
 };
 
 /*******************************************************************************
@@ -80,7 +80,11 @@ void OpenGLShaderProgram::addSharedIncludePath(const char *path)
 bool OpenGLShaderProgram::addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString &fileName)
 {
   P(OpenGLShaderProgramPrivate);
-  std::string ppSource = getVersionComment().toUtf8().constData() + p.m_defines;
+  QString const header =
+    getVersionComment() +
+    getShaderTypeDefine(type) +
+    p.m_defines;
+  std::string ppSource = header.toStdString();
 
   // Preprocess the shader file
   KBufferedFileReader reader(fileName, 1024);
@@ -191,6 +195,34 @@ QString OpenGLShaderProgram::getVersionComment()
   }
 
   return comment + "\n";
+}
+
+QString OpenGLShaderProgram::getShaderTypeDefine(QOpenGLShader::ShaderType type)
+{
+  QString define = "#define ";
+  switch (type)
+  {
+    case QOpenGLShader::Vertex:
+      define += "VERTEX";
+      break;
+    case QOpenGLShader::Fragment:
+      define += "FRAGMENT";
+      break;
+    case QOpenGLShader::Geometry:
+      define += "GEOMETRY";
+      break;
+    case QOpenGLShader::TessellationControl:
+      define += "TESSELLATION_CONTROL";
+      break;
+    case QOpenGLShader::TessellationEvaluation:
+      define += "TESSELLATION_EVALUATION";
+      break;
+    case QOpenGLShader::Compute:
+      define += "COMPUTE";
+      break;
+  }
+
+  return define + "_SHADER\n";
 }
 
 void OpenGLShaderProgram::addShaderDefines(const char *defs)

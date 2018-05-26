@@ -4,6 +4,9 @@
 #include <vector>
 #include <time.h>
 
+// Qt Framework
+#include <QMutex>
+
 // Karma Framework
 #include <KCamera3D>
 #include <KDebug>
@@ -82,6 +85,7 @@ public:
   KAdaptiveOctree m_octree;
   KBspTree m_bspTree;
   bool m_openModel;
+  QMutex m_openLock;
 
   KAabbBoundingVolume *m_aabb;
   KSphereBoundingVolume *m_sphereCentroid;
@@ -334,15 +338,25 @@ void SampleScene::update(OpenGLUpdateEvent *event)
   P(SampleScenePrivate);
   (void)event;
 
-  if (p.m_openModel) {
-    QString fileName = OpenGLWidget::openFileName("Open Model", ".", "Wavefront Object File (*)");
-    OpenGLWidget::sMakeCurrent();
-    if (!fileName.isNull())
+  // IMPORTANT:
+  // In original implementation, QFileDialog blocked and didn't allow update
+  // to be called again until the OpenGLWidget::openFileName method returned.
+  // However, this doesn't seem to be the case any more, and update is still
+  // being called (Qt bug?)
+  if (p.m_openLock.tryLock())
+  {
+    if (p.m_openModel)
     {
-      OpenGLContext::currentContext();
-      p.loadObj(fileName);
+      QString fileName = OpenGLWidget::openFileName("Open Model", ".", "Wavefront Object File (*)");
+      OpenGLWidget::sMakeCurrent();
+      if (!fileName.isNull())
+      {
+        OpenGLContext::currentContext();
+        p.loadObj(fileName);
+      }
+      p.m_openModel = false;
     }
-    p.m_openModel = false;
+    p.m_openLock.unlock();
   }
 
   // Update Lights (Scene update)

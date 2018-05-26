@@ -337,9 +337,9 @@ void OpenGLDebugDraw::draw()
   // Draw Data
   sg_vertexArrayObject->bind();
   {
-    glDisable(GL_DEPTH_TEST);
+    GL::glDisable(GL_DEPTH_TEST);
     sg_debugGroups.draw();
-    glEnable(GL_DEPTH_TEST);
+    GL::glEnable(GL_DEPTH_TEST);
   }
   sg_vertexArrayObject->release();
 
