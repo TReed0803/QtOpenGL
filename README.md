@@ -3,7 +3,7 @@ A sample application which implements several advanced OpenGL rendering routines
 Mostly this exists as a playground for OpenGL 3.3+ and OpenGL ES 3.0+.
 
 # Tutorials
-For those of you coming here from my Qt5+ OpenGL Tutorials, please checkout the alternative branch (tutorial-series).
+For those who are coming here from my Qt5+ OpenGL Tutorials, please checkout the alternative branch (tutorial-series).
 The master branche is reserved for playing with advanced OpenGL features, and may or may not contain runtime issues.
 
 # Warning
